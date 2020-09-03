@@ -52,7 +52,6 @@ int main(int argc, char ** argv){
 	TFile * outFile = new TFile(argv[1],"RECREATE");
 
 	// ToF histogram for background normalization
-	TH1D * hToF_bac = new TH1D("hToF_bac","hToF_bac",1000,-25,75);
 	TH1D * hXp = new TH1D("hXp","hXp",1000,0,1);
 	TH1D * hQ2 = new TH1D("hQ2","hQ2",1000,0,10);
 	TH2D * h2XpQ2 = new TH2D("h2XpQ2","h2XpQ2",100,0,10,100,0,1);
@@ -70,7 +69,6 @@ int main(int argc, char ** argv){
 
 	// Loop over all the files that are given to me to get the best statistics per bar
 	for( int i = 2 ; i < argc ; i++ ){
-
 		TFile * inFile = new TFile(argv[i]);
 		TTree * inTree;
 
@@ -128,12 +126,13 @@ int main(int argc, char ** argv){
 
 			inTree->GetEntry(ev);
 
+
 			// Check neutron information
 			if( nMult != 1 ) continue;
 			if( nHit[0].getStatus() != 0 ) continue;
 			if( nHit[0].getTofFadc() == 0 ) continue;
 			if( nHit[0].getEdep() < AdcToMeVee*MeVee_cut ) continue;
-			
+
 			// Check electron information
 			if( eHit->getPID() != 11 ) continue;
 			if( eHit->getCharge() != -1 ) continue;
@@ -152,9 +151,6 @@ int main(int argc, char ** argv){
 			if( cos(tag[0].getThetaNQ()) > CosThetaNQ_bin_max ) continue;
 			if( eHit->getW2() < 2*2 ) continue;
 
-			// Fill the TOF histogram to extract the background normalization:
-			hToF_bac -> Fill( (nHit[0].getTofFadc())/(nHit[0].getDL().Mag()/100.) );
-			
 			// Now only look at neutrons in our signal region:
 			if( tag[0].getMomentumN().Mag() > NMomentum_max ) continue;
 			if( tag[0].getMomentumN().Mag() < NMomentum_min ) continue;
@@ -193,24 +189,7 @@ int main(int argc, char ** argv){
 		inFile->Close();
 	}// end loop over files
 
-	// Get the normalization for the background:
-	TFitResultPtr fit = (TFitResultPtr)hToF_bac->Fit("pol0","QESR","",-20,0);
-	double norm_per_bin = fit->Parameter(0);
-		// Given our momentum max and min, solve for bins in ToF/m
-	double beta_min = 1./sqrt(1.+ pow(mN/NMomentum_min,2));
-	double beta_max = 1./sqrt(1.+ pow(mN/NMomentum_max,2));
-	double TofpM_min = 1./(cAir*beta_min)*100;
-	double TofpM_max = 1./(cAir*beta_max)*100;
-	int TofpM_min_bin = hToF_bac->FindBin( TofpM_min );
-	int TofpM_max_bin = hToF_bac->FindBin( TofpM_max );
-
-	int nBins = (TofpM_min_bin - TofpM_max_bin); // max beta = min ToF and vice versa
-	double background_counts = norm_per_bin * nBins;
-	TVector3 bacnorm(background_counts,0,0);
-
 	outFile->cd();
-	bacnorm.Write("bacnorm");
-	hToF_bac->Write();
 	hXp->Write();
 	hAs->Write();
 	hQ2->Write();
@@ -223,8 +202,6 @@ int main(int argc, char ** argv){
 	}
 	hAs_lo->Write();
 	hAs_hi->Write();
-
-
 
 	outFile->Close();
 	return 0;

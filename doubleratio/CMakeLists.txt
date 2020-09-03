@@ -6,4 +6,9 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 add_executable(v0 v0.cpp )
 target_link_libraries(v0 bandhit_tree clashit_tree taghit_tree ${ROOT_LIBRARIES} )
 install( TARGETS v0
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
+
+add_executable(v0_noBG v0_noBG.cpp )
+target_link_libraries(v0_noBG bandhit_tree clashit_tree taghit_tree ${ROOT_LIBRARIES} )
+install( TARGETS v0_noBG
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin )
