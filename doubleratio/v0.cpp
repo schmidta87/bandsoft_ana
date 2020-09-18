@@ -58,6 +58,8 @@ int main(int argc, char ** argv){
 	TH2D * h2XpQ2 = new TH2D("h2XpQ2","h2XpQ2",100,0,10,100,0,1);
 	TH2D * h2Q2Wp_hi = new TH2D("h2Q2Wp_hi","h2Q2Wp_hi",100,0,10,100,0,4);
 	TH2D * h2Q2Wp_lo = new TH2D("h2Q2Wp_lo","h2Q2Wp_lo",100,0,10,100,0,4);
+	TH2D * h2XpAs = new TH2D("h2XpAs","h2XpAs",6,0.2,0.8,5,1.2,1.6);
+
 	TH1D * hWp = new TH1D("hWp","hWp",1000,0,10);
 	TH1D * hAs = new TH1D("hAs","hAs",600,1.2,1.6);
 	TH1D ** hXpBins = new TH1D*[NAl_bins];
@@ -157,6 +159,8 @@ int main(int argc, char ** argv){
 			if( tag[0].getAs() < Al_min ) continue;
 			if( tag[0].getAs() > Al_max ) continue;
 
+			h2XpAs->Fill( tag[0].getXp() , tag[0].getAs() );
+
 			// Fill full Xp,As distributions
 			if( tag[0].getXp() < 0.35 && tag[0].getXp() > 0.25)
 				h2Q2Wp_lo->Fill( eHit->getQ2() , tag[0].getWp() );		
@@ -211,6 +215,7 @@ int main(int argc, char ** argv){
 	h2XpQ2->Write();
 	h2Q2Wp_hi->Write();
 	h2Q2Wp_lo->Write();
+	h2XpAs->Write();
 	hWp->Write();
 	for( int i = 0 ; i < NAl_bins ; i++){
 		hXpBins[i]->Write();
