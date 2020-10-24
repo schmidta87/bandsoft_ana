@@ -19,6 +19,7 @@
 #include "TVectorT.h"
 #include "TRandom3.h"
 #include "constants.h"
+#include "TClonesArray.h"
 
 using namespace std;
 
@@ -55,7 +56,7 @@ int main(int argc, char ** argv){
         outTree->Branch("current"       ,&current               );
         //      Neutron branches:
 	outTree->Branch("nMult"		,&output_nMult			);
-        outTree->Branch("nHit"          ,&output_nHit                   );
+        outTree->Branch("nHits"          ,&output_nHit                   );
         //      Electron branches:
         outTree->Branch("eHit"          ,&output_eHit                  );
         //      Tagged branches:
@@ -65,10 +66,10 @@ int main(int argc, char ** argv){
 		
 
 	// Define 4D binned ToF plots and bin edges and kin cuts
-	double const min_Q2 		= 1.;
+	double const min_Q2 		= 1.5;
 	double const max_Q2 		= 11.;
 	double const min_CosTheta_nq 	= -1.1;
-	double const max_CosTheta_nq 	= 0.0;
+	double const max_CosTheta_nq 	= -0.5;
 
 /*
 	int nBins_Q2		= 1;
@@ -92,14 +93,17 @@ int main(int argc, char ** argv){
 	TFile * inFile_e = new TFile(argv[2]);
 	TFile * inFile_n = new TFile(argv[3]);
 	TTree * inTree_e = (TTree*)inFile_e->Get("electrons");
-	TTree * inTree_n = (TTree*)inFile_n->Get("neutrons");
+//	TTree * inTree_n = (TTree*)inFile_n->Get("neutrons");
+	TTree * inTree_n = (TTree*)inFile_n->Get("tagged");
+
 
 	clashit* input_eHit = new clashit;
-	bandhit* input_nHit = new bandhit[maxNeutrons];
+	TClonesArray* input_nHit = new TClonesArray("bandhit");
+//	bandhit* input_nHit = new bandhit[maxNeutrons];
         int nMult;
 
 	inTree_e->SetBranchAddress("eHit",	&input_eHit);
-	inTree_n->SetBranchAddress("nHit",	&input_nHit);
+	inTree_n->SetBranchAddress("nHits",	&input_nHit);
 	inTree_n->SetBranchAddress("nMult",	&nMult);
 
 	vector<double> n_theta;	
@@ -115,7 +119,7 @@ int main(int argc, char ** argv){
 	// Read entire tree into memory due to issue with jumping around in tree as we read it..
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
-
+		if(neutron == 100000) continue;
 		double input_theta_n = 0; 
 		double input_phi_n = 0; 
 		double input_Edep_n = 0;
@@ -125,14 +129,22 @@ int main(int argc, char ** argv){
 		inTree_n->GetEntry(neutron);
 		
 		if (nMult != 1) continue;
-		if (n_status.size() > 100000) break;
 		
+		bandhit* this_nHit = (bandhit*)input_nHit->At(0);
+		
+		input_theta_n = this_nHit->getDL().Theta();
+		input_phi_n = this_nHit->getDL().Phi();
+		input_Edep_n = this_nHit->getEdep();
+		input_dL = this_nHit->getDL().Mag();
+		input_status = this_nHit->getStatus();
+
+/*		
 		input_theta_n = input_nHit[0].getDL().Theta();
 		input_phi_n = input_nHit[0].getDL().Phi();
 		input_Edep_n = input_nHit[0].getEdep();
 		input_dL = input_nHit[0].getDL().Mag();
 		input_status = input_nHit[0].getStatus();
-
+*/
 		n_theta.push_back(input_theta_n);
 		n_phi.push_back(input_phi_n);
 		n_Edep.push_back(input_Edep_n);
@@ -170,7 +182,9 @@ int main(int argc, char ** argv){
 
 		int nPairs = 0; // counts how many pairs were made for this neutron
 		int nFails = 0; // counts how many times a pair was tried for
-		while( nPairs < 100 && nFails < 100 ){
+		int maxPairs = 10;
+		int maxFails = 10;
+		while( nPairs < maxPairs && nFails < maxFails ){
 			int electron = myRand->Rndm() * inTree_e->GetEntries()/100;
 			
 			// Read in the stored variables
