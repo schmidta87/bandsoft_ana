@@ -8,7 +8,6 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules")
 find_package(ROOT REQUIRED)
 
 
-
 SET(CMAKE_SKIP_BUILD_RPATH  FALSE)
 SET(CMAKE_BUILD_WITH_INSTALL_RPATH FALSE)
 SET(CMAKE_INSTALL_RPATH "${CMAKE_SOURCE_DIR}/lib")
@@ -23,3 +22,4 @@ add_subdirectory(bandhit)
 add_subdirectory(clashit)
 add_subdirectory(taghit)
 add_subdirectory(doubleratio)
+add_subdirectory(background)

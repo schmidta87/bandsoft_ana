@@ -53,14 +53,11 @@ int main(int argc, char ** argv){
 	TFile * outFile = new TFile(argv[1],"RECREATE");
 
 	// ToF histogram for background normalization
-	TH1D * hToF_bac = new TH1D("hToF_bac","hToF_bac",1000,-25,75);
 	TH1D * hXp = new TH1D("hXp","hXp",1000,0,1);
 	TH1D * hQ2 = new TH1D("hQ2","hQ2",1000,0,10);
 	TH2D * h2XpQ2 = new TH2D("h2XpQ2","h2XpQ2",100,0,10,100,0,1);
 	TH2D * h2Q2Wp_hi = new TH2D("h2Q2Wp_hi","h2Q2Wp_hi",100,0,10,100,0,4);
 	TH2D * h2Q2Wp_lo = new TH2D("h2Q2Wp_lo","h2Q2Wp_lo",100,0,10,100,0,4);
-	TH2D * h2XpAs = new TH2D("h2XpAs","h2XpAs",6,0.2,0.8,5,1.2,1.6);
-
 	TH1D * hWp = new TH1D("hWp","hWp",1000,0,10);
 	TH1D * hAs = new TH1D("hAs","hAs",600,1.2,1.6);
 	TH1D ** hXpBins = new TH1D*[NAl_bins];
@@ -116,7 +113,7 @@ int main(int argc, char ** argv){
 		// Start working on one of the files, looping over all of the events
 		cout << "Working on file: " << argv[i] << "\n";
 		for( int ev = 0 ; ev < inTree->GetEntries() ; ev++ ){
-			if( ev % 100000 == 0 ) cout << "\ton event " << ev << "\n";
+			if( ev % 1000000 == 0 ) cout << "\ton event " << ev << "\n";
 
 			// Clear all branches before getting the entry from tree
 			gated_charge	= 0;
@@ -163,9 +160,6 @@ int main(int argc, char ** argv){
 			if( cos(this_tag->getThetaNQ()) > CosThetaNQ_bin_max ) continue;
 			if( eHit->getW2() < 2*2 ) continue;
 
-			// Fill the TOF histogram to extract the background normalization:
-			hToF_bac -> Fill( (this_nHit->getTofFadc())/(this_nHit->getDL().Mag()/100.) );
-			
 			// Now only look at neutrons in our signal region:
 			if( this_tag->getMomentumN().Mag() > NMomentum_max ) continue;
 			if( this_tag->getMomentumN().Mag() < NMomentum_min ) continue;
@@ -173,8 +167,6 @@ int main(int argc, char ** argv){
 			if( this_tag->getWp() < Wp_min ) continue;
 			if( this_tag->getAs() < Al_min ) continue;
 			if( this_tag->getAs() > Al_max ) continue;
-
-			h2XpAs->Fill( tag[0].getXp() , tag[0].getAs() );
 
 			// Fill full Xp,As distributions
 			if( this_tag->getXp() < 0.35 && this_tag->getXp() > 0.25)
@@ -206,31 +198,13 @@ int main(int argc, char ** argv){
 		inFile->Close();
 	}// end loop over files
 
-	// Get the normalization for the background:
-	TFitResultPtr fit = (TFitResultPtr)hToF_bac->Fit("pol0","QESR","",-20,0);
-	double norm_per_bin = fit->Parameter(0);
-		// Given our momentum max and min, solve for bins in ToF/m
-	double beta_min = 1./sqrt(1.+ pow(mN/NMomentum_min,2));
-	double beta_max = 1./sqrt(1.+ pow(mN/NMomentum_max,2));
-	double TofpM_min = 1./(cAir*beta_min)*100;
-	double TofpM_max = 1./(cAir*beta_max)*100;
-	int TofpM_min_bin = hToF_bac->FindBin( TofpM_min );
-	int TofpM_max_bin = hToF_bac->FindBin( TofpM_max );
-
-	int nBins = (TofpM_min_bin - TofpM_max_bin); // max beta = min ToF and vice versa
-	double background_counts = norm_per_bin * nBins;
-	TVector3 bacnorm(background_counts,0,0);
-
 	outFile->cd();
-	bacnorm.Write("bacnorm");
-	hToF_bac->Write();
 	hXp->Write();
 	hAs->Write();
 	hQ2->Write();
 	h2XpQ2->Write();
 	h2Q2Wp_hi->Write();
 	h2Q2Wp_lo->Write();
-	h2XpAs->Write();
 	hWp->Write();
 	for( int i = 0 ; i < NAl_bins ; i++){
 		hXpBins[i]->Write();
