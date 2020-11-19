@@ -119,7 +119,7 @@ int main(int argc, char ** argv){
 	// Read entire tree into memory due to issue with jumping around in tree as we read it..
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
-		if(neutron == 100000) continue;
+
 		double input_theta_n = 0; 
 		double input_phi_n = 0; 
 		double input_Edep_n = 0;
@@ -167,7 +167,7 @@ int main(int argc, char ** argv){
 		input_fixed_Ebeam = 10.6;
 		input_vtz_e = input_eHit->getVtz();
 
-		if( electron > inTree_e->GetEntries()/100 ) break;
+		//if( electron > inTree_e->GetEntries()/100 ) break;
 
 		e_theta.push_back(input_theta_e);
 		e_phi.push_back(input_phi_e);
@@ -185,7 +185,8 @@ int main(int argc, char ** argv){
 		int maxPairs = 10;
 		int maxFails = 10;
 		while( nPairs < maxPairs && nFails < maxFails ){
-			int electron = myRand->Rndm() * inTree_e->GetEntries()/100;
+		
+			int electron = myRand->Rndm() * inTree_e->GetEntries();
 			
 			// Read in the stored variables
 			double fixed_Ebeam 	= e_beam	[electron];
