@@ -16,6 +16,7 @@
 #include "bandhit.h"
 #include "clashit.h"
 #include "taghit.h"
+#include "clas12fiducial.h"
 
 // For processing data
 
@@ -27,9 +28,9 @@ int main(int argc, char ** argv){
 	// Set style
 	gStyle->SetOptFit(1);
 
-	if (argc < 2){
+	if (argc < 3){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./code [outfile.root] [inputDatafiles]\n";
+			<< "\t./code [outfile.root] [apply fiducial (1, 0)] [inputDatafiles]\n";
 		return -1;
 	}
 
@@ -42,19 +43,21 @@ int main(int argc, char ** argv){
 	const double CosThetaNQ_bin_min = -1;
 	const double CosThetaNQ_bin_max = -0.8;
 	const double NMomentum_min = 0.2;
-	const double NMomentum_max = 0.65;
+	const double NMomentum_max = 0.6;
 	const double Wp_min = 1.8;
+	const double Wp_max = 4.5;
 	const double Al_min = 1.2;
 	const double Al_max = 1.6;
 	const double Al_bin_width = 0.05;
-	int NAl_bins = (Al_max-Al_min)/Al_bin_width;
+	int NAl_bins = (Al_max-Al_min + Al_bin_width/2.)/Al_bin_width;
 
 	// Output rootfile
 	TFile * outFile = new TFile(argv[1],"RECREATE");
 
-	// ToF histogram for background normalization
 	TH1D * hXp = new TH1D("hXp","hXp",1000,0,1);
+	TH1D * hXb = new TH1D("hXb","hXb",1000,0,1);
 	TH1D * hQ2 = new TH1D("hQ2","hQ2",1000,0,10);
+	TH1D * hPn = new TH1D("hPn","hPn",1000,0.0,0.65);
 	TH2D * h2XpQ2 = new TH2D("h2XpQ2","h2XpQ2",100,0,10,100,0,1);
 	TH2D * h2Q2Wp_hi = new TH2D("h2Q2Wp_hi","h2Q2Wp_hi",100,0,10,100,0,4);
 	TH2D * h2Q2Wp_lo = new TH2D("h2Q2Wp_lo","h2Q2Wp_lo",100,0,10,100,0,4);
@@ -64,12 +67,61 @@ int main(int argc, char ** argv){
 	for( int i = 0 ; i < NAl_bins ; i++){
 		hXpBins[i] = new TH1D(Form("hXpBins_%i",i),Form("hXpBins_%i",i),100,0,1);
 	}
+	
 	TH1D * hAs_hi = new TH1D("hAs_hi","hAs_hi",NAl_bins,Al_min,Al_max);
 	TH1D * hAs_lo = new TH1D("hAs_lo","hAs_lo",NAl_bins,Al_min,Al_max);
 
 
+	// Neutron momentum binned histograms
+	const double NMomentum_bin_min = 0.20;
+	const double NMomentum_bin_max = 0.50;
+	const double NMomentum_bin_width = 0.1;
+	const int NMomentum_bins = (NMomentum_bin_max-NMomentum_bin_min + NMomentum_bin_width/2.)/NMomentum_bin_width;
+
+	TH1D ** hXb_mom_bins = new TH1D*[NMomentum_bins];
+	TH1D ** hXp_mom_bins = new TH1D*[NMomentum_bins];
+
+	for( int i = 0 ; i < NMomentum_bins ; i++){
+		hXb_mom_bins[i] = new TH1D(Form("hXb_mom_bins_%i",i),Form("hXb_mom_bins_%i",i),100,0,1);
+		hXp_mom_bins[i] = new TH1D(Form("hXp_mom_bins_%i",i),Form("hXp_mom_bins_%i",i),100,0,1);
+	}
+
+	// AlphaS binned histograms
+	const double alphaS_bin_min = 1.2;
+	const double alphaS_bin_max = 1.6;
+	const double alphaS_bin_width = 0.1;
+	const int NalphaS_bins = (alphaS_bin_max - alphaS_bin_min + alphaS_bin_width/2.)/alphaS_bin_width;
+	
+	TH1D ** hXb_aS_bins = new TH1D*[NalphaS_bins];
+	TH1D ** hXp_aS_bins = new TH1D*[NalphaS_bins];
+
+	for( int i = 0 ; i < NalphaS_bins ; i++){
+		hXb_aS_bins[i] = new TH1D(Form("hXb_aS_bins_%i",i),Form("hXb_aS_bins_%i",i),100,0,1);
+		hXp_aS_bins[i] = new TH1D(Form("hXp_aS_bins_%i",i),Form("hXp_aS_bins_%i",i),100,0,1);
+	}
+
+/*
+	// virtuality binned histograms
+	const double virt_bin_min = 1.2;
+	const double virt_bin_max = 1.6;
+	const double virt_bin_width = 0.1;
+	const double Nvirt_bins = (virt_bin_max - virt_bin_min + virt_bin_width/2.)/virt_bin_width;
+	
+	TH1D ** hXb_virt_bins = new TH1D*[Nvirt_bins];
+	TH1D ** hXp_virt_bins = new TH1D*[Nvirt_bins];
+
+	for( int i = 0 ; i < Nvirt_bins ; i++){
+		hXb_virt_bins[i] = new TH1D(Form("hXb_virt_bins_%i",i),Form("hXb_virt_bins_%i",i),100,0,1);
+		hXp_virt_bins[i] = new TH1D(Form("hXp_virt_bins_%i",i),Form("hXp_virt_bins_%i",i),100,0,1);
+	}
+*/
+
+	
+	int doFiducial = atoi(argv[2]);
+	clas12fiducial* fid = new clas12fiducial();
+
 	// Loop over all the files that are given to me to get the best statistics per bar
-	for( int i = 2 ; i < argc ; i++ ){
+	for( int i = 3 ; i < argc ; i++ ){
 
 		TFile * inFile = new TFile(argv[i]);
 		TTree * inTree;
@@ -113,7 +165,7 @@ int main(int argc, char ** argv){
 		// Start working on one of the files, looping over all of the events
 		cout << "Working on file: " << argv[i] << "\n";
 		for( int ev = 0 ; ev < inTree->GetEntries() ; ev++ ){
-			if( ev % 1000000 == 0 ) cout << "\ton event " << ev << "\n";
+			if( ev % 100000 == 0 ) cout << "\ton event " << ev << "\n";
 
 			// Clear all branches before getting the entry from tree
 			gated_charge	= 0;
@@ -152,6 +204,12 @@ int main(int argc, char ** argv){
 			if( eHit->getW() < 9 ) continue;
 			if( eHit->getVtz() < -8 ) continue;
 			if( eHit->getVtz() > 3 ) continue;
+			if( eHit->getMomentum() < 2. ) continue;
+		
+			if (doFiducial) {
+				int eSect = fid->GetElectronAcceptance(eHit->getTheta()*TMath::RadToDeg(), eHit->getPhi()*TMath::RadToDeg(), eHit->getMomentum());
+				if( eSect < 0 ) continue;
+			}
 
 			// Define our 2D bins in Q2 and Theta_nq
 			if( eHit->getQ2() < Q2_bin_min ) continue;
@@ -161,6 +219,7 @@ int main(int argc, char ** argv){
 			if( eHit->getW2() < 2*2 ) continue;
 
 			// Now only look at neutrons in our signal region:
+			if( this_nHit->getTofFadc() < 0. ) continue;
 			if( this_tag->getMomentumN().Mag() > NMomentum_max ) continue;
 			if( this_tag->getMomentumN().Mag() < NMomentum_min ) continue;
 			if( this_tag->getMomentumN().Mag() != this_tag->getMomentumN().Mag() ) continue; // check if NaN
@@ -175,17 +234,33 @@ int main(int argc, char ** argv){
 				h2Q2Wp_hi->Fill( eHit->getQ2() , this_tag->getWp() );		
 	
 
-			if( this_tag->getWp() > 1.8 && this_tag->getWp() < 3 && eHit->getQ2() > 2 && eHit->getQ2() < 6.5 ){
+			if( this_tag->getWp() > Wp_min  && this_tag->getWp() < Wp_max && eHit->getQ2() > Q2_bin_min && eHit->getQ2() < Q2_bin_max ){
 				hXp->Fill( this_tag->getXp() );
+				hXb->Fill( eHit->getXb() );
 				hAs->Fill( this_tag->getAs() );
 				hWp->Fill( this_tag->getWp() );
 				hQ2->Fill( eHit->getQ2()  );
+				hPn->Fill( this_tag->getMomentumN().Mag());
 				h2XpQ2->Fill( eHit->getQ2() , this_tag->getXp() );
 
 				// Fill Xp distribution for bin in alpha_s
 				int binAl = ( this_tag->getAs() - Al_min )/Al_bin_width ;
 				hXpBins[binAl]->Fill( this_tag->getXp() );
-			
+
+				double thisPn = this_tag->getMomentumN().Mag();
+				if( thisPn > NMomentum_bin_min && thisPn < NMomentum_bin_max) { 
+					int binPn = (this_tag->getMomentumN().Mag() - NMomentum_bin_min)/NMomentum_bin_width; 
+					hXb_mom_bins[binPn]->Fill(eHit->getXb());
+					hXp_mom_bins[binPn]->Fill(this_tag->getXp());
+				}
+
+				double thisaS = this_tag->getAs();
+				if( thisaS > alphaS_bin_min && thisaS < alphaS_bin_max) { 
+					int binaS = (this_tag->getAs() - alphaS_bin_min)/alphaS_bin_width; 
+					hXb_aS_bins[binaS]->Fill(eHit->getXb());
+					hXp_aS_bins[binaS]->Fill(this_tag->getXp());
+				}
+
 				if( this_tag->getXp() > 0.25 && this_tag->getXp() < 0.35 )
 					hAs_lo -> Fill( this_tag->getAs() );
 				else if( this_tag->getXp() > 0.5 )
@@ -200,14 +275,24 @@ int main(int argc, char ** argv){
 
 	outFile->cd();
 	hXp->Write();
+	hXb->Write();
 	hAs->Write();
 	hQ2->Write();
 	h2XpQ2->Write();
 	h2Q2Wp_hi->Write();
 	h2Q2Wp_lo->Write();
 	hWp->Write();
+	hPn->Write();
 	for( int i = 0 ; i < NAl_bins ; i++){
 		hXpBins[i]->Write();
+	}
+	for( int i = 0 ; i < NMomentum_bins ; i++){
+		hXb_mom_bins[i]->Write();
+		hXp_mom_bins[i]->Write();
+	}
+	for( int i = 0 ; i < NalphaS_bins ; i++){
+		hXb_aS_bins[i]->Write();
+		hXp_aS_bins[i]->Write();
 	}
 	hAs_lo->Write();
 	hAs_hi->Write();
