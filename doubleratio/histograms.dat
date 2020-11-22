@@ -1,0 +1,10 @@
+4
+eHit.Q2         Q2      100     1.      11.     Q^{2}
+eHit.Xb         xB      100     0.      1.      x_{B}
+tag.Xp      	xP      100     0.      1.      x'
+tag.As       	aS      100     1.      2.      #alpha_{S}
+4
+tag.MomentumN.Mag()	pn      0.2     0.5     0.1
+tag.As               	aS      1.2     1.6     0.1
+eHit.Xb	         	xB      0.2     0.6     0.1
+tag.Xp               	xP      0.2     0.8     0.1
