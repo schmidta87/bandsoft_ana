@@ -100,12 +100,12 @@ int main(int argc, char ** argv){
 		hXp_aS_bins[i] = new TH1D(Form("hXp_aS_bins_%i",i),Form("hXp_aS_bins_%i",i),100,0,1);
 	}
 
-/*
+
 	// virtuality binned histograms
-	const double virt_bin_min = 1.2;
-	const double virt_bin_max = 1.6;
+	const double virt_bin_min = 0.05;
+	const double virt_bin_max = 0.45;
 	const double virt_bin_width = 0.1;
-	const double Nvirt_bins = (virt_bin_max - virt_bin_min + virt_bin_width/2.)/virt_bin_width;
+	const int Nvirt_bins = (virt_bin_max - virt_bin_min + virt_bin_width/2.)/virt_bin_width;
 	
 	TH1D ** hXb_virt_bins = new TH1D*[Nvirt_bins];
 	TH1D ** hXp_virt_bins = new TH1D*[Nvirt_bins];
@@ -114,7 +114,7 @@ int main(int argc, char ** argv){
 		hXb_virt_bins[i] = new TH1D(Form("hXb_virt_bins_%i",i),Form("hXb_virt_bins_%i",i),100,0,1);
 		hXp_virt_bins[i] = new TH1D(Form("hXp_virt_bins_%i",i),Form("hXp_virt_bins_%i",i),100,0,1);
 	}
-*/
+
 
 	
 	int doFiducial = atoi(argv[2]);
@@ -242,9 +242,9 @@ int main(int argc, char ** argv){
 				int binAl = ( this_tag->getAs() - Al_min )/Al_bin_width ;
 				hXpBins[binAl]->Fill( this_tag->getXp() );
 
-				double thisPn = this_tag->getMomentumN().Mag();
-				if( thisPn > NMomentum_bin_min && thisPn < NMomentum_bin_max) { 
-					int binPn = (this_tag->getMomentumN().Mag() - NMomentum_bin_min)/NMomentum_bin_width; 
+				double p_n = this_tag->getMomentumN().Mag();
+				if( p_n > NMomentum_bin_min && p_n < NMomentum_bin_max) { 
+					int binPn = (p_n - NMomentum_bin_min)/NMomentum_bin_width; 
 					hXb_mom_bins[binPn]->Fill(eHit->getXb());
 					hXp_mom_bins[binPn]->Fill(this_tag->getXp());
 				}
@@ -254,6 +254,14 @@ int main(int argc, char ** argv){
 					int binaS = (this_tag->getAs() - alphaS_bin_min)/alphaS_bin_width; 
 					hXb_aS_bins[binaS]->Fill(eHit->getXb());
 					hXp_aS_bins[binaS]->Fill(this_tag->getXp());
+				}
+
+				double E_n = sqrt(p_n*p_n + mN*mN);
+				double virt = -((mD-E_n)*(mD-E_n) - p_n*p_n - mP*mP)/(mP*mP);  
+				if( virt > virt_bin_min && virt < virt_bin_max) { 
+					int binv = (virt - virt_bin_min)/virt_bin_width; 
+					hXb_virt_bins[binv]->Fill(eHit->getXb());
+					hXp_virt_bins[binv]->Fill(this_tag->getXp());
 				}
 
 				if( this_tag->getXp() > 0.25 && this_tag->getXp() < 0.35 )
@@ -288,6 +296,10 @@ int main(int argc, char ** argv){
 	for( int i = 0 ; i < NalphaS_bins ; i++){
 		hXb_aS_bins[i]->Write();
 		hXp_aS_bins[i]->Write();
+	}
+	for( int i = 0 ; i < Nvirt_bins ; i++){
+		hXb_virt_bins[i]->Write();
+		hXp_virt_bins[i]->Write();
 	}
 	hAs_lo->Write();
 	hAs_hi->Write();
