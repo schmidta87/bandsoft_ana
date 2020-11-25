@@ -16,7 +16,7 @@
 #include "bandhit.h"
 #include "clashit.h"
 #include "taghit.h"
-#include "clas12fiducial.h"
+//#include "clas12fiducial.h"
 
 // For processing data
 
@@ -35,6 +35,11 @@ int main(int argc, char ** argv){
 	}
 
 
+	// Or wants to see:
+	// 	Pn data, sim in bins of x and x'
+	// 	Let's look at kinematics in bins of x and x' (Q2, W') data and sim etc (1D and 2D plots?)
+	// 	Limit Q2/W' of double ratio plot and see what happens
+
 
 	const double AdcToMeVee = 2300;
 	const double MeVee_cut = 5;
@@ -42,7 +47,7 @@ int main(int argc, char ** argv){
 	const double Q2_bin_max = 10;
 	const double CosThetaNQ_bin_min = -1;
 	const double CosThetaNQ_bin_max = -0.8;
-	const double NMomentum_min = 0.2;
+	const double NMomentum_min = 0.3;
 	const double NMomentum_max = 0.6;
 	const double Wp_min = 1.8;
 	const double Wp_max = 4.5;
@@ -50,6 +55,11 @@ int main(int argc, char ** argv){
 	const double Al_max = 1.6;
 	const double Al_bin_width = 0.05;
 	int NAl_bins = (Al_max-Al_min + Al_bin_width/2.)/Al_bin_width;
+
+	const double Xp_min = 0.1;
+	const double Xp_max = 0.7;
+	const double Xp_bin_width = 0.1;
+	int NXp_bins = (Xp_max - Xp_min + Xp_bin_width/2.)/Xp_bin_width;
 
 	// Output rootfile
 	TFile * outFile = new TFile(argv[1],"RECREATE");
@@ -74,6 +84,19 @@ int main(int argc, char ** argv){
 	
 	TH1D * hAs_hi = new TH1D("hAs_hi","hAs_hi",NAl_bins,Al_min,Al_max);
 	TH1D * hAs_lo = new TH1D("hAs_lo","hAs_lo",NAl_bins,Al_min,Al_max);
+
+	// AlphaS histograms for bins in X'
+	TH1D ** hAs_bins = new TH1D*[NXp_bins];
+	for( int i = 0 ; i < NXp_bins ; i++){
+		hAs_bins[i] = new TH1D(Form("hAs_bins_%i",i),Form("hAs_bins_%i",i),16,1.2,1.6);
+	}
+	// Pn histograms for bins in X' and Xb
+	TH1D ** hPn_xp = new TH1D*[NXp_bins];
+	TH1D ** hPn_xb = new TH1D*[NXp_bins];
+	for( int i = 0 ; i < NXp_bins ; i++){
+		hPn_xp[i] = new TH1D(Form("hPn_xp_%i",i),Form("hPn_xp_%i",i),80,0.25,0.65);
+		hPn_xb[i] = new TH1D(Form("hPn_xb_%i",i),Form("hPn_xb_%i",i),80,0.25,0.65);
+	}
 
 
 	// Neutron momentum binned histograms
@@ -104,6 +127,12 @@ int main(int argc, char ** argv){
 		hXp_aS_bins[i] = new TH1D(Form("hXp_aS_bins_%i",i),Form("hXp_aS_bins_%i",i),100,0,1);
 	}
 
+	TH2D * h2AsVi = new TH2D("h2AsVi","h2AsVi",50,1,2,50,-1,0);
+	TH2D * h2AsPn = new TH2D("h2AsPn","h2AsPn",50,1,2,50,0,1);
+	TH2D * h2ViPn = new TH2D("h2ViPn","h2ViPn",50,-1,0,50,0,1);
+
+
+
 /*
 	// virtuality binned histograms
 	const double virt_bin_min = 1.2;
@@ -121,8 +150,8 @@ int main(int argc, char ** argv){
 */
 
 	
-	int doFiducial = atoi(argv[2]);
-	clas12fiducial* fid = new clas12fiducial();
+	//int doFiducial = atoi(argv[2]);
+	//clas12fiducial* fid = new clas12fiducial();
 
 	// Loop over all the files that are given to me to get the best statistics per bar
 	for( int i = 3 ; i < argc ; i++ ){
@@ -210,10 +239,10 @@ int main(int argc, char ** argv){
 			if( eHit->getVtz() > 3 ) continue;
 			if( eHit->getMomentum() < 2. ) continue;
 		
-			if (doFiducial) {
-				int eSect = fid->GetElectronAcceptance(eHit->getTheta()*TMath::RadToDeg(), eHit->getPhi()*TMath::RadToDeg(), eHit->getMomentum());
-				if( eSect < 0 ) continue;
-			}
+			//if (doFiducial) {
+			//	int eSect = fid->GetElectronAcceptance(eHit->getTheta()*TMath::RadToDeg(), eHit->getPhi()*TMath::RadToDeg(), eHit->getMomentum());
+			//	if( eSect < 0 ) continue;
+			//}
 
 			// Define our 2D bins in Q2 and Theta_nq
 			if( eHit->getQ2() < Q2_bin_min ) continue;
@@ -231,51 +260,75 @@ int main(int argc, char ** argv){
 			if( this_tag->getMomentumN().Mag() < NMomentum_min ) continue;
 			if( this_tag->getMomentumN().Mag() != this_tag->getMomentumN().Mag() ) continue; // check if NaN
 			if( this_tag->getWp() < Wp_min ) continue;
+			if( this_tag->getWp() > Wp_max ) continue;
 			if( this_tag->getAs() < Al_min ) continue;
 			if( this_tag->getAs() > Al_max ) continue;
 
-			h2XpAs->Fill( tag[0].getXp() , tag[0].getAs() );
 
 			// Fill full Xp,As distributions
+			h2XpAs->Fill( this_tag->getXp() , this_tag->getAs() );
+
+
+			int binXp = ( this_tag->getXp() - Xp_min )/Xp_bin_width;
+			if( binXp > -1 && this_tag->getXp() < Xp_max){
+				hAs_bins[binXp]->Fill( this_tag->getAs() );
+				hPn_xp[binXp]->Fill(this_tag->getMomentumN().Mag());
+			}
+			int binXb = ( eHit->getXb() - Xp_min)/Xp_bin_width;
+			if( binXb > -1 && eHit->getXb() < Xp_max){
+				hPn_xb[binXb]->Fill(this_tag->getMomentumN().Mag());
+			}
+				
+
+			// Fill Hi and Lo Xp phase space in Q2,W'
 			if( this_tag->getXp() < 0.35 && this_tag->getXp() > 0.25)
 				h2Q2Wp_lo->Fill( eHit->getQ2() , this_tag->getWp() );		
 			else if( this_tag->getXp() > 0.5 )
 				h2Q2Wp_hi->Fill( eHit->getQ2() , this_tag->getWp() );		
 	
+			
+			hXp->Fill( this_tag->getXp() );
+			hXb->Fill( eHit->getXb() );
+			hAs->Fill( this_tag->getAs() );
+			hWp->Fill( this_tag->getWp() );
+			hQ2->Fill( eHit->getQ2()  );
+			hPn->Fill( this_tag->getMomentumN().Mag());
+			h2XpQ2->Fill( eHit->getQ2() , this_tag->getXp() );
 
-			if( this_tag->getWp() > Wp_min  && this_tag->getWp() < Wp_max && eHit->getQ2() > Q2_bin_min && eHit->getQ2() < Q2_bin_max ){
-				hXp->Fill( this_tag->getXp() );
-				hXb->Fill( eHit->getXb() );
-				hAs->Fill( this_tag->getAs() );
-				hWp->Fill( this_tag->getWp() );
-				hQ2->Fill( eHit->getQ2()  );
-				hPn->Fill( this_tag->getMomentumN().Mag());
-				h2XpQ2->Fill( eHit->getQ2() , this_tag->getXp() );
+			// Fill Xp distribution for bin in alpha_s
+			int binAl = ( this_tag->getAs() - Al_min )/Al_bin_width ;
+			hXpBins[binAl]->Fill( this_tag->getXp() );
 
-				// Fill Xp distribution for bin in alpha_s
-				int binAl = ( this_tag->getAs() - Al_min )/Al_bin_width ;
-				hXpBins[binAl]->Fill( this_tag->getXp() );
 
-				double thisPn = this_tag->getMomentumN().Mag();
-				if( thisPn > NMomentum_bin_min && thisPn < NMomentum_bin_max) { 
-					int binPn = (this_tag->getMomentumN().Mag() - NMomentum_bin_min)/NMomentum_bin_width; 
-					hXb_mom_bins[binPn]->Fill(eHit->getXb());
-					hXp_mom_bins[binPn]->Fill(this_tag->getXp());
-				}
-
-				double thisaS = this_tag->getAs();
-				if( thisaS > alphaS_bin_min && thisaS < alphaS_bin_max) { 
-					int binaS = (this_tag->getAs() - alphaS_bin_min)/alphaS_bin_width; 
-					hXb_aS_bins[binaS]->Fill(eHit->getXb());
-					hXp_aS_bins[binaS]->Fill(this_tag->getXp());
-				}
-
-				if( this_tag->getXp() > 0.25 && this_tag->getXp() < 0.35 )
-					hAs_lo -> Fill( this_tag->getAs() );
-				else if( this_tag->getXp() > 0.5 )
-					hAs_hi -> Fill( this_tag->getAs() );
+			double thisPn = this_tag->getMomentumN().Mag();
+			if( thisPn > NMomentum_bin_min && thisPn < NMomentum_bin_max) { 
+				int binPn = (this_tag->getMomentumN().Mag() - NMomentum_bin_min)/NMomentum_bin_width; 
+				hXb_mom_bins[binPn]->Fill(eHit->getXb());
+				hXp_mom_bins[binPn]->Fill(this_tag->getXp());
 			}
 
+			double thisaS = this_tag->getAs();
+			if( thisaS > alphaS_bin_min && thisaS < alphaS_bin_max) { 
+				int binaS = (this_tag->getAs() - alphaS_bin_min)/alphaS_bin_width; 
+				hXb_aS_bins[binaS]->Fill(eHit->getXb());
+				hXp_aS_bins[binaS]->Fill(this_tag->getXp());
+			}
+
+			// Fill As distribution for lo and hi Xp
+			if( this_tag->getXp() > 0.25 && this_tag->getXp() < 0.35 )
+				hAs_lo -> Fill( this_tag->getAs() );
+			else if( this_tag->getXp() > 0.5 )
+				hAs_hi -> Fill( this_tag->getAs() );
+
+			// (E_i,p_i) = (mD,0) - (E_n,p_n)
+			// virt = (E_i^2-p_i^2 - mP^2)/mP^2
+			double En = sqrt(thisPn*thisPn + mN*mN);
+			double E_i = mD - En;
+			double p_i = thisPn;
+			double thisVirt = (E_i*E_i - p_i*p_i - mP*mP)/(mP*mP);
+			h2AsVi->Fill( thisaS , thisVirt );
+			h2AsPn->Fill( thisaS , thisPn );
+			h2ViPn->Fill( thisVirt, thisPn );
 
 		} // end loop over events
 
@@ -313,6 +366,9 @@ int main(int argc, char ** argv){
 	for( int i = 0 ; i < NAl_bins ; i++){
 		hXpBins[i]->Write();
 	}
+	for( int i = 0 ; i < NXp_bins ; i++){
+		hAs_bins[i]->Write();
+	}
 	for( int i = 0 ; i < NMomentum_bins ; i++){
 		hXb_mom_bins[i]->Write();
 		hXp_mom_bins[i]->Write();
@@ -321,9 +377,16 @@ int main(int argc, char ** argv){
 		hXb_aS_bins[i]->Write();
 		hXp_aS_bins[i]->Write();
 	}
+	for( int i = 0 ; i < NXp_bins ; i++){
+		hPn_xp[i]->Write();
+		hPn_xb[i]->Write();
+	}
 	hAs_lo->Write();
 	hAs_hi->Write();
 
+	h2AsVi->Write();
+	h2AsPn->Write();
+	h2ViPn->Write();
 
 
 	outFile->Close();
