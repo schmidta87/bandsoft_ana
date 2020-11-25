@@ -56,6 +56,77 @@ void datasim_xbxp_plot(TString inDat, TString inBac, TString inSim){
 	label1D_ratio(xB_dat,xB_sim,"x_{B} ","Data/Sim");
 	c1->SaveAs("full_xB.pdf");
 
+	// Grab intereseted histograms
+	const int as_bins = 4;
+	TH1F ** xb_bins_dat = new TH1F*[as_bins];
+	TH1F ** xp_bins_dat = new TH1F*[as_bins];
+	TH1F ** xb_bins_bac = new TH1F*[as_bins];
+	TH1F ** xp_bins_bac = new TH1F*[as_bins];
+	TH1F ** xb_bins_sim = new TH1F*[as_bins];
+	TH1F ** xp_bins_sim = new TH1F*[as_bins];
+
+	TCanvas * c2 = new TCanvas("c2","",800,600);
+	c2->Divide(3,2);
+	for( int i = 0 ; i < as_bins ; i++ ){
+		xb_bins_dat[i] = (TH1F*) inFileDat->Get(Form("xB_aS_bin_%i",i));
+		xb_bins_bac[i] = (TH1F*) inFileBac->Get(Form("xB_aS_bin_%i",i));
+		xb_bins_sim[i] = (TH1F*) inFileSim->Get(Form("xB_aS_bin_%i",i));
+
+
+		if( xb_bins_sim[i]->Integral() == 0 ) continue;
+		
+		xb_bins_bac[i] -> Scale( bacnorm );
+		xb_bins_dat[i] -> Add( xb_bins_bac[i] , -1 );
+
+		xb_bins_sim[i] -> Scale( full_simnorm );
+
+		// Rescale each plot to compare shape
+		double simnorm = xb_bins_dat[i]->Integral() / xb_bins_sim[i]->Integral();
+		//pn_xb_bins_sim[i] -> Scale( simnorm );
+
+		c2->cd(i);
+		xb_bins_dat[i]->Rebin(4);
+		xb_bins_sim[i]->Rebin(4);
+		TString current_title = xb_bins_dat[i]->GetTitle();
+		xb_bins_dat[i]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
+		label1D(xb_bins_dat[i],xb_bins_sim[i],"xB","Counts");
+
+		c2->cd(i+3);
+		label1D_ratio(xb_bins_dat[i],xb_bins_sim[i],"Data/sim","Counts");
+	}
+	c2->SaveAs("ratioxB_as_bins.pdf");
+
+	TCanvas * c3 = new TCanvas("c3","",800,600);
+	c3->Divide(3,2);
+	for( int i = 0 ; i < as_bins ; i++ ){
+		xp_bins_dat[i] = (TH1F*) inFileDat->Get(Form("xP_aS_bin_%i",i));
+		xp_bins_bac[i] = (TH1F*) inFileBac->Get(Form("xP_aS_bin_%i",i));
+		xp_bins_sim[i] = (TH1F*) inFileSim->Get(Form("xP_aS_bin_%i",i));
+
+
+		if( xp_bins_sim[i]->Integral() == 0 ) continue;
+		
+		xp_bins_bac[i] -> Scale( bacnorm );
+		xp_bins_dat[i] -> Add( xp_bins_bac[i] , -1 );
+
+		xp_bins_sim[i] -> Scale( full_simnorm );
+
+		// Rescale each plot to compare shape
+		double simnorm = xp_bins_dat[i]->Integral() / xp_bins_sim[i]->Integral();
+		//pn_xb_bins_sim[i] -> Scale( simnorm );
+
+		c3->cd(i);
+		xp_bins_dat[i]->Rebin(4);
+		xp_bins_sim[i]->Rebin(4);
+		TString current_title = xp_bins_dat[i]->GetTitle();
+		xp_bins_dat[i]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
+		label1D(xp_bins_dat[i],xp_bins_sim[i],"xB","Counts");
+
+		c3->cd(i+3);
+		label1D_ratio(xp_bins_dat[i],xp_bins_sim[i],"Data/sim","Counts");
+	}
+	c3->SaveAs("ratioxP_as_bins.pdf");
+
 	return;
 }
 
