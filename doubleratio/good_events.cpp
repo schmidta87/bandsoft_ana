@@ -26,29 +26,40 @@ int main(int argc, char ** argv){
 	// Set style
 	gStyle->SetOptFit(1);
 		
-	if (argc < 3){
+	if (argc < 4){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./code [outfile.root] [inputDatafiles]\n";
+			<< "\t./code [cutsfile] [outfile.root] [inputDatafiles]\n";
 		return -1;
 	}
 
-	const double AdcToMeVee = 2300;
-	const double minMeVee = 5;
+	ifstream cutsFile(argv[1]);
 	
-	const double minQ2 = 2.;
-	const double maxQ2 = 10.;
-	const double minW2 = 4.;
-	const double minWp = 1.8;
-	const double maxWp = 4.5;
+	double AdcToMeVee = 2300;
+	double minMeVee;
 	
-	const double minCosThNQ = -1.;
-	const double maxCosThNQ = -0.8;
-	const double minAs = 1.2;
-	const double maxAs = 1.6;
+	double minQ2; 
+	double maxQ2; 
+	double minW2;
+	double minWp; 
+	double maxWp; 
+	
+	double minCosThNQ;
+	double maxCosThNQ;
+	double minAs;
+	double maxAs;
 
-	const double minPn = 0.2;
-	const double maxPn = 0.6;
+	double minPn;
+	double maxPn;
 
+	cutsFile >> minMeVee;
+	cutsFile >> minPn >> maxPn;
+	cutsFile >> minQ2 >> maxQ2;
+	cutsFile >> minW2;
+	cutsFile >> minWp >> maxWp;
+	cutsFile >> minCosThNQ >> maxCosThNQ;
+	cutsFile >> minAs >> maxAs;
+	
+	cutsFile.close();
 
 	// ToF histogram for background normalization
 	TH1D * hToF_bac = new TH1D("hToF_bac","hToF_bac",1000,-25,75);
@@ -86,7 +97,7 @@ int main(int argc, char ** argv){
 
 
 	// Output rootfile and tree
-	TFile * outFile = new TFile(argv[1],"RECREATE");
+	TFile * outFile = new TFile(argv[2],"RECREATE");
 	TTree * outTree = inTree->CloneTree(0);
 
 	// Start working on one of the files, looping over all of the events
