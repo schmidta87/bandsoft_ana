@@ -26,6 +26,16 @@ target_link_libraries(good_events bandhit_tree clashit_tree taghit_tree ${ROOT_L
 install( TARGETS good_events
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin )
 
+add_executable(good_events_noBG good_events_noBG.cpp )
+target_link_libraries(good_events_noBG bandhit_tree clashit_tree taghit_tree ${ROOT_LIBRARIES})
+install( TARGETS good_events_noBG
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin )
+
+add_executable(good_events_noBG_noTClone good_events_noBG_noTClone.cpp )
+target_link_libraries(good_events_noBG_noTClone bandhit_tree clashit_tree taghit_tree ${ROOT_LIBRARIES})
+install( TARGETS good_events_noBG_noTClone
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin )
+
 add_executable(make_histograms make_histograms.cpp )
 target_link_libraries(make_histograms bandhit_tree clashit_tree taghit_tree ${ROOT_LIBRARIES})
 install( TARGETS make_histograms
