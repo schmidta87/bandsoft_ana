@@ -7,6 +7,7 @@
 #include "TTree.h"
 #include "TH1.h"
 #include "TH2.h"
+#include "TH3.h"
 #include "TStyle.h"
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
@@ -127,6 +128,15 @@ int main(int argc, char ** argv){
 	// AlphaS versus pt
 	TH2D * h2Aspt = new TH2D("h2Aspt","h2Aspt",NAl_bins,Al_min,Al_max,pt_bins,pt_min,pt_max);
 
+	//Store data for 4D phase space Q2,W,alpha_s and pt (pt is one bin for now so 3D histogram)
+	const int datastore_Q2_bin = 1;
+	double datastore_Q2_limits[datastore_Q2_bin+1] = {2,10} ;
+	const int datastore_Wp_bin = 2;
+	double datastore_Wp_limits[datastore_Wp_bin+1] = {2, 3, 4.5} ;
+	const int datastore_as_bin = 2;
+	double datastore_as_limits[datastore_as_bin+1] = {1.3, 1.4, 1.6} ;
+
+	TH3D * h3_datastore_alphaS_Wp_Q = new TH3D("h3_datastore_alphaS_Wp_Q","h3_datastore_alphaS_Wp_Q",datastore_Q2_bin,datastore_Q2_limits,datastore_Wp_bin,datastore_Wp_limits,datastore_as_bin,datastore_as_limits);
 
 /*
 	// virtuality binned histograms
@@ -319,6 +329,8 @@ int main(int argc, char ** argv){
 			h2ViPn->Fill( thisVirt, thisPn );
 			h2Aspt->Fill( thisaS , thisptmag);
 
+			h3_datastore_alphaS_Wp_Q->Fill(eHit->getQ2(), this_tag->getWp(), thisaS);
+
 		} // end loop over events
 
 		inFile->Close();
@@ -360,6 +372,7 @@ int main(int argc, char ** argv){
 	h2ViPn->Write();
 	h2Aspt->Write();
 
+	h3_datastore_alphaS_Wp_Q->Write();
 
 	outFile->Close();
 	return 0;

@@ -7,6 +7,7 @@
 #include "TTree.h"
 #include "TH1.h"
 #include "TH2.h"
+#include "TH3.h"
 #include "TStyle.h"
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
@@ -50,6 +51,9 @@ int main(int argc, char ** argv){
 	const double Al_max = 1.6;
 	const double Al_bin_width = 0.05;
 	int NAl_bins = (Al_max-Al_min + Al_bin_width/2.)/Al_bin_width;
+	const double pt_min = 0;
+	const double pt_max = 0.5;
+	int pt_bins = 20;
 
 	const double Xp_min = 0.1;
 	const double Xp_max = 0.7;
@@ -72,7 +76,7 @@ int main(int argc, char ** argv){
 	for( int i = 0 ; i < NAl_bins ; i++){
 		hXpBins[i] = new TH1D(Form("hXpBins_%i",i),Form("hXpBins_%i",i),100,0,1);
 	}
-	
+
 	TH1D * hAs_hi = new TH1D("hAs_hi","hAs_hi",NAl_bins,Al_min,Al_max);
 	TH1D * hAs_lo = new TH1D("hAs_lo","hAs_lo",NAl_bins,Al_min,Al_max);
 
@@ -108,7 +112,7 @@ int main(int argc, char ** argv){
 	const double alphaS_bin_max = 1.6;
 	const double alphaS_bin_width = 0.1;
 	const int NalphaS_bins = (alphaS_bin_max - alphaS_bin_min + alphaS_bin_width/2.)/alphaS_bin_width;
-	
+
 	TH1D ** hXb_aS_bins = new TH1D*[NalphaS_bins];
 	TH1D ** hXp_aS_bins = new TH1D*[NalphaS_bins];
 
@@ -120,6 +124,18 @@ int main(int argc, char ** argv){
 	TH2D * h2AsVi = new TH2D("h2AsVi","h2AsVi",50,1,2,50,-1,0);
 	TH2D * h2AsPn = new TH2D("h2AsPn","h2AsPn",50,1,2,50,0,1);
 	TH2D * h2ViPn = new TH2D("h2ViPn","h2ViPn",50,-1,0,50,0,1);
+	// AlphaS versus pt
+	TH2D * h2Aspt = new TH2D("h2Aspt","h2Aspt",NAl_bins,Al_min,Al_max,pt_bins,pt_min,pt_max);
+
+	//Store data for 4D phase space Q2,W,alpha_s and pt (pt is one bin for now so 3D histogram)
+	const int datastore_Q2_bin = 1;
+	double datastore_Q2_limits[datastore_Q2_bin+1] = {2,10} ;
+	const int datastore_Wp_bin = 2;
+	double datastore_Wp_limits[datastore_Wp_bin+1] = {2, 3, 4.5} ;
+	const int datastore_as_bin = 2;
+	double datastore_as_limits[datastore_as_bin+1] = {1.3, 1.4, 1.6} ;
+
+	TH3D * h3_datastore_alphaS_Wp_Q = new TH3D("h3_datastore_alphaS_Wp_Q","h3_datastore_alphaS_Wp_Q",datastore_Q2_bin,datastore_Q2_limits,datastore_Wp_bin,datastore_Wp_limits,datastore_as_bin,datastore_as_limits);
 
 
 /*
@@ -128,7 +144,7 @@ int main(int argc, char ** argv){
 	const double virt_bin_max = 1.6;
 	const double virt_bin_width = 0.1;
 	const double Nvirt_bins = (virt_bin_max - virt_bin_min + virt_bin_width/2.)/virt_bin_width;
-	
+
 	TH1D ** hXb_virt_bins = new TH1D*[Nvirt_bins];
 	TH1D ** hXp_virt_bins = new TH1D*[Nvirt_bins];
 
@@ -138,7 +154,7 @@ int main(int argc, char ** argv){
 	}
 */
 
-	
+
 	//int doFiducial = atoi(argv[2]);
 	//clas12fiducial* fid = new clas12fiducial();
 
@@ -210,7 +226,7 @@ int main(int argc, char ** argv){
 			if( this_nHit->getStatus() != 0 ) continue;
 			if( this_nHit->getTofFadc() == 0 ) continue;
 			if( this_nHit->getEdep() < AdcToMeVee*MeVee_cut ) continue;
-			
+
 			// Check electron information
 			if( eHit->getPID() != 11 ) continue;
 			if( eHit->getCharge() != -1 ) continue;
@@ -222,7 +238,7 @@ int main(int argc, char ** argv){
 			if( eHit->getVtz() < -8 ) continue;
 			if( eHit->getVtz() > 3 ) continue;
 			if( eHit->getMomentum() < 2. ) continue;
-		
+
 			//if (doFiducial) {
 			//	int eSect = fid->GetElectronAcceptance(eHit->getTheta()*TMath::RadToDeg(), eHit->getPhi()*TMath::RadToDeg(), eHit->getMomentum());
 			//	if( eSect < 0 ) continue;
@@ -260,12 +276,12 @@ int main(int argc, char ** argv){
 
 			// Fill full Xp,As distributions
 			if( this_tag->getXp() < 0.35 && this_tag->getXp() > 0.25)
-				h2Q2Wp_lo->Fill( eHit->getQ2() , this_tag->getWp() );		
+				h2Q2Wp_lo->Fill( eHit->getQ2() , this_tag->getWp() );
 			else if( this_tag->getXp() > 0.5 )
-				h2Q2Wp_hi->Fill( eHit->getQ2() , this_tag->getWp() );		
+				h2Q2Wp_hi->Fill( eHit->getQ2() , this_tag->getWp() );
 
 
-	
+
 
 			hXp->Fill( this_tag->getXp() );
 			hXb->Fill( eHit->getXb() );
@@ -280,15 +296,15 @@ int main(int argc, char ** argv){
 			hXpBins[binAl]->Fill( this_tag->getXp() );
 
 			double thisPn = this_tag->getMomentumN().Mag();
-			if( thisPn > NMomentum_bin_min && thisPn < NMomentum_bin_max) { 
-				int binPn = (this_tag->getMomentumN().Mag() - NMomentum_bin_min)/NMomentum_bin_width; 
+			if( thisPn > NMomentum_bin_min && thisPn < NMomentum_bin_max) {
+				int binPn = (this_tag->getMomentumN().Mag() - NMomentum_bin_min)/NMomentum_bin_width;
 				hXb_mom_bins[binPn]->Fill(eHit->getXb());
 				hXp_mom_bins[binPn]->Fill(this_tag->getXp());
 			}
 
 			double thisaS = this_tag->getAs();
-			if( thisaS > alphaS_bin_min && thisaS < alphaS_bin_max) { 
-				int binaS = (this_tag->getAs() - alphaS_bin_min)/alphaS_bin_width; 
+			if( thisaS > alphaS_bin_min && thisaS < alphaS_bin_max) {
+				int binaS = (this_tag->getAs() - alphaS_bin_min)/alphaS_bin_width;
 				hXb_aS_bins[binaS]->Fill(eHit->getXb());
 				hXp_aS_bins[binaS]->Fill(this_tag->getXp());
 			}
@@ -304,9 +320,13 @@ int main(int argc, char ** argv){
 			double E_i = mD - En;
 			double p_i = thisPn;
 			double thisVirt = (E_i*E_i - p_i*p_i - mP*mP)/(mP*mP);
+			double thisptmag = this_tag->getPt().Mag();
 			h2AsVi->Fill( thisaS , thisVirt );
 			h2AsPn->Fill( thisaS , thisPn );
 			h2ViPn->Fill( thisVirt, thisPn );
+			h2Aspt->Fill( thisaS , thisptmag);
+
+			h3_datastore_alphaS_Wp_Q->Fill(eHit->getQ2(), this_tag->getWp(), thisaS);
 
 		} // end loop over events
 
@@ -348,6 +368,9 @@ int main(int argc, char ** argv){
 	h2AsVi->Write();
 	h2AsPn->Write();
 	h2ViPn->Write();
+	h2Aspt->Write();
+
+	h3_datastore_alphaS_Wp_Q->Write();
 
 	outFile->Close();
 	return 0;
