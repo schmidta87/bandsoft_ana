@@ -21,6 +21,7 @@
 #include "constants.h"
 #include "TClonesArray.h"
 
+
 using namespace std;
 
 int main(int argc, char ** argv){
@@ -35,7 +36,7 @@ int main(int argc, char ** argv){
         TTree * outTree = new TTree("tagged","BAND Neutrons and CLAS Electrons");
         //      Event info:
 	int Runno               = 1;
-	double Ebeam            = 10.6;
+	double Ebeam            = 0;
 	double gated_charge     = 1;
 	double livetime         = 1;
 	double starttime        = 1;
@@ -101,7 +102,9 @@ int main(int argc, char ** argv){
 	TClonesArray* input_nHit = new TClonesArray("bandhit");
 //	bandhit* input_nHit = new bandhit[maxNeutrons];
         int nMult;
+	double input_ebeam;
 
+	inTree_e->SetBranchAddress("Ebeam", &input_ebeam);
 	inTree_e->SetBranchAddress("eHit",	&input_eHit);
 	inTree_n->SetBranchAddress("nHits",	&input_nHit);
 	inTree_n->SetBranchAddress("nMult",	&nMult);
@@ -157,14 +160,12 @@ int main(int argc, char ** argv){
 		double input_theta_e = 0;
 		double input_phi_e = 0;
 		double input_vtz_e = 0;
-		double input_fixed_Ebeam = 0;
 
 		inTree_e->GetEntry(electron);
 
 		input_p_e = input_eHit->getMomentum();
 		input_theta_e = input_eHit->getTheta();
 		input_phi_e = input_eHit->getPhi();
-		input_fixed_Ebeam = 10.6;
 		input_vtz_e = input_eHit->getVtz();
 
 		//if( electron > inTree_e->GetEntries()/100 ) break;
@@ -173,7 +174,7 @@ int main(int argc, char ** argv){
 		e_phi.push_back(input_phi_e);
 		e_mom.push_back(input_p_e);
 		e_vtz.push_back(input_vtz_e);
-		e_beam.push_back(input_fixed_Ebeam);
+		e_beam.push_back(input_ebeam);
 	}
 
 	// Loop over all neutron events
