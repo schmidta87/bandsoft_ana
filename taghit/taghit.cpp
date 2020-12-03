@@ -10,7 +10,7 @@ void taghit::Clear(){
 	MomentumN.Clear();
 	MomentumQ.Clear();
 	MomentumB.Clear();
-		     
+
 	PhiNQ		= 0;
 	ThetaNQ		= 0;
 	Wp		= 0;

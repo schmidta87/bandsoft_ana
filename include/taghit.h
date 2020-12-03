@@ -11,7 +11,7 @@ class taghit : public TObject {
 		~taghit();
 
 		void Clear();
-		
+
 		void setMomentumE	(TVector3	iMomentumE	)	{MomentumE	= iMomentumE	; return;}
 		void setMomentumN	(TVector3	iMomentumN	)	{MomentumN	= iMomentumN	; return;}
 		void setMomentumQ	(TVector3	iMomentumQ	)	{MomentumQ	= iMomentumQ	; return;}

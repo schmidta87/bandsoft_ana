@@ -21,6 +21,7 @@
 #include "constants.h"
 #include "TClonesArray.h"
 
+
 using namespace std;
 
 int main(int argc, char ** argv){
@@ -35,7 +36,7 @@ int main(int argc, char ** argv){
         TTree * outTree = new TTree("tagged","BAND Neutrons and CLAS Electrons");
         //      Event info:
 	int Runno               = 1;
-	double Ebeam            = 10.6;
+	double Ebeam            = 0;
 	double gated_charge     = 1;
 	double livetime         = 1;
 	double starttime        = 1;
@@ -63,7 +64,7 @@ int main(int argc, char ** argv){
         outTree->Branch("tag"           ,&output_tag                    );
 
 	TRandom3 * myRand = new TRandom3(0);
-		
+
 
 	// Define 4D binned ToF plots and bin edges and kin cuts
 	double const min_Q2 		= 1.5;
@@ -88,7 +89,7 @@ int main(int argc, char ** argv){
 	const double bkgrd_max = 0;
 	const double signal_min = 13;
 	const double signal_max = 63;
-	
+
 	// Loop over the neutron and electron skim files given
 	TFile * inFile_e = new TFile(argv[2]);
 	TFile * inFile_n = new TFile(argv[3]);
@@ -101,44 +102,46 @@ int main(int argc, char ** argv){
 	TClonesArray* input_nHit = new TClonesArray("bandhit");
 //	bandhit* input_nHit = new bandhit[maxNeutrons];
         int nMult;
+	double input_ebeam;
 
+	inTree_e->SetBranchAddress("Ebeam", &input_ebeam);
 	inTree_e->SetBranchAddress("eHit",	&input_eHit);
 	inTree_n->SetBranchAddress("nHits",	&input_nHit);
 	inTree_n->SetBranchAddress("nMult",	&nMult);
 
-	vector<double> n_theta;	
-	vector<double> n_phi;	
-	vector<double> n_dL;	
+	vector<double> n_theta;
+	vector<double> n_phi;
+	vector<double> n_dL;
 	vector<double> n_Edep;
 	vector<int> n_status;
-	vector<double> e_theta;	
-	vector<double> e_phi;	
-	vector<double> e_mom;	
+	vector<double> e_theta;
+	vector<double> e_phi;
+	vector<double> e_mom;
 	vector<double> e_beam;
-	vector<double> e_vtz;	
+	vector<double> e_vtz;
 	// Read entire tree into memory due to issue with jumping around in tree as we read it..
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
 
-		double input_theta_n = 0; 
-		double input_phi_n = 0; 
+		double input_theta_n = 0;
+		double input_phi_n = 0;
 		double input_Edep_n = 0;
 		double input_dL = 0;
 		int input_status = 0;
 
 		inTree_n->GetEntry(neutron);
-		
+
 		if (nMult != 1) continue;
-		
+
 		bandhit* this_nHit = (bandhit*)input_nHit->At(0);
-		
+
 		input_theta_n = this_nHit->getDL().Theta();
 		input_phi_n = this_nHit->getDL().Phi();
 		input_Edep_n = this_nHit->getEdep();
 		input_dL = this_nHit->getDL().Mag();
 		input_status = this_nHit->getStatus();
 
-/*		
+/*
 		input_theta_n = input_nHit[0].getDL().Theta();
 		input_phi_n = input_nHit[0].getDL().Phi();
 		input_Edep_n = input_nHit[0].getEdep();
@@ -157,14 +160,12 @@ int main(int argc, char ** argv){
 		double input_theta_e = 0;
 		double input_phi_e = 0;
 		double input_vtz_e = 0;
-		double input_fixed_Ebeam = 0;
 
 		inTree_e->GetEntry(electron);
 
 		input_p_e = input_eHit->getMomentum();
 		input_theta_e = input_eHit->getTheta();
 		input_phi_e = input_eHit->getPhi();
-		input_fixed_Ebeam = 10.6;
 		input_vtz_e = input_eHit->getVtz();
 
 		//if( electron > inTree_e->GetEntries()/100 ) break;
@@ -173,9 +174,9 @@ int main(int argc, char ** argv){
 		e_phi.push_back(input_phi_e);
 		e_mom.push_back(input_p_e);
 		e_vtz.push_back(input_vtz_e);
-		e_beam.push_back(input_fixed_Ebeam);
+		e_beam.push_back(input_ebeam);
 	}
-	
+
 	// Loop over all neutron events
 	for( int neutron = 0 ; neutron < n_status.size() ; neutron++ ){
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
@@ -185,9 +186,9 @@ int main(int argc, char ** argv){
 		int maxPairs = 10;
 		int maxFails = 10;
 		while( nPairs < maxPairs && nFails < maxFails ){
-		
+
 			int electron = myRand->Rndm() * inTree_e->GetEntries();
-			
+
 			// Read in the stored variables
 			double fixed_Ebeam 	= e_beam	[electron];
 			double p_e		= e_mom		[electron];
@@ -204,13 +205,13 @@ int main(int argc, char ** argv){
 			double ToF = myRand->Rndm()*( signal_max - signal_min ) + signal_min ;
 			double beta = dL / (ToF*cAir);
 			double p_n = mN / sqrt( 1./pow(beta,2) - 1. );
-			
+
 			// Create vectors for calculating angles
 			TVector3 beamVec(0,0,fixed_Ebeam);
 			TVector3 eVec;	eVec.SetMagThetaPhi(p_e,theta_e,phi_e);
 			TVector3 qVec;	qVec = beamVec - eVec;
 			TVector3 nVec;	nVec.SetMagThetaPhi(p_n,theta_n,phi_n);
-					
+
 			double E_e 	= sqrt( mE*mE + p_e*p_e );
 			double q 	= qVec.Mag();
 			double theta_q  = qVec.Theta();
@@ -239,6 +240,11 @@ int main(int argc, char ** argv){
 			double Wp = sqrt(W_primeSq);
 			double Xp = Q2/(2.*( nu*(mD-E_n) + p_n*q*CosTheta_nq));
 			double As = (E_n - p_n*CosTheta_nq)/mN;
+			double Xp2 = Q2/(W_primeSq - mN*mN + Q2);
+
+			TVector3 Pt;
+			TVector3 pN_par_q = nVec.Dot(qVec) / (qVec.Mag2()) * qVec;
+			Pt = nVec - pN_par_q;
 
 			// Ask if passes cuts, and if so, count valid pair and fill histogram/tree
 			if( Q2 > min_Q2 && Q2 < max_Q2 && CosTheta_nq > min_CosTheta_nq && CosTheta_nq < max_CosTheta_nq ){
@@ -257,19 +263,19 @@ int main(int argc, char ** argv){
 				output_eHit.setQ(q);
 				output_eHit.setThetaQ(theta_q);
 				output_eHit.setPhiQ(phi_q);
-				
-				output_eHit.setPID(11);                       
+
+				output_eHit.setPID(11);
 				output_eHit.setCharge(-1);
 				output_eHit.setEpcal(E_e);
 				output_eHit.setVtz(vtz);
-			
+
 				output_eHit.setEoP(0.2);
 				output_eHit.setU(10);
 				output_eHit.setV(10);
 				output_eHit.setW(10);
 
-				output_nHit.setTof(ToF);	
-				output_nHit.setTofFadc(ToF);	
+				output_nHit.setTof(ToF);
+				output_nHit.setTofFadc(ToF);
 				output_nHit.setX(dL * sin(theta_n) * cos(phi_n));
 				output_nHit.setY(dL * sin(theta_n) * sin(phi_n));
 				output_nHit.setZ(dL * cos(theta_n));
@@ -281,19 +287,21 @@ int main(int argc, char ** argv){
 				output_tag.setAs(As);
 				output_tag.setThetaNQ(theta_nq);
 				output_tag.setPhiNQ(phi_nq);
+				output_tag.setPt(Pt);
+				output_tag.setXp2(Xp2);
 
 				output_tag.setMomentumE(eVec);
-        			output_tag.setMomentumN(nVec);
-        			output_tag.setMomentumQ(qVec);
-
+				output_tag.setMomentumN(nVec);
+				output_tag.setMomentumQ(qVec);
+				output_tag.setMomentumB(beamVec);
 
 				outTree->Fill();
-				
+
 
 			}
 			else{ nFails++; }
-			
-			
+
+
 		} // end loop over finding electrons
 
 	}
@@ -309,9 +317,7 @@ int main(int argc, char ** argv){
 	outTree->Write();
 	outFile->Close();
 
-	
+
 
 	return 0;
 }
-
-
