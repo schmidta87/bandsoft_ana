@@ -11,6 +11,7 @@
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
 #include "TClonesArray.h"
+#include "TLorentzVector.h"
 
 #include "constants.h"
 #include "bandhit.h"
@@ -98,6 +99,8 @@ int main(int argc, char ** argv){
 		hPn_xb[i] = new TH1D(Form("hPn_xb_%i",i),Form("hPn_xb_%i",i),80,0.25,0.65);
 	}
 
+	// Distribution for x' a la W' and x' a la spectator
+	TH1D * hXp_new = new TH1D("hXp_new","hXp_new",100,0,1);
 
 	// Neutron momentum binned histograms
 	const double NMomentum_bin_min = 0.20;
@@ -288,6 +291,20 @@ int main(int argc, char ** argv){
 	
 			
 			hXp->Fill( this_tag->getXp() );
+			TLorentzVector qVec;
+			qVec.SetPxPyPzE( 	this_tag->getMomentumQ().Px(),
+						this_tag->getMomentumQ().Py(),
+						this_tag->getMomentumQ().Pz(),
+						eHit->getOmega()		);
+			TLorentzVector dVec;
+			dVec.SetPxPyPzE( 0,0,0,mD );
+			TLorentzVector nVec;
+			nVec.SetPxPyPzE(	this_tag->getMomentumN().Px(),
+						this_tag->getMomentumN().Py(),
+						this_tag->getMomentumN().Pz(),
+						sqrt(pow(this_tag->getMomentumN().Mag(),2) + mN*mN )	);
+			double Wp2_new = (qVec + dVec - nVec).M2();
+			hXp_new->Fill( eHit->getQ2() / (Wp2_new - mN*mN + eHit->getQ2()) );
 			hXb->Fill( eHit->getXb() );
 			hAs->Fill( this_tag->getAs() );
 			hWp->Fill( this_tag->getWp() );

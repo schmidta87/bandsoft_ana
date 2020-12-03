@@ -9,6 +9,11 @@ set(CMAKE_VERBOSE_MAKEFILE ON)
 
 
 add_executable(compare compare.cpp )
-target_link_libraries(compare bandhit_tree clashit_tree taghit_tree ${ROOT_LIBRARIES} )
+target_link_libraries(compare bandhit_tree clashit_tree taghit_tree genpart_tree ${ROOT_LIBRARIES} )
 install( TARGETS compare
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
+
+add_executable(grid grid.cpp )
+target_link_libraries(grid bandhit_tree clashit_tree taghit_tree genpart_tree ${ROOT_LIBRARIES} )
+install( TARGETS grid
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 

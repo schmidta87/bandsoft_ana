@@ -38,12 +38,11 @@ int main(int argc, char ** argv){
 	const double W_min = 15;
 	const double vtx_min = -8;
 	const double vtx_max =  3;
-	const double pE_min = 2;
+	const double pE_min = 3;
 	const double pE_max = 10.6;
 	const double Q2_min = 2;
 	const double Q2_max = 10;
 	const double W2_min = 2*2;
-	const double pEz_min = 3.5;
 	TCut ePID 	= Form("eHit->getPID() == %i",PID);
 	TCut eCharge 	= Form("eHit->getCharge() == %i",charge); 
 	TCut eEoP	= Form("eHit->getEoP() > %f && eHit->getEoP() < %f",EoP_min,EoP_max);
@@ -53,11 +52,9 @@ int main(int argc, char ** argv){
 	TCut eMom	= Form("eHit->getMomentum() > %f && eHit->getMomentum() < %f",pE_min,pE_max);
 	TCut eQ2	= Form("eHit->getQ2() > %f && eHit->getQ2() < %f",Q2_min,Q2_max);
 	TCut eW		= Form("eHit->getW2() > %f",W2_min);
-	TCut eMomZ	= Form("eHit->getMomentum() * cos(eHit->getTheta()) > %f",pEz_min);
-	TCut inclusive	= ePID && eCharge && eEoP && eEpcal && eVW && eVtx && eMom && eQ2 && eW && eMomZ;
+	TCut inclusive	= ePID && eCharge && eEoP && eEpcal && eVW && eVtx && eMom && eQ2 && eW;
 	//TCut inclusive	= ePID && eCharge && eMom && eQ2 && eW;
 	TString cut = Form("weight*%s",inclusive.GetTitle());
-	TString cut2 = Form("%s",inclusive.GetTitle());
 
 	TFile * inSimFile = new TFile(argv[1]);
 	TFile * inDatFile = new TFile(argv[2]);
@@ -66,42 +63,42 @@ int main(int argc, char ** argv){
 	
 	// Define histograms for the output
 	TFile * outFile = new TFile(argv[3],"RECREATE");
-	TH1D * h1dat_p_e	= new TH1D("h1dat_p_e",		"",100,0,10);
-	TH1D * h1sim_p_e	= new TH1D("h1sim_p_e",		"",100,0,10);
+	TH1D * h1dat_p_e	= new TH1D("h1dat_p_e",		"",250,0,10);
+	TH1D * h1sim_p_e	= new TH1D("h1sim_p_e",		"",250,0,10);
 
-	TH1D * h1dat_px_e	= new TH1D("h1dat_px_e",		"",100,-5,5);
-	TH1D * h1sim_px_e	= new TH1D("h1sim_px_e",		"",100,-5,5);
-	TH1D * h1dat_py_e	= new TH1D("h1dat_py_e",		"",100,-5,5);
-	TH1D * h1sim_py_e	= new TH1D("h1sim_py_e",		"",100,-5,5);
-	TH1D * h1dat_pz_e	= new TH1D("h1dat_pz_e",		"",100,0,10);
-	TH1D * h1sim_pz_e	= new TH1D("h1sim_pz_e",		"",100,0,10);
+	TH1D * h1dat_px_e	= new TH1D("h1dat_px_e",		"",250,-5,5);
+	TH1D * h1sim_px_e	= new TH1D("h1sim_px_e",		"",250,-5,5);
+	TH1D * h1dat_py_e	= new TH1D("h1dat_py_e",		"",250,-5,5);
+	TH1D * h1sim_py_e	= new TH1D("h1sim_py_e",		"",250,-5,5);
+	TH1D * h1dat_pz_e	= new TH1D("h1dat_pz_e",		"",250,0,10);
+	TH1D * h1sim_pz_e	= new TH1D("h1sim_pz_e",		"",250,0,10);
 
-	TH1D * h1dat_th_e	= new TH1D("h1dat_th_e",	"",80,0,40);
-	TH1D * h1sim_th_e	= new TH1D("h1sim_th_e",	"",80,0,40);
+	TH1D * h1dat_th_e	= new TH1D("h1dat_th_e",	"",250,0,40);
+	TH1D * h1sim_th_e	= new TH1D("h1sim_th_e",	"",250,0,40);
 
-	TH1D * h1dat_ph_e	= new TH1D("h1dat_ph_e",	"",80,-200,200);
-	TH1D * h1sim_ph_e	= new TH1D("h1sim_ph_e",	"",80,-200,200);
+	TH1D * h1dat_ph_e	= new TH1D("h1dat_ph_e",	"",250,-200,200);
+	TH1D * h1sim_ph_e	= new TH1D("h1sim_ph_e",	"",250,-200,200);
 
-	TH1D * h1dat_q		= new TH1D("h1dat_q",		"",100,0,10);
-	TH1D * h1sim_q		= new TH1D("h1sim_q",		"",100,0,10);
+	TH1D * h1dat_q		= new TH1D("h1dat_q",		"",250,0,10);
+	TH1D * h1sim_q		= new TH1D("h1sim_q",		"",250,0,10);
 
-	TH1D * h1dat_th_q	= new TH1D("h1dat_th_q",	"",100,0,50);
-	TH1D * h1sim_th_q	= new TH1D("h1sim_th_q",	"",100,0,50);
+	TH1D * h1dat_th_q	= new TH1D("h1dat_th_q",	"",250,0,50);
+	TH1D * h1sim_th_q	= new TH1D("h1sim_th_q",	"",250,0,50);
 
-	TH1D * h1dat_ph_q	= new TH1D("h1dat_ph_q",	"",100,-200,200);
-	TH1D * h1sim_ph_q	= new TH1D("h1sim_ph_q",	"",100,-200,200);
+	TH1D * h1dat_ph_q	= new TH1D("h1dat_ph_q",	"",250,-200,200);
+	TH1D * h1sim_ph_q	= new TH1D("h1sim_ph_q",	"",250,-200,200);
 
-	TH1D * h1dat_nu		= new TH1D("h1dat_nu",		"",100,0,10);
-	TH1D * h1sim_nu		= new TH1D("h1sim_nu",		"",100,0,10);
+	TH1D * h1dat_nu		= new TH1D("h1dat_nu",		"",250,0,10);
+	TH1D * h1sim_nu		= new TH1D("h1sim_nu",		"",250,0,10);
 
-	TH1D * h1dat_Q2		= new TH1D("h1dat_Q2",		"",100,0,10);
-	TH1D * h1sim_Q2		= new TH1D("h1sim_Q2",		"",100,0,10);
+	TH1D * h1dat_Q2		= new TH1D("h1dat_Q2",		"",250,0,10);
+	TH1D * h1sim_Q2		= new TH1D("h1sim_Q2",		"",250,0,10);
 
-	TH1D * h1dat_xB		= new TH1D("h1dat_xB",		"",100,0,1);
-	TH1D * h1sim_xB		= new TH1D("h1sim_xB",		"",100,0,1);
+	TH1D * h1dat_xB		= new TH1D("h1dat_xB",		"",250,0,1);
+	TH1D * h1sim_xB		= new TH1D("h1sim_xB",		"",250,0,1);
 
-	TH1D * h1dat_W		= new TH1D("h1dat_W",		"",100,0,5);
-	TH1D * h1sim_W		= new TH1D("h1sim_W",		"",100,0,5);
+	TH1D * h1dat_W		= new TH1D("h1dat_W",		"",250,0,5);
+	TH1D * h1sim_W		= new TH1D("h1sim_W",		"",250,0,5);
 
 
 
@@ -109,7 +106,7 @@ int main(int argc, char ** argv){
 	c_p_e->Divide(1,2);
 	c_p_e->cd(1);
 	inDatTree->Draw("eHit->getMomentum() >> h1dat_p_e"								,cut);
-	inSimTree->Draw("eHit->getMomentum() >> h1sim_p_e"								,cut2);
+	inSimTree->Draw("eHit->getMomentum() >> h1sim_p_e"								,cut);
 	label1D(	h1dat_p_e,	h1sim_p_e,	"|p_e| [GeV]",	"Counts"	);
 	c_p_e->cd(2);
 	label1D_ratio(	h1dat_p_e,      h1sim_p_e,      "|p_e| [GeV]",  "Data/Sim"	);
@@ -119,15 +116,15 @@ int main(int argc, char ** argv){
 	c_p_comp->Divide(2,2);
 	c_p_comp->cd(1);
 	inDatTree->Draw("eHit->getMomentum()*sin(eHit->getTheta())*cos(eHit->getPhi()) >> h1dat_px_e"                                    	,cut);
-        inSimTree->Draw("eHit->getMomentum()*sin(eHit->getTheta())*cos(eHit->getPhi()) >> h1sim_px_e"                                    	,cut2);
+        inSimTree->Draw("eHit->getMomentum()*sin(eHit->getTheta())*cos(eHit->getPhi()) >> h1sim_px_e"                                    	,cut);
 	label1D(        h1dat_px_e,	h1sim_px_e,	"p_e X [GeV]",	"Counts"	);
 	c_p_comp->cd(2);
 	inDatTree->Draw("eHit->getMomentum()*sin(eHit->getTheta())*sin(eHit->getPhi()) >> h1dat_py_e"                                    	,cut);
-        inSimTree->Draw("eHit->getMomentum()*sin(eHit->getTheta())*sin(eHit->getPhi()) >> h1sim_py_e"                                    	,cut2);
+        inSimTree->Draw("eHit->getMomentum()*sin(eHit->getTheta())*sin(eHit->getPhi()) >> h1sim_py_e"                                    	,cut);
 	label1D(        h1dat_py_e,	h1sim_py_e,	"p_e Y [GeV]",	"Counts"	);
 	c_p_comp->cd(3);
 	inDatTree->Draw("eHit->getMomentum()*cos(eHit->getTheta()) >> h1dat_pz_e"                                               	,cut);
-        inSimTree->Draw("eHit->getMomentum()*cos(eHit->getTheta()) >> h1sim_pz_e"                                               	,cut2);
+        inSimTree->Draw("eHit->getMomentum()*cos(eHit->getTheta()) >> h1sim_pz_e"                                               	,cut);
 	label1D(        h1dat_pz_e,	h1sim_pz_e,	"p_e Z [GeV]",	"Counts"	);
 	c_p_comp->cd(2);
 	c_p_comp->Update();
@@ -137,7 +134,7 @@ int main(int argc, char ** argv){
 	c_th_e->Divide(1,2);
 	c_th_e->cd(1);
 	inDatTree->Draw("eHit->getTheta()*180./TMath::Pi() >> h1dat_th_e"					,cut);
-	inSimTree->Draw("eHit->getTheta()*180./TMath::Pi() >> h1sim_th_e"					,cut2);
+	inSimTree->Draw("eHit->getTheta()*180./TMath::Pi() >> h1sim_th_e"					,cut);
 	label1D(        h1dat_th_e,	h1sim_th_e,	"Theta e [deg.]",	"Counts"	);
 	c_th_e->cd(2);
 	label1D_ratio(	h1dat_th_e,     h1sim_th_e,     "Theta e [deg.]",       "Data/Sim"	);
@@ -147,7 +144,7 @@ int main(int argc, char ** argv){
 	c_ph_e->Divide(1,2);
 	c_ph_e->cd(1);
 	inDatTree->Draw("eHit->getPhi()*180./TMath::Pi() >> h1dat_ph_e"						,cut);
-	inSimTree->Draw("eHit->getPhi()*180./TMath::Pi() >> h1sim_ph_e"						,cut2);
+	inSimTree->Draw("eHit->getPhi()*180./TMath::Pi() >> h1sim_ph_e"						,cut);
 	label1D(        h1dat_ph_e,	h1sim_ph_e,	"Phi e [deg.]",	"Counts"	);
 	c_ph_e->cd(2);
 	label1D_ratio(	h1dat_ph_e,     h1sim_ph_e,     "Phi e [deg.]", "Data/Sim"	);
@@ -157,7 +154,7 @@ int main(int argc, char ** argv){
 	c_q->Divide(1,2);
 	c_q->cd(1);
 	inDatTree->Draw("eHit->getQ() >> h1dat_q"									,cut);
-	inSimTree->Draw("eHit->getQ() >> h1sim_q"									,cut2);
+	inSimTree->Draw("eHit->getQ() >> h1sim_q"									,cut);
 	label1D(        h1dat_q,	h1sim_q,	"|q| [GeV]",	"Counts"	);
 	c_q->cd(2);
 	label1D_ratio(	h1dat_q,        h1sim_q,        "|q| [GeV]",    "Data/Sim"	);
@@ -167,7 +164,7 @@ int main(int argc, char ** argv){
 	c_th_q->Divide(1,2);
 	c_th_q->cd(1);
 	inDatTree->Draw("eHit->getThetaQ()*180./TMath::Pi() >> h1dat_th_q"					,cut);
-	inSimTree->Draw("eHit->getThetaQ()*180./TMath::Pi() >> h1sim_th_q"					,cut2);
+	inSimTree->Draw("eHit->getThetaQ()*180./TMath::Pi() >> h1sim_th_q"					,cut);
 	label1D(        h1dat_th_q,	h1sim_th_q,	"Theta q [deg.]",	"Counts"	);
 	c_th_q->cd(2);
 	label1D_ratio(	h1dat_th_q,     h1sim_th_q,     "Theta q [deg.]",       "Data/Sim"	);
@@ -177,7 +174,7 @@ int main(int argc, char ** argv){
 	c_ph_q->Divide(1,2);
 	c_ph_q->cd(1);
 	inDatTree->Draw("eHit->getPhiQ()*180./TMath::Pi() >> h1dat_ph_q"						,cut);
-	inSimTree->Draw("eHit->getPhiQ()*180./TMath::Pi() >> h1sim_ph_q"						,cut2);
+	inSimTree->Draw("eHit->getPhiQ()*180./TMath::Pi() >> h1sim_ph_q"						,cut);
 	label1D(        h1dat_ph_q,	h1sim_ph_q,	"Phi q [deg.]",	"Counts"	);
 	c_ph_q->cd(2);
 	label1D_ratio(	h1dat_ph_q,     h1sim_ph_q,     "Phi q [deg.]", "Data/Sim"	);
@@ -187,7 +184,7 @@ int main(int argc, char ** argv){
 	c_nu->Divide(1,2);
 	c_nu->cd(1);
 	inDatTree->Draw("eHit->getOmega() >> h1dat_nu"								,cut);
-	inSimTree->Draw("eHit->getOmega() >> h1sim_nu"								,cut2);
+	inSimTree->Draw("eHit->getOmega() >> h1sim_nu"								,cut);
 	label1D(        h1dat_nu,	h1sim_nu,	"Nu [GeV]",	"Counts"	);
 	c_nu->cd(2);
 	label1D_ratio(	h1dat_nu,       h1sim_nu,       "Nu [GeV]",     "Data/Sim"	);
@@ -197,7 +194,7 @@ int main(int argc, char ** argv){
 	c_Q2->Divide(1,2);
 	c_Q2->cd(1);
 	inDatTree->Draw("eHit->getQ2() >> h1dat_Q2"								,cut);
-	inSimTree->Draw("eHit->getQ2() >> h1sim_Q2"								,cut2);
+	inSimTree->Draw("eHit->getQ2() >> h1sim_Q2"								,cut);
 	label1D(        h1dat_Q2,	h1sim_Q2,	"Q2 [GeV^2]",	"Counts"	);
 	c_Q2->cd(2);
 	label1D_ratio(	h1dat_Q2,       h1sim_Q2,       "Q2 [GeV^2]",   "Data/Sim"	);
@@ -207,7 +204,7 @@ int main(int argc, char ** argv){
 	c_xB->Divide(1,2);
 	c_xB->cd(1);
 	inDatTree->Draw("eHit->getXb() >> h1dat_xB"								,cut);
-	inSimTree->Draw("eHit->getXb() >> h1sim_xB"								,cut2);
+	inSimTree->Draw("eHit->getXb() >> h1sim_xB"								,cut);
 	label1D(        h1dat_xB,	h1sim_xB,	"xB",	"Counts"	);
 	c_xB->cd(2);
 	label1D_ratio(	h1dat_xB,       h1sim_xB,       "xB",   "Data/Sim"	);
@@ -217,7 +214,7 @@ int main(int argc, char ** argv){
 	c_W->Divide(1,2);
 	c_W->cd(1);
 	inDatTree->Draw("sqrt(eHit->getW2()) >> h1dat_W"								,cut);
-	inSimTree->Draw("sqrt(eHit->getW2()) >> h1sim_W"								,cut2);
+	inSimTree->Draw("sqrt(eHit->getW2()) >> h1sim_W"								,cut);
 	label1D(        h1dat_W,	h1sim_W,	"W [GeV]",	"Counts"	);
 	c_W->cd(2);
 	label1D_ratio(	h1dat_W,        h1sim_W,        "W [GeV]",      "Data/Sim"	);
