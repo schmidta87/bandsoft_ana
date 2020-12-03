@@ -122,22 +122,6 @@ int main(int argc, char ** argv){
 	TH2D * h2ViPn = new TH2D("h2ViPn","h2ViPn",50,-1,0,50,0,1);
 
 
-/*
-	// virtuality binned histograms
-	const double virt_bin_min = 1.2;
-	const double virt_bin_max = 1.6;
-	const double virt_bin_width = 0.1;
-	const double Nvirt_bins = (virt_bin_max - virt_bin_min + virt_bin_width/2.)/virt_bin_width;
-	
-	TH1D ** hXb_virt_bins = new TH1D*[Nvirt_bins];
-	TH1D ** hXp_virt_bins = new TH1D*[Nvirt_bins];
-
-	for( int i = 0 ; i < Nvirt_bins ; i++){
-		hXb_virt_bins[i] = new TH1D(Form("hXb_virt_bins_%i",i),Form("hXb_virt_bins_%i",i),100,0,1);
-		hXp_virt_bins[i] = new TH1D(Form("hXp_virt_bins_%i",i),Form("hXp_virt_bins_%i",i),100,0,1);
-	}
-*/
-
 	
 	//int doFiducial = atoi(argv[2]);
 	//clas12fiducial* fid = new clas12fiducial();
@@ -266,7 +250,6 @@ int main(int argc, char ** argv){
 
 
 	
-
 			hXp->Fill( this_tag->getXp() );
 			hXb->Fill( eHit->getXb() );
 			hAs->Fill( this_tag->getAs() );
