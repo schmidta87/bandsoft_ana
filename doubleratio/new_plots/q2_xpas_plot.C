@@ -25,7 +25,7 @@ void q2_xpas_plot(TString inDat, TString inBac, TString inSim){
 	TCanvas * c0 = new TCanvas("c0","",800,600);
 	c0->cd();
 	Q2_dat->SetTitle(Form("Full distribution, C_{sim} = %f",full_simnorm));
-	label1D(Q2_dat,Q2_sim,"W' [GeV]","Counts");
+	label1D(Q2_dat,Q2_sim,"Q^{2} [GeV^{2}]","Counts");
 	c0->SaveAs("full_Q2.pdf");
 
 	
@@ -64,7 +64,7 @@ void q2_xpas_plot(TString inDat, TString inBac, TString inSim){
 		TString current_title = Q2_xb_bins_dat[i]->GetTitle();
 		Q2_xb_bins_dat[i]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
 
-		label1D(Q2_xb_bins_dat[i],Q2_xb_bins_sim[i],"W' [GeV]","Counts");
+		label1D(Q2_xb_bins_dat[i],Q2_xb_bins_sim[i],"Q^{2} [GeV^{2}]","Counts");
 	}
 	c1->SaveAs("q2_as_bins.pdf");
 	
@@ -91,7 +91,7 @@ void q2_xpas_plot(TString inDat, TString inBac, TString inSim){
 		TString current_title = Q2_xp_bins_dat[i]->GetTitle();
 		Q2_xp_bins_dat[i]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
 
-		label1D(Q2_xp_bins_dat[i],Q2_xp_bins_sim[i],"W' [GeV]","Counts");
+		label1D(Q2_xp_bins_dat[i],Q2_xp_bins_sim[i],"Q^{2} [GeV^{2}]","Counts");
 	}
 	c2->SaveAs("q2_xp_bins.pdf");
 	

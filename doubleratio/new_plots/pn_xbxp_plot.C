@@ -1,4 +1,4 @@
-void plot(TString inDat, TString inBac, TString inSim){
+void pn_xbxp_plot(TString inDat, TString inBac, TString inSim){
 
 	// Define some function used
 	void label1D(TH1F* data, TH1F* sim, TString xlabel, TString ylabel);

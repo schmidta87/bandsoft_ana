@@ -40,7 +40,7 @@ void datasim_xbxp_plot(TString inDat, TString inBac, TString inSim){
 	label1D(xP_dat,xP_sim,"x' ","Counts");
 	c0->cd(2);
 	xB_dat->SetTitle(Form("Full distribution, C_{sim} = %f",full_simnorm));
-	label1D_ratio(xP_dat,xP_sim,"x_{B} ","Data/Sim");
+	label1D_ratio(xP_dat,xP_sim,"x' ","Data/Sim");
 	c0->SaveAs("full_xp.pdf");
 
 	// xB absolute and ratio
@@ -50,7 +50,7 @@ void datasim_xbxp_plot(TString inDat, TString inBac, TString inSim){
 	c1->Divide(1,2);
 	c1->cd(1);
 	xB_dat->SetTitle(Form("Full distribution, C_{sim} = %f",full_simnorm));
-	label1D(xB_dat,xB_sim,"x' ","Counts");
+	label1D(xB_dat,xB_sim,"x_{B} ","Counts");
 	c1->cd(2);
 	xB_dat->SetTitle(Form("Full distribution, C_{sim} = %f",full_simnorm));
 	label1D_ratio(xB_dat,xB_sim,"x_{B} ","Data/Sim");
@@ -89,10 +89,10 @@ void datasim_xbxp_plot(TString inDat, TString inBac, TString inSim){
 		xb_bins_sim[i]->Rebin(4);
 		TString current_title = xb_bins_dat[i]->GetTitle();
 		xb_bins_dat[i]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
-		label1D(xb_bins_dat[i],xb_bins_sim[i],"xB","Counts");
+		label1D(xb_bins_dat[i],xb_bins_sim[i],"x_{B}","Counts");
 
 		c2->cd(i+3);
-		label1D_ratio(xb_bins_dat[i],xb_bins_sim[i],"Data/sim","Counts");
+		label1D_ratio(xb_bins_dat[i],xb_bins_sim[i],"x_{B}","Data/Sim");
 	}
 	c2->SaveAs("ratioxB_as_bins.pdf");
 
@@ -123,7 +123,7 @@ void datasim_xbxp_plot(TString inDat, TString inBac, TString inSim){
 		label1D(xp_bins_dat[i],xp_bins_sim[i],"xB","Counts");
 
 		c3->cd(i+3);
-		label1D_ratio(xp_bins_dat[i],xp_bins_sim[i],"Data/sim","Counts");
+		label1D_ratio(xp_bins_dat[i],xp_bins_sim[i],"x'","Data/sim");
 	}
 	c3->SaveAs("ratioxP_as_bins.pdf");
 
