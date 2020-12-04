@@ -6,7 +6,7 @@ FILE(GLOB BAND_LIBS $ENV{BANDSOFT_TOOLS_DIR}/lib/libclashit_tree.dylib $ENV{BAND
 
 set(CMAKE_VERBOSE_MAKEFILE ON)
 
-add_executable(test_skim test_skim.cpp )
-target_link_libraries(test_skim ${ROOT_LIBRARIES} ${BAND_LIBS})
-install( TARGETS test_skim
-		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
+#add_executable(test_skim test_skim.cpp )
+#target_link_libraries(test_skim ${ROOT_LIBRARIES} ${BAND_LIBS})
+#install( TARGETS test_skim
+#		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
