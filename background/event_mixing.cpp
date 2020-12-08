@@ -45,23 +45,23 @@ int main(int argc, char ** argv){
 	int output_nMult = 1;
 	bandhit output_nHit;
 	//      Electron info:
-        clashit output_eHit;
-        //      Tagged info:
-        taghit  output_tag;
-        //      Event branches:
+	clashit output_eHit;
+  //      Tagged info:
+	taghit  output_tag;
+  //      Event branches:
 	outTree->Branch("Runno"         ,&Runno                 );
-        outTree->Branch("Ebeam"         ,&Ebeam                 );
-        outTree->Branch("gated_charge"  ,&gated_charge          );
-        outTree->Branch("livetime"      ,&livetime              );
-        outTree->Branch("starttime"     ,&starttime             );
-        outTree->Branch("current"       ,&current               );
-        //      Neutron branches:
+	outTree->Branch("Ebeam"         ,&Ebeam                 );
+	outTree->Branch("gated_charge"  ,&gated_charge          );
+	outTree->Branch("livetime"      ,&livetime              );
+	outTree->Branch("starttime"     ,&starttime             );
+	outTree->Branch("current"       ,&current               );
+	//      Neutron branches:
 	outTree->Branch("nMult"		,&output_nMult			);
-        outTree->Branch("nHits"          ,&output_nHit                   );
-        //      Electron branches:
-        outTree->Branch("eHit"          ,&output_eHit                  );
-        //      Tagged branches:
-        outTree->Branch("tag"           ,&output_tag                    );
+	outTree->Branch("nHits"          ,&output_nHit                   );
+	//      Electron branches:
+	outTree->Branch("eHit"          ,&output_eHit                  );
+	//      Tagged branches:
+	outTree->Branch("tag"           ,&output_tag                    );
 
 	TRandom3 * myRand = new TRandom3(0);
 
@@ -84,7 +84,7 @@ int main(int argc, char ** argv){
 	}
 */
 
-	// Define background and signal edges
+	// Define background and signal edges. FH 12/08/20 Are these still correct for the latest skims??
 	const double bkgrd_min = -50;
 	const double bkgrd_max = 0;
 	const double signal_min = 13;
@@ -101,7 +101,7 @@ int main(int argc, char ** argv){
 	clashit* input_eHit = new clashit;
 	TClonesArray* input_nHit = new TClonesArray("bandhit");
 //	bandhit* input_nHit = new bandhit[maxNeutrons];
-        int nMult;
+  int nMult;
 	double input_ebeam;
 
 	inTree_e->SetBranchAddress("Ebeam", &input_ebeam);
@@ -119,6 +119,7 @@ int main(int argc, char ** argv){
 	vector<double> e_mom;
 	vector<double> e_beam;
 	vector<double> e_vtz;
+	vector<clashit*> electron_list;
 	// Read entire tree into memory due to issue with jumping around in tree as we read it..
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
@@ -130,7 +131,7 @@ int main(int argc, char ** argv){
 		int input_status = 0;
 
 		inTree_n->GetEntry(neutron);
-
+		//do we need to change it here for new neutron PID algo??
 		if (nMult != 1) continue;
 
 		bandhit* this_nHit = (bandhit*)input_nHit->At(0);
@@ -169,12 +170,14 @@ int main(int argc, char ** argv){
 		input_vtz_e = input_eHit->getVtz();
 
 		//if( electron > inTree_e->GetEntries()/100 ) break;
+		//All electrons from inclusive skim, no fiducials
 
 		e_theta.push_back(input_theta_e);
 		e_phi.push_back(input_phi_e);
 		e_mom.push_back(input_p_e);
 		e_vtz.push_back(input_vtz_e);
 		e_beam.push_back(input_ebeam);
+		electron_list.push_back(input_eHit);
 	}
 
 	// Loop over all neutron events
@@ -200,6 +203,9 @@ int main(int argc, char ** argv){
 			double dL		= n_dL		[neutron];
 			double Edep 		= n_Edep	[neutron];
 			int status 		= n_status	[neutron];
+
+			clashit *test_electron = electron_list [electron];
+			cout << " from clashit vector theta " << test_electron->getTheta() << " and from theta vector " << theta_e << endl;
 
 			// Redraw my ToF and calculate all quantities to save
 			double ToF = myRand->Rndm()*( signal_max - signal_min ) + signal_min ;
