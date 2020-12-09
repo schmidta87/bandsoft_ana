@@ -19,6 +19,7 @@
 #include "TVectorT.h"
 #include "TRandom3.h"
 #include "constants.h"
+#include "kinematic_cuts.h"
 #include "TClonesArray.h"
 
 
@@ -34,10 +35,10 @@ int main(int argc, char ** argv){
 		return -1;
 	}
 
-        // Create output tree
-        TFile * outFile = new TFile(argv[1],"RECREATE");
-        TTree * outTree = new TTree("tagged","BAND Neutrons and CLAS Electrons");
-        //      Event info:
+  // Create output tree
+  TFile * outFile = new TFile(argv[1],"RECREATE");
+  TTree * outTree = new TTree("tagged","BAND Neutrons and CLAS Electrons");
+  //      Event info:
 	int Runno               = 1;
 	double Ebeam            = 0;
 	double gated_charge     = 1;
@@ -69,29 +70,17 @@ int main(int argc, char ** argv){
 	TRandom3 * myRand = new TRandom3(0);
 
 
-	// Define 4D binned ToF plots and bin edges and kin cuts
-	double const min_Q2 		= 1.5;
-	double const max_Q2 		= 11.;
-	double const min_CosTheta_nq 	= -1.1;
-	double const max_CosTheta_nq 	= -0.5;
+	// Define 4D binned ToF plots and bin edges and kin cuts from kinematic_cuts.h file
+	const double min_Q2 		= ECUT_Q2_min;
+	const double max_Q2 		= ECUT_Q2_max;
+	const double min_CosTheta_nq 	= NEUT_CosTheta_nq_min;
+	const double max_CosTheta_nq 	= NEUT_CosTheta_nq_max;
 
-/*
-	int nBins_Q2		= 1;
-	int nBins_CosTheta_nq 	= 1;
-	TH1D *** hToF_4D	= new TH1D**[nBins_Q2];
-	for( int bin_Q2 = 0; bin_Q2 < nBins_Q2 ; bin_Q2++){
-		hToF_4D[bin_Q2]	= new TH1D*[nBins_CosTheta_nq];
-		for( int bin_CosTheta_nq = 0; bin_CosTheta_nq < nBins_CosTheta_nq ; bin_CosTheta_nq++){
-			hToF_4D[bin_Q2][bin_CosTheta_nq] = new TH1D(Form("hToF_%i_%i",bin_Q2,bin_CosTheta_nq),"",1600,-100,300);
-		}
-	}
-*/
-
-	// Define background and signal edges. FH 12/08/20 Are these still correct for the latest skims??
-	const double bkgrd_min = -50;
-	const double bkgrd_max = 0;
-	const double signal_min = 13;
-	const double signal_max = 63;
+	// Define background and signal edges from from kinematic_cuts.h file
+	const double bkgrd_min = NEUT_bkgrd_min;
+	const double bkgrd_max = NEUT_bkgrd_max;
+	const double signal_min = NEUT_signal_min;
+	const double signal_max = NEUT_signal_max;
 
 	// Loop over the neutron and electron skim files given
 	TFile * inFile_e = new TFile(argv[2]);
