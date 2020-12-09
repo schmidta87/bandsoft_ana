@@ -73,6 +73,7 @@ int main(int argc, char ** argv){
 	// Define 4D binned ToF plots and bin edges and kin cuts from kinematic_cuts.h file
 	const double min_Q2 		= ECUT_Q2_min;
 	const double max_Q2 		= ECUT_Q2_max;
+	const double min_W2 		= ECUT_W2_min;
 	const double min_CosTheta_nq 	= NEUT_CosTheta_nq_min;
 	const double max_CosTheta_nq 	= NEUT_CosTheta_nq_max;
 
@@ -227,7 +228,7 @@ int main(int argc, char ** argv){
 			Pt = nVec - pN_par_q;
 
 			// Ask if passes cuts, and if so, count valid pair and fill histogram/tree
-			if( Q2 > min_Q2 && Q2 < max_Q2 && CosTheta_nq > min_CosTheta_nq && CosTheta_nq < max_CosTheta_nq ){
+			if( Q2 > min_Q2 && Q2 < max_Q2 && W2 > 	min_W2 && CosTheta_nq > min_CosTheta_nq && CosTheta_nq < max_CosTheta_nq ){
 				// Valid pair
 				nFails = 0;
 				nPairs++;
@@ -268,13 +269,7 @@ int main(int argc, char ** argv){
 	}
 
 	outFile->cd();
-/*
-	for( int bin_Q2 = 0; bin_Q2 < nBins_Q2 ; bin_Q2++){
-		for( int bin_CosTheta_nq = 0; bin_CosTheta_nq < nBins_CosTheta_nq ; bin_CosTheta_nq++){
-			hToF_4D[bin_Q2][bin_CosTheta_nq] -> Write();
-		}
-	}
-*/
+
 	outTree->Write();
 	outFile->Close();
 
