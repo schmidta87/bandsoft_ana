@@ -95,11 +95,15 @@ int main(int argc, char ** argv){
 //	bandhit* input_nHit = new bandhit[maxNeutrons];
   int nMult;
 	double input_ebeam;
+	bool goodneutron;
+	int nleadindex;
 
 	inTree_e->SetBranchAddress("Ebeam", &input_ebeam);
 	inTree_e->SetBranchAddress("eHit",	&input_eHit);
 	inTree_n->SetBranchAddress("nHits",	&input_nHit);
 	inTree_n->SetBranchAddress("nMult",	&nMult);
+	inTree_n->SetBranchAddress("goodneutron",	&goodneutron);
+	inTree_n->SetBranchAddress("nleadindex",	&nleadindex);
 
 	vector<double> n_theta;
 	vector<double> n_phi;
@@ -119,10 +123,10 @@ int main(int argc, char ** argv){
 		int input_status = 0;
 
 		inTree_n->GetEntry(neutron);
-		//do we need to change it here for new neutron PID algo??
-		if (nMult != 1) continue;
+		//from updated neutron PID algo
+		if (!goodneutron || nleadindex == -1) continue;
 
-		bandhit* this_nHit = (bandhit*)input_nHit->At(0);
+		bandhit* this_nHit = (bandhit*)input_nHit->At(nleadindex);
 
 		input_theta_n = this_nHit->getDL().Theta();
 		input_phi_n = this_nHit->getDL().Phi();
@@ -154,7 +158,6 @@ int main(int argc, char ** argv){
 		electron_list.push_back(*input_eHit);
 
 	}
-
 	// Loop over all neutron events
 	for( int neutron = 0 ; neutron < n_status.size() ; neutron++ ){
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
