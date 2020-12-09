@@ -24,6 +24,9 @@
 
 using namespace std;
 
+//clashit (const clashit &input) {x = p2.x; y = p2.y; }
+
+
 int main(int argc, char ** argv){
 	if (argc != 4){
 		cerr << "Wrong number of arguments. Instead use\n"
@@ -114,12 +117,8 @@ int main(int argc, char ** argv){
 	vector<double> n_dL;
 	vector<double> n_Edep;
 	vector<int> n_status;
-	vector<double> e_theta;
-	vector<double> e_phi;
-	vector<double> e_mom;
 	vector<double> e_beam;
-	vector<double> e_vtz;
-	vector<clashit*> electron_list;
+	vector<clashit> electron_list;
 	// Read entire tree into memory due to issue with jumping around in tree as we read it..
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
@@ -157,27 +156,14 @@ int main(int argc, char ** argv){
 	}
 	cout << "Saving electrons to mem...\n";
 	for( int electron = 0 ; electron < inTree_e->GetEntries() ; electron++ ){
-		double input_p_e = 0;
-		double input_theta_e = 0;
-		double input_phi_e = 0;
-		double input_vtz_e = 0;
-
 		inTree_e->GetEntry(electron);
-
-		input_p_e = input_eHit->getMomentum();
-		input_theta_e = input_eHit->getTheta();
-		input_phi_e = input_eHit->getPhi();
-		input_vtz_e = input_eHit->getVtz();
 
 		//if( electron > inTree_e->GetEntries()/100 ) break;
 		//All electrons from inclusive skim, no fiducials
-
-		e_theta.push_back(input_theta_e);
-		e_phi.push_back(input_phi_e);
-		e_mom.push_back(input_p_e);
-		e_vtz.push_back(input_vtz_e);
 		e_beam.push_back(input_ebeam);
-		electron_list.push_back(input_eHit);
+		//copy full clashit object to vector list. Explicit copy cunstructor in class is not necessary. Implicit copying
+		electron_list.push_back(*input_eHit);
+
 	}
 
 	// Loop over all neutron events
@@ -194,18 +180,15 @@ int main(int argc, char ** argv){
 
 			// Read in the stored variables
 			double fixed_Ebeam 	= e_beam	[electron];
-			double p_e		= e_mom		[electron];
-			double theta_e		= e_theta	[electron];
-			double phi_e		= e_phi		[electron];
-			double vtz 		= e_vtz		[electron];
+			double p_e		= electron_list[electron].getMomentum();
+			double theta_e		= electron_list[electron].getTheta();
+			double phi_e		= electron_list[electron].getPhi();
+			double vtz 		= electron_list[electron].getVtz();
 			double theta_n		= n_theta	[neutron];
 			double phi_n		= n_phi		[neutron];
 			double dL		= n_dL		[neutron];
 			double Edep 		= n_Edep	[neutron];
 			int status 		= n_status	[neutron];
-
-			clashit *test_electron = electron_list [electron];
-			cout << " from clashit vector theta " << test_electron->getTheta() << " and from theta vector " << theta_e << endl;
 
 			// Redraw my ToF and calculate all quantities to save
 			double ToF = myRand->Rndm()*( signal_max - signal_min ) + signal_min ;
@@ -218,14 +201,13 @@ int main(int argc, char ** argv){
 			TVector3 qVec;	qVec = beamVec - eVec;
 			TVector3 nVec;	nVec.SetMagThetaPhi(p_n,theta_n,phi_n);
 
-			double E_e 	= sqrt( mE*mE + p_e*p_e );
-			double q 	= qVec.Mag();
-			double theta_q  = qVec.Theta();
-			double phi_q 	= qVec.Phi();
-			double nu 	= fixed_Ebeam - E_e;
-			double Q2 	= q*q - nu*nu;
-			double xB	= Q2 / (2.*mP*nu);
-			double W2	= mP*mP - Q2 + 2*nu*mP;
+			double q 	= electron_list[electron].getQ();
+			double theta_q  = electron_list[electron].getThetaQ();
+			double phi_q 	= electron_list[electron].getPhiQ();
+			double nu 	= electron_list[electron].getOmega();
+			double Q2 	= electron_list[electron].getQ2();
+			double xB	= electron_list[electron].getXb();
+			double W2	= electron_list[electron].getW2();
 			double E_n 	= sqrt( mN*mN + p_n*p_n );
 
 			// Calculate the nq angles
@@ -259,26 +241,7 @@ int main(int argc, char ** argv){
 				nPairs++;
 				Ebeam 	= 		fixed_Ebeam 	;
 
-				output_eHit.setMomentum(p_e);
-				output_eHit.setTheta(theta_e);
-				output_eHit.setPhi(phi_e);
-				output_eHit.setW2(W2);
-				output_eHit.setQ2(Q2);
-				output_eHit.setXb(xB);
-				output_eHit.setOmega(nu);
-				output_eHit.setQ(q);
-				output_eHit.setThetaQ(theta_q);
-				output_eHit.setPhiQ(phi_q);
-
-				output_eHit.setPID(11);
-				output_eHit.setCharge(-1);
-				output_eHit.setEpcal(E_e);
-				output_eHit.setVtz(vtz);
-
-				output_eHit.setEoP(0.2);
-				output_eHit.setU(10);
-				output_eHit.setV(10);
-				output_eHit.setW(10);
+				output_eHit = electron_list[electron];
 
 				output_nHit.setTof(ToF);
 				output_nHit.setTofFadc(ToF);
