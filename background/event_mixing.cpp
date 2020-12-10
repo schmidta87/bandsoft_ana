@@ -19,10 +19,14 @@
 #include "TVectorT.h"
 #include "TRandom3.h"
 #include "constants.h"
+#include "kinematic_cuts.h"
 #include "TClonesArray.h"
 
 
 using namespace std;
+
+//clashit (const clashit &input) {x = p2.x; y = p2.y; }
+
 
 int main(int argc, char ** argv){
 	if (argc != 4){
@@ -31,10 +35,10 @@ int main(int argc, char ** argv){
 		return -1;
 	}
 
-        // Create output tree
-        TFile * outFile = new TFile(argv[1],"RECREATE");
-        TTree * outTree = new TTree("tagged","BAND Neutrons and CLAS Electrons");
-        //      Event info:
+  // Create output tree
+  TFile * outFile = new TFile(argv[1],"RECREATE");
+  TTree * outTree = new TTree("tagged","BAND Neutrons and CLAS Electrons");
+  //      Event info:
 	int Runno               = 1;
 	double Ebeam            = 0;
 	double gated_charge     = 1;
@@ -45,50 +49,39 @@ int main(int argc, char ** argv){
 	int output_nMult = 1;
 	bandhit output_nHit;
 	//      Electron info:
-        clashit output_eHit;
-        //      Tagged info:
-        taghit  output_tag;
-        //      Event branches:
+	clashit output_eHit;
+  //      Tagged info:
+	taghit  output_tag;
+  //      Event branches:
 	outTree->Branch("Runno"         ,&Runno                 );
-        outTree->Branch("Ebeam"         ,&Ebeam                 );
-        outTree->Branch("gated_charge"  ,&gated_charge          );
-        outTree->Branch("livetime"      ,&livetime              );
-        outTree->Branch("starttime"     ,&starttime             );
-        outTree->Branch("current"       ,&current               );
-        //      Neutron branches:
+	outTree->Branch("Ebeam"         ,&Ebeam                 );
+	outTree->Branch("gated_charge"  ,&gated_charge          );
+	outTree->Branch("livetime"      ,&livetime              );
+	outTree->Branch("starttime"     ,&starttime             );
+	outTree->Branch("current"       ,&current               );
+	//      Neutron branches:
 	outTree->Branch("nMult"		,&output_nMult			);
-        outTree->Branch("nHits"          ,&output_nHit                   );
-        //      Electron branches:
-        outTree->Branch("eHit"          ,&output_eHit                  );
-        //      Tagged branches:
-        outTree->Branch("tag"           ,&output_tag                    );
+	outTree->Branch("nHits"          ,&output_nHit                   );
+	//      Electron branches:
+	outTree->Branch("eHit"          ,&output_eHit                  );
+	//      Tagged branches:
+	outTree->Branch("tag"           ,&output_tag                    );
 
 	TRandom3 * myRand = new TRandom3(0);
 
 
-	// Define 4D binned ToF plots and bin edges and kin cuts
-	double const min_Q2 		= 1.5;
-	double const max_Q2 		= 11.;
-	double const min_CosTheta_nq 	= -1.1;
-	double const max_CosTheta_nq 	= -0.5;
+	// Define 4D binned ToF plots and bin edges and kin cuts from kinematic_cuts.h file
+	const double min_Q2 		= ECUT_Q2_min;
+	const double max_Q2 		= ECUT_Q2_max;
+	const double min_W2 		= ECUT_W2_min;
+	const double min_CosTheta_nq 	= NEUT_CosTheta_nq_min;
+	const double max_CosTheta_nq 	= NEUT_CosTheta_nq_max;
 
-/*
-	int nBins_Q2		= 1;
-	int nBins_CosTheta_nq 	= 1;
-	TH1D *** hToF_4D	= new TH1D**[nBins_Q2];
-	for( int bin_Q2 = 0; bin_Q2 < nBins_Q2 ; bin_Q2++){
-		hToF_4D[bin_Q2]	= new TH1D*[nBins_CosTheta_nq];
-		for( int bin_CosTheta_nq = 0; bin_CosTheta_nq < nBins_CosTheta_nq ; bin_CosTheta_nq++){
-			hToF_4D[bin_Q2][bin_CosTheta_nq] = new TH1D(Form("hToF_%i_%i",bin_Q2,bin_CosTheta_nq),"",1600,-100,300);
-		}
-	}
-*/
-
-	// Define background and signal edges
-	const double bkgrd_min = -50;
-	const double bkgrd_max = 0;
-	const double signal_min = 13;
-	const double signal_max = 63;
+	// Define background and signal edges from from kinematic_cuts.h file
+	const double bkgrd_min = NEUT_bkgrd_min;
+	const double bkgrd_max = NEUT_bkgrd_max;
+	const double signal_min = NEUT_signal_min;
+	const double signal_max = NEUT_signal_max;
 
 	// Loop over the neutron and electron skim files given
 	TFile * inFile_e = new TFile(argv[2]);
@@ -101,24 +94,25 @@ int main(int argc, char ** argv){
 	clashit* input_eHit = new clashit;
 	TClonesArray* input_nHit = new TClonesArray("bandhit");
 //	bandhit* input_nHit = new bandhit[maxNeutrons];
-        int nMult;
+  int nMult;
 	double input_ebeam;
+	bool goodneutron;
+	int nleadindex;
 
 	inTree_e->SetBranchAddress("Ebeam", &input_ebeam);
 	inTree_e->SetBranchAddress("eHit",	&input_eHit);
 	inTree_n->SetBranchAddress("nHits",	&input_nHit);
 	inTree_n->SetBranchAddress("nMult",	&nMult);
+	inTree_n->SetBranchAddress("goodneutron",	&goodneutron);
+	inTree_n->SetBranchAddress("nleadindex",	&nleadindex);
 
 	vector<double> n_theta;
 	vector<double> n_phi;
 	vector<double> n_dL;
 	vector<double> n_Edep;
 	vector<int> n_status;
-	vector<double> e_theta;
-	vector<double> e_phi;
-	vector<double> e_mom;
 	vector<double> e_beam;
-	vector<double> e_vtz;
+	vector<clashit> electron_list;
 	// Read entire tree into memory due to issue with jumping around in tree as we read it..
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
@@ -130,10 +124,10 @@ int main(int argc, char ** argv){
 		int input_status = 0;
 
 		inTree_n->GetEntry(neutron);
+		//from updated neutron PID algo
+		if (!goodneutron || nleadindex == -1) continue;
 
-		if (nMult != 1) continue;
-
-		bandhit* this_nHit = (bandhit*)input_nHit->At(0);
+		bandhit* this_nHit = (bandhit*)input_nHit->At(nleadindex);
 
 		input_theta_n = this_nHit->getDL().Theta();
 		input_phi_n = this_nHit->getDL().Phi();
@@ -156,27 +150,15 @@ int main(int argc, char ** argv){
 	}
 	cout << "Saving electrons to mem...\n";
 	for( int electron = 0 ; electron < inTree_e->GetEntries() ; electron++ ){
-		double input_p_e = 0;
-		double input_theta_e = 0;
-		double input_phi_e = 0;
-		double input_vtz_e = 0;
-
 		inTree_e->GetEntry(electron);
 
-		input_p_e = input_eHit->getMomentum();
-		input_theta_e = input_eHit->getTheta();
-		input_phi_e = input_eHit->getPhi();
-		input_vtz_e = input_eHit->getVtz();
-
 		//if( electron > inTree_e->GetEntries()/100 ) break;
-
-		e_theta.push_back(input_theta_e);
-		e_phi.push_back(input_phi_e);
-		e_mom.push_back(input_p_e);
-		e_vtz.push_back(input_vtz_e);
+		//All electrons from inclusive skim, no fiducials
 		e_beam.push_back(input_ebeam);
-	}
+		//copy full clashit object to vector list. Explicit copy cunstructor in class is not necessary. Implicit copying
+		electron_list.push_back(*input_eHit);
 
+	}
 	// Loop over all neutron events
 	for( int neutron = 0 ; neutron < n_status.size() ; neutron++ ){
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
@@ -191,10 +173,10 @@ int main(int argc, char ** argv){
 
 			// Read in the stored variables
 			double fixed_Ebeam 	= e_beam	[electron];
-			double p_e		= e_mom		[electron];
-			double theta_e		= e_theta	[electron];
-			double phi_e		= e_phi		[electron];
-			double vtz 		= e_vtz		[electron];
+			double p_e		= electron_list[electron].getMomentum();
+			double theta_e		= electron_list[electron].getTheta();
+			double phi_e		= electron_list[electron].getPhi();
+			double vtz 		= electron_list[electron].getVtz();
 			double theta_n		= n_theta	[neutron];
 			double phi_n		= n_phi		[neutron];
 			double dL		= n_dL		[neutron];
@@ -212,14 +194,13 @@ int main(int argc, char ** argv){
 			TVector3 qVec;	qVec = beamVec - eVec;
 			TVector3 nVec;	nVec.SetMagThetaPhi(p_n,theta_n,phi_n);
 
-			double E_e 	= sqrt( mE*mE + p_e*p_e );
-			double q 	= qVec.Mag();
-			double theta_q  = qVec.Theta();
-			double phi_q 	= qVec.Phi();
-			double nu 	= fixed_Ebeam - E_e;
-			double Q2 	= q*q - nu*nu;
-			double xB	= Q2 / (2.*mP*nu);
-			double W2	= mP*mP - Q2 + 2*nu*mP;
+			double q 	= electron_list[electron].getQ();
+			double theta_q  = electron_list[electron].getThetaQ();
+			double phi_q 	= electron_list[electron].getPhiQ();
+			double nu 	= electron_list[electron].getOmega();
+			double Q2 	= electron_list[electron].getQ2();
+			double xB	= electron_list[electron].getXb();
+			double W2	= electron_list[electron].getW2();
 			double E_n 	= sqrt( mN*mN + p_n*p_n );
 
 			// Calculate the nq angles
@@ -247,32 +228,13 @@ int main(int argc, char ** argv){
 			Pt = nVec - pN_par_q;
 
 			// Ask if passes cuts, and if so, count valid pair and fill histogram/tree
-			if( Q2 > min_Q2 && Q2 < max_Q2 && CosTheta_nq > min_CosTheta_nq && CosTheta_nq < max_CosTheta_nq ){
+			if( Q2 > min_Q2 && Q2 < max_Q2 && W2 > 	min_W2 && CosTheta_nq > min_CosTheta_nq && CosTheta_nq < max_CosTheta_nq ){
 				// Valid pair
 				nFails = 0;
 				nPairs++;
 				Ebeam 	= 		fixed_Ebeam 	;
 
-				output_eHit.setMomentum(p_e);
-				output_eHit.setTheta(theta_e);
-				output_eHit.setPhi(phi_e);
-				output_eHit.setW2(W2);
-				output_eHit.setQ2(Q2);
-				output_eHit.setXb(xB);
-				output_eHit.setOmega(nu);
-				output_eHit.setQ(q);
-				output_eHit.setThetaQ(theta_q);
-				output_eHit.setPhiQ(phi_q);
-
-				output_eHit.setPID(11);
-				output_eHit.setCharge(-1);
-				output_eHit.setEpcal(E_e);
-				output_eHit.setVtz(vtz);
-
-				output_eHit.setEoP(0.2);
-				output_eHit.setU(10);
-				output_eHit.setV(10);
-				output_eHit.setW(10);
+				output_eHit = electron_list[electron];
 
 				output_nHit.setTof(ToF);
 				output_nHit.setTofFadc(ToF);
@@ -307,13 +269,7 @@ int main(int argc, char ** argv){
 	}
 
 	outFile->cd();
-/*
-	for( int bin_Q2 = 0; bin_Q2 < nBins_Q2 ; bin_Q2++){
-		for( int bin_CosTheta_nq = 0; bin_CosTheta_nq < nBins_CosTheta_nq ; bin_CosTheta_nq++){
-			hToF_4D[bin_Q2][bin_CosTheta_nq] -> Write();
-		}
-	}
-*/
+
 	outTree->Write();
 	outFile->Close();
 
