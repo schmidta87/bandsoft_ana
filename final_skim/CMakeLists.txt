@@ -8,3 +8,8 @@ add_executable(final_inclusive final_inclusive.cpp )
 target_link_libraries(final_inclusive ${ROOT_LIBRARIES} ${BAND_LIBS})
 install( TARGETS final_inclusive
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
+
+add_executable(final_tagged final_tagged.cpp )
+target_link_libraries(final_tagged ${ROOT_LIBRARIES} ${BAND_LIBS})
+install( TARGETS final_tagged
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
