@@ -16,12 +16,6 @@ const double 	ECUT_pE_max = 10.6;
 const double 	ECUT_Q2_min = 2;
 const double 	ECUT_Q2_max = 10;
 const double 	ECUT_W2_min = 2*2;
-//for event mixer
-const double NEUT_CosTheta_nq_min 	= -1.1;
-const double NEUT_CosTheta_nq_max 	= -0.5;
-const double NEUT_bkgrd_min = -50;
-const double NEUT_bkgrd_max = 0;
-const double NEUT_signal_min = 13;
-const double NEUT_signal_max = 63;
+
 
 #endif
