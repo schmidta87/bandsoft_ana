@@ -12,6 +12,7 @@
 #include "TChain.h"
 #include "TVector3.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TFitResult.h"
 #include "TFitResultPtr.h"
 
@@ -26,6 +27,7 @@
 
 using namespace std;
 bool pointsToBand(double theta,double phi,double z_m);
+bool pointsToBand_box_thephi(double theta,double phi,double z_m);
 
 int slc[6][5] = {{3,7,6,6,2},{3,7,6,6,2},{3,7,6,6,2},{3,7,6,6,2},{3,7,5,5,0},{3,7,6,6,2}};
 
@@ -65,19 +67,22 @@ int main(int argc, char ** argv){
 	TEventList * goodEvents = (TEventList*) gDirectory->Get("goodEvents");
 	int nEvents = goodEvents->GetN();
 
-
+	TH2F *h2_bandhits_phi_theta = new TH2F("h2_bandhits_phi_theta","",800,-200,200,60,150,180);
+	h2_bandhits_phi_theta->GetXaxis()->SetTitle("#phi_{n}");
+	h2_bandhits_phi_theta->GetXaxis()->SetTitle("#theta_{n}");
 	// Loop over all the good events and write the output tree
 	int PTB = 0;
 	for( int ev = 0 ; ev < 100000 ; ev++ ){
 		mcParts->Clear();
 		if( ev % 100000 == 0 ) cout << "\ton event " << ev << "\n";
-		
+
 		inTree->GetEntry(ev);
 
 		genpart * gen_neutron = (genpart*)mcParts->At(1);
 		double thetaN 	= gen_neutron->getTheta();
 		double phiN	= gen_neutron->getPhi();
-		bool ptb = pointsToBand(thetaN,phiN,0.);
+		bool ptb = pointsToBand_box_thephi(thetaN,phiN,0.);
+		if (ptb) h2_bandhits_phi_theta->Fill(phiN*TMath::RadToDeg(),thetaN*TMath::RadToDeg());
 		if( ptb && gen_neutron->getMomentum() > NCUT_Pn_min && gen_neutron->getMomentum() < NCUT_Pn_max ) PTB++;
 	}
 	cout << "generated events that point-to-band: " << PTB <<"\n";
@@ -86,11 +91,24 @@ int main(int argc, char ** argv){
 
 	cout << "efficiency: " << (double)nEvents/PTB << "\n";
 
-
+	h2_bandhits_phi_theta->SaveAs("h2_bandhits_phi_theta.pdf");
 
 	return 0;
 }
 
+
+bool pointsToBand_box_thephi(double theta,double phi,double z_m){
+
+	//input phi and theta are in Rad
+	double theta_deg = theta * TMath::RadToDeg();
+	double phi_deg = phi * TMath::RadToDeg();
+	//pointing in box phi from 70 to 130 and theta from 163 to 169
+	if(   theta_deg > 163 && theta_deg < 169 && phi_deg > 70 && phi_deg < 130
+	  )
+		return 1;
+
+	return 0;
+}
 
 
 bool pointsToBand(double theta,double phi,double z_m){
