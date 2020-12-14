@@ -1,6 +1,8 @@
 #ifndef __KINEMATIC_CUTS_H__
 #define __KINEMATIC_CUTS_H__
 
+#include "constants.h"
+
 // Electron cuts
 const int 	ECUT_PID = 11;
 const int 	ECUT_charge = -1;
@@ -29,9 +31,16 @@ const double	NCUT_THETANQ_max = acos(-1);
 const double	NCUT_Tofabove0	= 0;
 const double 	NCUT_Pn_min = 0.3;
 const double 	NCUT_Pn_max = 0.7;
+const double 	NCUT_beta_min = 1./sqrt(1.+ pow(mN/NCUT_Pn_min,2));
+const double 	NCUT_beta_max = 1./sqrt(1.+ pow(mN/NCUT_Pn_max,2));
+const double 	NCUT_TofpM_max = 1./(cAir*NCUT_beta_min)*100;
+const double 	NCUT_TofpM_min = 1./(cAir*NCUT_beta_max)*100;
 const double 	NCUT_Wp_min = 1.8;
 const double 	NCUT_Wp_max = 4.5;
 const double 	NCUT_As_min = 1.2;
 const double	NCUT_As_max = 1.8;
+// Neutron backgroun region cuts
+const double	NCUT_BACK_TofpM_min = -20;
+const double	NCUT_BACK_TofpM_max = 0;
 
 #endif
