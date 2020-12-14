@@ -25,10 +25,10 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	double bacnorm = bacvector->X();
 
 	// Get simulation normalization
-	double 	sigma_tag = 1E4;
-	int 	nEven_tag = 1E4;
-	double 	sigma_inc = 1E4;
-	int 	nEven_inc = 1E4;
+	double 		L_tag = 2.28e10;
+	double 		L_inc = 9.61e6;
+	double 		Q_inc = 535885;
+	double		Q_tag = 4.37663e+07;
 
 	// Define the histograms for the ratio:
 	const int nAs_bins = 5;
@@ -41,9 +41,17 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	const double Xb_min = 0.1;
 	const double Xb_max = 0.7;
 	// What we want:
-	//			N_tag,data (Q2,theta_nq,x';alphaS) / N_tag,sim(Q2,theta_nq,x';alphaS)
-	//	R(tag/inc) = 	---------------------------------------------------------------------
-	//				     N_inc,data (Q2, x=x') / N_inc,sim (Q2, x=x')
+	//			[ N_tag,data (Q2,theta_nq,x';alphaS) / Q_tag] / [ N_tag,sim(Q2,theta_nq,x';alphaS) / L_tag,sim ]
+	//	R(tag/inc) = 	------------------------------------------------------------------------------------------------
+	//				     [ N_inc,data (Q2, x=x') / Q_inc] / [ N_inc,sim (Q2, x=x') / L_inc,sim ]
+	//
+	//			[ N_tag,data / Q_tag ]	 [ N_inc,sim / L_inc,sim ]
+	//	R(tag/inc) = 	---------------------- * -------------------------
+	//			[ N_inc,data / Q_inc ]   [ N_tag,sim / L_tag,sim ]
+	//
+	//			 [ N_tag,data / Q_tag ]	     [ N_inc,sim / L_inc,sim ]
+	//	R(tag/inc) = 	------------------------   * -------------------------
+	//			[ N_tag,sim / L_tag,sim ]      [ N_inc,dat / Q_inc ]
 	//
 	// These histograms all share a Q2 bin of [2,8]
 	// The tag histograms have theta_nq bin of [150,180]
@@ -85,16 +93,19 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	// Do the background subtraction:
 	h1_as_bac->Scale(bacnorm);
 	h1_as_dat->Add(h1_as_bac,-1);
+	//h1_as_dat->Scale(Q_inc/Q_tag);
 	// Do the simulation normalization:
 	double simnorm_tag = h1_as_dat->Integral() / h1_as_sim->Integral();
-	h1_as_sim->Scale(simnorm_tag);
+	simnorm_tag = 1./L_tag;
+	//h1_as_sim->Scale(simnorm_tag);
 	// Plot the data and simulation:
 	h1_as_dat->SetTitle(Form("Full distribution, C_{bac} = %f, C_{sim} = %f",bacnorm,simnorm_tag));
 	label1D(h1_as_dat,h1_as_sim,"Alpha_{S}","Counts");
 	c1_as_full->SaveAs("full_as_tag.pdf");
 
 	// First let's get:
-	//	R(tag) = 	N_tag,data (Q2,theta_nq,x';alphaS) / [ N_tag,sim(Q2,theta_nq,x';alphaS) * C_tag ]
+	//	R(tag) = 	N_tag,data (Q2,theta_nq,x';alphaS) / [ N_tag,sim(Q2,theta_nq,x';alphaS) ]
+	//	as just individual histograms for numerator and denominator
 	TCanvas * c1_as_xp_tag = new TCanvas("c1_as_xp_tag","",800,600);
 	c1_as_xp_tag->Divide(3,2);
 	for( int bin = 0 ; bin < nXp_bins ; bin++ ){
@@ -111,8 +122,6 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		// Do the background subtraction:
 		h1_as_xp_bac[bin]->Scale(bacnorm);
 		h1_as_xp_dat[bin]->Add(h1_as_xp_bac[bin],-1);
-		// Do the simulation normalization:
-		h1_as_xp_sim[bin]->Scale(simnorm_tag);
 		// Plot data and simulation:
 		h1_as_xp_dat[bin]->SetTitle(Form("%f < x' < %f",this_min_xp,this_max_xp));
 
@@ -129,7 +138,8 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	inTreeSimInc->Draw("eHit->getXb() >> h1_xb_sim",inclusive,"",nEvents);
 	// Do the simulation normalization:
 	double simnorm_inc = h1_xb_dat->Integral() / h1_xb_sim->Integral();
-	h1_xb_sim->Scale(simnorm_inc);
+	simnorm_inc = 1./L_inc;
+	//h1_xb_sim->Scale(simnorm_inc);
 	// Plot data and simulation:
 	h1_as_dat->SetTitle(Form("Full distribution, C_{sim} = %f",simnorm_inc));
 	label1D(h1_xb_dat,h1_xb_sim,"x_{B}","Counts");
@@ -137,7 +147,8 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	c1_q2_full->SaveAs("q2_full_inc.pdf");
 
 	// Now we can go get:
-	//	R(inc) = 	N_inc,data (Q2,x=x') / [ N_inc,sim(Q2,x=x') * C_inc ]
+	//	R(inc) = 	N_inc,data (Q2,x=x') / N_inc,sim(Q2,x=x') 
+	//	by saving each number individiually
 	TCanvas * c1_q2_xb_inc = new TCanvas("c1_q2_xb_inc","",800,600);
 	c1_q2_xb_inc->Divide(3,2);
 	double DatIncCounts[nXb_bins] = {0};
@@ -155,8 +166,6 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		DatIncCounts[bin] = h1_q2_xb_dat[bin]->Integral();
 		SimIncCounts[bin] = h1_q2_xb_sim[bin]->Integral();
 
-		// Scale the simulation by the normalization
-		h1_q2_xb_sim[bin]->Scale(simnorm_inc);
 		// Plot data and simulation:
 		h1_q2_xb_dat[bin]->SetTitle(Form("%f < x_{B} < %f",this_min_xb,this_max_xb));
 		label1D(h1_q2_xb_dat[bin],h1_q2_xb_sim[bin],"Q^{2}","Counts");
@@ -164,25 +173,33 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	}
 	c1_q2_xb_inc->SaveAs("q2_xbBins_inc.pdf");
 	
-	
-	// So now take the ratio of [R(tag) / C_tag] / [R(inc) / C_inc] =
-	// 				R(tag)/R(inc) * C_inc/C_tag:
-	//
-	// and we need to renormalize C_inc/C_tag
+	// Now do the R_tag/R_inc ratio
 	TCanvas * c1_must = new TCanvas("c1_must","",800,600);
 	c1_must->Divide(3,2);
 	for( int bin = 0 ; bin < nXp_bins ; bin++ ){
 		c1_must->cd(bin+1);
 
-		// R_almost = N_data,tag(Q2,thetaNQ,x';alphaS) / [N_data,inc(Q2,x=x')/(N_sim,inc(Q2,x=x')*C_inc) ]
-		h1_as_xp_dat[bin] -> Scale( DatIncCounts[bin]/SimIncCounts[bin] );
+		cout << "x' bin: " << bin << "\n";
+	        cout << "Y_tag data integral: " 	<< h1_as_xp_dat[bin]->Integral() << "\n";
+	        cout << "N_tag sim integral: " 		<< h1_as_xp_sim[bin]->Integral() << "\n";
+		cout << "Y_inc data integral: " 	<< DatIncCounts[bin] << "\n";
+		cout << "N_inc sim integral: " 		<< SimIncCounts[bin] << "\n";
+		cout << "Q_tag: " 			<< Q_tag << "\n";
+		cout << "Q_inc: " 			<< Q_inc << "\n";
+		cout << "L_tag: " 			<< L_tag << "\n";
+		cout << "L_inc: " 			<< L_inc << "\n";
+		cout << "\n";
 
-		// Renormalize C_inc/C_tag:
-		double CincCtag = simnorm_inc / simnorm_tag;
-		cout << CincCtag << "\n";
 
-		// Then plot R_almost / [ N_sim,tag * C_tag ]
-		// 	so we have an overall normalization of C_inc/C_tag
+		h1_as_xp_dat[bin] -> Scale( 1./Q_tag );  // N_data,tag
+		h1_as_xp_sim[bin] -> Scale( 1./L_tag );	 // N_sim,tag
+
+		double N_inc_dat = (DatIncCounts[bin] / Q_inc);
+		double N_inc_sim = (SimIncCounts[bin] / L_inc);
+
+		h1_as_xp_dat[bin]->Scale( N_inc_sim / N_inc_dat );	// N_dat,tag / N_dat,inc
+
+		
 		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_sim[bin],"Alpha_{S}","R=R_{tag}/R_{sim}");
 
 	}
@@ -248,7 +265,6 @@ void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
 	//sim_copy->Scale(data_copy->Integral() / sim_copy->Integral() );
 
 	data_copy->Divide(sim_copy);
-
 
 
 	data_copy->Draw("ep");
