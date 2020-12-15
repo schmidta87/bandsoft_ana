@@ -34,11 +34,14 @@ void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 	const double As_min = 1.2;
 	const double As_max = 1.6;
 	TH1D ** xb_as_bins_dat = new TH1D*[nAs_bins];
-	TH1D ** xp_as_bins_dat = new TH1D*[nAs_bins];
 	TH1D ** xb_as_bins_bac = new TH1D*[nAs_bins];
-	TH1D ** xp_as_bins_bac = new TH1D*[nAs_bins];
 	TH1D ** xb_as_bins_sim = new TH1D*[nAs_bins];
-	TH1D ** xp_as_bins_sim = new TH1D*[nAs_bins];
+	TH1D ** xp_as_lpt_bins_dat = new TH1D*[nAs_bins];
+	TH1D ** xp_as_lpt_bins_bac = new TH1D*[nAs_bins];
+	TH1D ** xp_as_lpt_bins_sim = new TH1D*[nAs_bins];
+	TH1D ** xp_as_hpt_bins_dat = new TH1D*[nAs_bins];
+	TH1D ** xp_as_hpt_bins_bac = new TH1D*[nAs_bins];
+	TH1D ** xp_as_hpt_bins_sim = new TH1D*[nAs_bins];
 	
 	// Draw the full xp distribution
 	TCanvas * c_xp = new TCanvas("c_xp","",800,600);
@@ -81,63 +84,108 @@ void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 
 
 	// Now draw the data/sim of x' distributions as a function of alphaS
-	TCanvas * c_xp_as = new TCanvas("c_xp_as","",800,600);
-	c_xp_as->Divide(4,2);
+	TCanvas * c_xp_as_lpt = new TCanvas("c_xp_as_lpt","",800,600);
+	TCanvas * c_xp_as_hpt = new TCanvas("c_xp_as_hpt","",800,600);
+	c_xp_as_lpt->Divide(4,2);
+	c_xp_as_hpt->Divide(4,2);
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
-		c_xp_as->cd(bin+1);
-		xp_as_bins_dat[bin] = new TH1D(Form("xp_as_bins_%i_dat",bin),"",25,0,1);
-		xp_as_bins_bac[bin] = new TH1D(Form("xp_as_bins_%i_bac",bin),"",25,0,1);
-		xp_as_bins_sim[bin] = new TH1D(Form("xp_as_bins_%i_sim",bin),"",25,0,1);
+		xp_as_lpt_bins_dat[bin] = new TH1D(Form("xp_as_lpt_bins_%i_dat",bin),"",25,0,1);
+		xp_as_lpt_bins_bac[bin] = new TH1D(Form("xp_as_lpt_bins_%i_bac",bin),"",25,0,1);
+		xp_as_lpt_bins_sim[bin] = new TH1D(Form("xp_as_lpt_bins_%i_sim",bin),"",25,0,1);
+		xp_as_hpt_bins_dat[bin] = new TH1D(Form("xp_as_hpt_bins_%i_dat",bin),"",25,0,1);
+		xp_as_hpt_bins_bac[bin] = new TH1D(Form("xp_as_hpt_bins_%i_bac",bin),"",25,0,1);
+		xp_as_hpt_bins_sim[bin] = new TH1D(Form("xp_as_hpt_bins_%i_sim",bin),"",25,0,1);
+
 
 		double this_min_as = As_min + bin*(As_max - As_min)/nAs_bins;
 		double this_max_as = As_min + (bin+1)*(As_max - As_min)/nAs_bins;
 		TCut this_as_cut = Form("tag[nleadindex]->getAs() > %f && tag[nleadindex]->getAs() < %f",this_min_as,this_max_as);
 
-		inTreeDat->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_bins_%i_dat",bin),this_as_cut);
-		inTreeBac->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_bins_%i_bac",bin),this_as_cut);
-		inTreeSim->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_bins_%i_sim",bin),this_as_cut);
+		TCut lpt = "tag[nleadindex]->getPt().Mag() <  0.1 ";
+		TCut hpt = "tag[nleadindex]->getPt().Mag() >= 0.1 ";
 
-		if(	xp_as_bins_dat[bin]->Integral() == 0 ||
-			xp_as_bins_bac[bin]->Integral() == 0 ||
-			xp_as_bins_sim[bin]->Integral() == 0 ) continue;
+		c_xp_as_lpt->cd(bin+1);
+		inTreeDat->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_lpt_bins_%i_dat",bin),this_as_cut && lpt);
+		inTreeBac->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_lpt_bins_%i_bac",bin),this_as_cut && lpt);
+		inTreeSim->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_lpt_bins_%i_sim",bin),this_as_cut && lpt);
+		c_xp_as_hpt->cd(bin+1);
+		inTreeDat->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_hpt_bins_%i_dat",bin),this_as_cut && hpt);
+		inTreeBac->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_hpt_bins_%i_bac",bin),this_as_cut && hpt);
+		inTreeSim->Draw(Form("tag[nleadindex]->getXp2() >> xp_as_hpt_bins_%i_sim",bin),this_as_cut && hpt);
+
+		if(	xp_as_lpt_bins_dat[bin]->Integral() == 0 ||
+			xp_as_lpt_bins_bac[bin]->Integral() == 0 ||
+			xp_as_lpt_bins_sim[bin]->Integral() == 0 ||
+			xp_as_hpt_bins_dat[bin]->Integral() == 0 ||
+			xp_as_hpt_bins_bac[bin]->Integral() == 0 ||
+			xp_as_hpt_bins_sim[bin]->Integral() == 0 ) continue;
 
 		// Background subtraction
-		xp_as_bins_dat[bin] -> Add( xp_as_bins_bac[bin] , -1 );
+		xp_as_lpt_bins_dat[bin] -> Add( xp_as_lpt_bins_bac[bin] , -1 );
+		xp_as_hpt_bins_dat[bin] -> Add( xp_as_hpt_bins_bac[bin] , -1 );
 		// Scale simulation
-		xp_as_bins_sim[bin] -> Scale( full_simnorm );
+		xp_as_lpt_bins_sim[bin] -> Scale( full_simnorm );
+		xp_as_hpt_bins_sim[bin] -> Scale( full_simnorm );
 		// 	calculate a re-normalization
-		double simnorm = xp_as_bins_dat[bin]->Integral() / xp_as_bins_sim[bin]->Integral();
+		double simnorm_lpt = xp_as_lpt_bins_dat[bin]->Integral() / xp_as_lpt_bins_sim[bin]->Integral();
+		double simnorm_hpt = xp_as_hpt_bins_dat[bin]->Integral() / xp_as_hpt_bins_sim[bin]->Integral();
 
 
-		TString current_title = Form("%f < Alpha_{S} < %f",this_min_as,this_max_as);
-		xp_as_bins_dat[bin]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
+		TString current_title_lpt = Form("p_{T}<0.1 ,%f < Alpha_{S} < %f",this_min_as,this_max_as);
+		TString current_title_hpt = Form("p_{T}>=0.1 ,%f < Alpha_{S} < %f",this_min_as,this_max_as);
+		xp_as_lpt_bins_dat[bin]->SetTitle(current_title_lpt + Form(", C_{new} = %f",simnorm_lpt));
+		xp_as_hpt_bins_dat[bin]->SetTitle(current_title_hpt + Form(", C_{new} = %f",simnorm_hpt));
 
-		label1D(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x' ","Counts");
+		c_xp_as_lpt->cd(bin+1);
+		label1D(xp_as_lpt_bins_dat[bin],xp_as_lpt_bins_sim[bin],"x' ","Counts");
 
-		c_xp_as->cd(bin+5);
-		label1D_ratio(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x'","Data/Sim",0,5);
+		c_xp_as_lpt->cd(bin+5);
+		label1D_ratio(xp_as_lpt_bins_dat[bin],xp_as_lpt_bins_sim[bin],"x'","Data/Sim",0,5);
+
+		c_xp_as_hpt->cd(bin+1);
+		label1D(xp_as_hpt_bins_dat[bin],xp_as_hpt_bins_sim[bin],"x' ","Counts");
+
+		c_xp_as_hpt->cd(bin+5);
+		label1D_ratio(xp_as_hpt_bins_dat[bin],xp_as_hpt_bins_sim[bin],"x'","Data/Sim",0,5);
 	}
-	c_xp_as->SaveAs("xp_as_bins.pdf");
+	c_xp_as_lpt->SaveAs("xp_as_lpt_bins.pdf");
+	c_xp_as_hpt->SaveAs("xp_as_hpt_bins.pdf");
 
-
-	TCanvas * c_xp_as_xp03 = new TCanvas("c_xp_as_xp03","",800,600);
-	c_xp_as_xp03->Divide(4,1);
+	
+	TCanvas * c_xp_as_lpt_xp03 = new TCanvas("c_xp_as_lpt_xp03","",800,600);
+	TCanvas * c_xp_as_hpt_xp03 = new TCanvas("c_xp_as_hpt_xp03","",800,600);
+	c_xp_as_lpt_xp03->Divide(4,1);
+	c_xp_as_hpt_xp03->Divide(4,1);
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
-		c_xp_as_xp03->cd(bin+1);
+		c_xp_as_lpt_xp03->cd(bin+1);
 	
 		// Get counts at x'=0.3 for data and simulation
-		double xp03_data = xp_as_bins_dat[bin]->GetBinContent( xp_as_bins_dat[bin]->GetXaxis()->FindBin(0.3)  );
-		double xp03_simu = xp_as_bins_sim[bin]->GetBinContent( xp_as_bins_sim[bin]->GetXaxis()->FindBin(0.3)  );
-		if( xp03_data == 0 || xp03_simu == 0 ) continue;
-		xp_as_bins_dat[bin]->Scale( 1./xp03_data );
-		xp_as_bins_sim[bin]->Scale( 1./xp03_simu );
+		double xp03_data_lpt = xp_as_lpt_bins_dat[bin]->GetBinContent( xp_as_lpt_bins_dat[bin]->GetXaxis()->FindBin(0.3)  );
+		double xp03_simu_lpt = xp_as_lpt_bins_sim[bin]->GetBinContent( xp_as_lpt_bins_sim[bin]->GetXaxis()->FindBin(0.3)  );
+		if( xp03_data_lpt == 0 || xp03_simu_lpt == 0 ) continue;
+		xp_as_lpt_bins_dat[bin]->Scale( 1./xp03_data_lpt );
+		xp_as_lpt_bins_sim[bin]->Scale( 1./xp03_simu_lpt );
 
 		// Plot [ data/data(x'=0.3) ] / [ sim/sim(x'=0.3) ]
-		label1D_ratio(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x'","[Data/Data(x'=0.3)]/[Sim/Sim(x'=0.3)]",0.8,3);
+		label1D_ratio(xp_as_lpt_bins_dat[bin],xp_as_lpt_bins_sim[bin],"x'","[Data/Data(x'=0.3)]/[Sim/Sim(x'=0.3)]",0.8,3);
+
+
+		c_xp_as_hpt_xp03->cd(bin+1);
+	
+		// Get counts at x'=0.3 for data and simulation
+		double xp03_data = xp_as_hpt_bins_dat[bin]->GetBinContent( xp_as_hpt_bins_dat[bin]->GetXaxis()->FindBin(0.3)  );
+		double xp03_simu = xp_as_hpt_bins_sim[bin]->GetBinContent( xp_as_hpt_bins_sim[bin]->GetXaxis()->FindBin(0.3)  );
+		if( xp03_data == 0 || xp03_simu == 0 ) continue;
+		xp_as_hpt_bins_dat[bin]->Scale( 1./xp03_data );
+		xp_as_hpt_bins_sim[bin]->Scale( 1./xp03_simu );
+
+		// Plot [ data/data(x'=0.3) ] / [ sim/sim(x'=0.3) ]
+		label1D_ratio(xp_as_hpt_bins_dat[bin],xp_as_hpt_bins_sim[bin],"x'","[Data/Data(x'=0.3)]/[Sim/Sim(x'=0.3)]",0.8,3);
 
 	}
-	c_xp_as_xp03->SaveAs("xp_as_bins_normed.pdf");
-
+	c_xp_as_lpt_xp03->SaveAs("xp_as_lpt_bins_normed.pdf");
+	c_xp_as_hpt_xp03->SaveAs("xp_as_hpt_bins_normed.pdf");
+	
 	return;
 }
 
