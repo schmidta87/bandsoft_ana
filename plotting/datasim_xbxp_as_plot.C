@@ -1,8 +1,9 @@
 void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 
+
 	// Define some function used
 	void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
-	void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
+	void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel, double ymin , double ymax );
 
 	// Load TFiles
 	TFile * inFileDat = new TFile(inDat);
@@ -29,8 +30,8 @@ void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 	TH1D * xb_bac = new TH1D("xb_bac","xb_bac",25,0,0.5);
 	TH1D * xb_sim = new TH1D("xb_sim","xb_sim",25,0,0.5);
 	// 	x' and xB bins of As:
-	const int nAs_bins = 3;
-	const double As_min = 1.3;
+	const int nAs_bins = 4;
+	const double As_min = 1.2;
 	const double As_max = 1.6;
 	TH1D ** xb_as_bins_dat = new TH1D*[nAs_bins];
 	TH1D ** xp_as_bins_dat = new TH1D*[nAs_bins];
@@ -55,7 +56,7 @@ void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 	label1D(xp_dat,xp_sim,"x'","Counts");
 
 	c_xp->cd(2);
-	label1D_ratio(xp_dat,xp_sim,"x'","Counts");
+	label1D_ratio(xp_dat,xp_sim,"x'","Counts",0,2);
 
 	c_xp->SaveAs("full_xp.pdf");
 
@@ -74,14 +75,14 @@ void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 	label1D(xb_dat,xb_sim,"x_{B}","Counts");
 
 	c_xb->cd(2);
-	label1D_ratio(xb_dat,xb_sim,"x_{B}","Data/Sim");
+	label1D_ratio(xb_dat,xb_sim,"x_{B}","Data/Sim",0,2);
 
 	c_xb->SaveAs("full_xb.pdf");
 
 
 	// Now draw the data/sim of x' distributions as a function of alphaS
 	TCanvas * c_xp_as = new TCanvas("c_xp_as","",800,600);
-	c_xp_as->Divide(3,2);
+	c_xp_as->Divide(4,2);
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
 		c_xp_as->cd(bin+1);
 		xp_as_bins_dat[bin] = new TH1D(Form("xp_as_bins_%i_dat",bin),"",25,0,1);
@@ -113,10 +114,29 @@ void datasim_xbxp_as_plot(TString inDat, TString inBac, TString inSim){
 
 		label1D(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x' ","Counts");
 
-		c_xp_as->cd(bin+4);
-		label1D_ratio(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x'","Data/Sim");
+		c_xp_as->cd(bin+5);
+		label1D_ratio(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x'","Data/Sim",0,5);
 	}
 	c_xp_as->SaveAs("xp_as_bins.pdf");
+
+
+	TCanvas * c_xp_as_xp03 = new TCanvas("c_xp_as_xp03","",800,600);
+	c_xp_as_xp03->Divide(4,1);
+	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
+		c_xp_as_xp03->cd(bin+1);
+	
+		// Get counts at x'=0.3 for data and simulation
+		double xp03_data = xp_as_bins_dat[bin]->GetBinContent( xp_as_bins_dat[bin]->GetXaxis()->FindBin(0.3)  );
+		double xp03_simu = xp_as_bins_sim[bin]->GetBinContent( xp_as_bins_sim[bin]->GetXaxis()->FindBin(0.3)  );
+		if( xp03_data == 0 || xp03_simu == 0 ) continue;
+		xp_as_bins_dat[bin]->Scale( 1./xp03_data );
+		xp_as_bins_sim[bin]->Scale( 1./xp03_simu );
+
+		// Plot [ data/data(x'=0.3) ] / [ sim/sim(x'=0.3) ]
+		label1D_ratio(xp_as_bins_dat[bin],xp_as_bins_sim[bin],"x'","[Data/Data(x'=0.3)]/[Sim/Sim(x'=0.3)]",0.8,3);
+
+	}
+	c_xp_as_xp03->SaveAs("xp_as_bins_normed.pdf");
 
 	return;
 }
@@ -126,11 +146,11 @@ void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
 	data->SetMarkerColor(4);
 	data->SetMarkerStyle(8);
 	data->SetMarkerSize(1);
-	data->SetStats(0);
+	//data->SetStats(0);
 
 	sim->SetLineColor(2);
 	sim->SetLineWidth(1);
-	sim->SetStats(0);
+	//sim->SetStats(0);
 
 	data->Draw("p");
 	sim->Draw("hist,same");
@@ -151,20 +171,21 @@ void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
 
 	return;
 }
-void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
+void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel, double ymin , double ymax ){
+	gStyle->SetOptFit(1);
+	
 	TH1D * data_copy = (TH1D*) data->Clone();
 	TH1D * sim_copy = (TH1D*) sim->Clone();
 	
 	data_copy->SetLineColor(1);
 	data_copy->SetLineWidth(3);
-	data_copy->SetStats(0);
+	//data_copy->SetStats(0);
 
 	sim_copy->SetLineColor(9);
 	sim_copy->SetLineWidth(3);
-	sim_copy->SetStats(0);
+	//sim_copy->SetStats(0);
 	//sim_copy->Scale(data_copy->Integral() / sim_copy->Integral() );
 
-	data_copy->Sumw2();
 	data_copy->Divide(sim_copy);
 	data_copy->Draw("ep");
 	TLine* line = new TLine(data_copy->GetXaxis()->GetBinCenter(1), 1., data_copy->GetXaxis()->GetBinCenter(data_copy->GetXaxis()->GetNbins()), 1.);
@@ -172,11 +193,12 @@ void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
 	line->SetLineColor(2);
 	line->Draw("same");
 
-	double max1 = data_copy->GetMaximum()*1.1;
-	data_copy->GetYaxis()->SetRangeUser(0.5,1.5);
+	data_copy->GetYaxis()->SetRangeUser(ymin,ymax);
 	
 	data_copy->GetXaxis()->SetTitle(xlabel);
 	data_copy->GetYaxis()->SetTitle(ylabel);
+
+	data_copy->Fit("pol1");
 
 	return;
 }

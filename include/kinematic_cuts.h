@@ -29,7 +29,7 @@ const double 	NCUT_THETANQ_min = acos(-0.8);
 const double	NCUT_THETANQ_max = acos(-1);
 // Neutron signal region cuts
 const double	NCUT_Tofabove0	= 0;
-const double 	NCUT_Pn_min = 0.3;
+const double 	NCUT_Pn_min = 0.2;
 const double 	NCUT_Pn_max = 0.7;
 const double 	NCUT_beta_min = 1./sqrt(1.+ pow(mN/NCUT_Pn_min,2));
 const double 	NCUT_beta_max = 1./sqrt(1.+ pow(mN/NCUT_Pn_max,2));
