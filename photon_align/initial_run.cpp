@@ -15,6 +15,7 @@
 #include "bandhit.h"
 #include "TClonesArray.h"
 #include "calib_helper.h"
+#include "kinematic_cuts.h"
 
 // For processing data
 
@@ -27,14 +28,16 @@ int main(int argc, char ** argv){
 	// Set style
 	gStyle->SetOptFit(1);
 
-	if (argc < 3){
+	if (argc < 4){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./code [outputTxtfile] [outputPDFfile] [inputDatafiles]\n";
+			<< "\t./code [TDC(0) or FADC(1)] [outputTxtfile] [outputPDFfile] [inputDatafiles]\n";
 		return -1;
 	}
 
+	int TDCorFADC = atoi(argv[1]);
+
 	// Histograms for every run that sum over all bars
-	const int nRuns = argc-3;
+	const int nRuns = argc-4;
 	TH1D ** ToF_spec 	= new TH1D*[nRuns];
 	TF1 ** ToF_fits		= new TF1*[nRuns];
 	TF1 ** ToF_fits_it	= new TF1*[nRuns];
@@ -45,19 +48,21 @@ int main(int argc, char ** argv){
 	cout << "created histograms\n";
 
 	// Load the bar shifts that were calculated at the initial bar code
-	shifts.LoadInitBarFadc("../include/FADC_pass1v0_initbar.txt");
-	double * FADC_INITBAR = (double*) shifts.getInitBarFadc();
+	shifts.LoadInitBarFadc	("../include/FADC_pass1v0_initbar.txt");
+	shifts.LoadInitBar	("../include/TDC_pass1v0_initbar.txt");
+	double * FADC_INITBAR 	= (double*) shifts.getInitBarFadc();
+	double * TDC_INITBAR 	= (double*) shifts.getInitBar();
 	cout << "loaded shifts\n";
 
 
 	// Loop over all the files that are given to me to get the best statistics per bar
-	for( int i = 3 ; i < argc ; i++ ){
+	for( int i = 4 ; i < argc ; i++ ){
 		TFile * inFile = new TFile(argv[i]);
-		if (!(inFile->GetListOfKeys()->Contains("neutrons"))){
+		if (!(inFile->GetListOfKeys()->Contains("calib"))){
 			cerr << "File has no entries\n";
 			return -2;
 		}
-		TTree * inTree = (TTree*)inFile->Get("neutrons");
+		TTree * inTree = (TTree*)inFile->Get("calib");
 
 		//	Event info:
 		int Runno		= 0;
@@ -68,7 +73,6 @@ int main(int argc, char ** argv){
 		double current		= 0;
 		bool goodneutron 	= false;
 		int nleadindex	 	= -1;
-		double weight		= 0;
 		// 	Neutron info:
 		int nMult		= 0;
 		TClonesArray * nHits = new TClonesArray("bandhit");
@@ -79,7 +83,6 @@ int main(int argc, char ** argv){
 		inTree->SetBranchAddress("livetime"		,&livetime		);
 		inTree->SetBranchAddress("starttime"		,&starttime		);
 		inTree->SetBranchAddress("current"		,&current		);
-		inTree->SetBranchAddress("weight"		,&weight		);
 		//	Neutron branches:
 		inTree->SetBranchAddress("nMult"		,&nMult			);
 		inTree->SetBranchAddress("nHits"		,&nHits			);
@@ -100,7 +103,6 @@ int main(int argc, char ** argv){
 			current		= 0;
 			goodneutron 	= false;
 			nleadindex	= -1;
-			weight		= 0;
 			// 	Neutron info:
 			nMult		= 0;
 			nHits->Clear();
@@ -111,18 +113,26 @@ int main(int argc, char ** argv){
 			bandhit * this_photon = (bandhit*) nHits->At(0);
 			if( nMult 			!= 1 ) continue;
 			if( this_photon->getStatus() 	!= 0 ) continue;
-			if( this_photon->getTofFadc() 	== 0 ) continue;
+			if( TDCorFADC == 0 )
+				if( this_photon->getTof() 	== 0 ) continue;
+			if( TDCorFADC == 1 )
+				if( this_photon->getTofFadc() 	== 0 ) continue;
+			if( this_photon->getEdep()	< 2*DataAdcToMeVee ) 	continue;
 
-
-			double time 	= this_photon->getTofFadc();
-			double dL 	= this_photon->getDL().Mag();
-
-			double tof = time - dL/cAir;
 			int sector 	= this_photon->getSector();
 			int layer 	= this_photon->getLayer();
 			int component 	= this_photon->getComponent();
 
-			ToF_spec[i-3]->Fill(tof);
+			double time 	= 0;
+			if( TDCorFADC == 0 )
+				time 	= this_photon->getTof()		- TDC_INITBAR[sector*100+layer*10+component];
+			if( TDCorFADC == 1 )
+				time 	= this_photon->getTofFadc()	- FADC_INITBAR[sector*100+layer*10+component];
+			double dL 	= this_photon->getDL().Mag();
+
+			double tof = time - dL/cAir;
+
+			ToF_spec[i-4]->Fill(tof);
 
 		} // end loop over events
 
@@ -131,16 +141,15 @@ int main(int argc, char ** argv){
 
 
 
-
 	ofstream out_file;
-	out_file.open(argv[1]);
+	out_file.open(argv[2]);
 	TCanvas * c0 = new TCanvas("c0","c0",900,900);
-	TString openname = string(argv[2]) + "(";
+	TString openname = string(argv[3]) + "(";
 	c0 -> Print(openname);
 	for(int run = 0; run < nRuns; run++){
 		// Create canvas
 		cRun[run] = new TCanvas(Form("Run %i",run+1),Form("Run %i",run+1),900,900);
-		int thisRun = getRunNumber(argv[run+3]);
+		int thisRun = getRunNumber(argv[run+4]);
 		ToF_spec[run]->SetTitle(Form("ToF_spec_%i",thisRun));
 
 
@@ -210,10 +219,10 @@ int main(int argc, char ** argv){
 		//ToF_fits[run]->Draw("SAME");
 		cRun[run]->Update();
 		cRun[run]->Modified();
-		cRun[run] -> Print(argv[2]);
+		cRun[run] -> Print(argv[3]);
 		//cRun[run]->Write();
 	}
-	TString endname = string(argv[2]) + ")";
+	TString endname = string(argv[3]) + ")";
 	c0 -> Print(endname);
 
 	out_file.close();

@@ -24,11 +24,13 @@ int main(int argc, char ** argv){
 	// Set style
 	gStyle->SetOptFit(1);
 
-	if (argc < 3){
+	if (argc < 4){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./code [outputTxtfile] [outputPDFfile] [inputDatafiles]\n";
+			<< "\t./code [TDC(0) or FADC(1)] [outputTxtfile] [outputPDFfile] [inputDatafiles]\n";
 		return -1;
 	}
+
+	int TDCorFADC = atoi(argv[1]);
 
 	// Initialize histograms, fits, and canvases for output
 	TH1D **** ToF_spec = new TH1D***[5];
@@ -53,7 +55,7 @@ int main(int argc, char ** argv){
 	}
 
 	// Loop over all the files that are given to me to get the best statistics per bar
-	for( int i = 3 ; i < argc ; i++ ){
+	for( int i = 4 ; i < argc ; i++ ){
 		TFile * inFile = new TFile(argv[i]);
 		if (!(inFile->GetListOfKeys()->Contains("calib"))){
 			cerr << "File has no entries\n";
@@ -110,10 +112,17 @@ int main(int argc, char ** argv){
 			bandhit * this_photon = (bandhit*) nHits->At(0);
 			if( nMult 			!= 1 ) continue;
 			if( this_photon->getStatus() 	!= 0 ) continue;
-			if( this_photon->getTofFadc() 	== 0 ) continue;
+			if( TDCorFADC == 0 )
+				if( this_photon->getTof() 	== 0 ) continue;
+			if( TDCorFADC == 1 )
+				if( this_photon->getTofFadc() 	== 0 ) continue;
 			if( this_photon->getEdep()	< 2*DataAdcToMeVee ) 	continue;
 
-			double time 	= this_photon->getTofFadc();
+			double time 	= 0;
+			if( TDCorFADC == 0 )
+				time 	= this_photon->getTof();
+			if( TDCorFADC == 1 )
+				time 	= this_photon->getTofFadc();
 			double dL 	= this_photon->getDL().Mag();
 
 			double tof = time - dL/cAir;
@@ -130,10 +139,10 @@ int main(int argc, char ** argv){
 
 
 	ofstream out_file;
-	out_file.open(argv[1]);
+	out_file.open(argv[2]);
 
 	TCanvas * c0 = new TCanvas("c0","c0",900,900);
-	TString openname = string(argv[2]) + "(";
+	TString openname = string(argv[3]) + "(";
 	c0 -> Print(openname);
 	for( int sector = 0; sector < 5; sector++){
 		for( int layer = 0; layer < 5; layer++){
@@ -213,12 +222,12 @@ int main(int argc, char ** argv){
 
 				cSLC[sector][layer][component]->Update();
 				cSLC[sector][layer][component]->Modified();
-				cSLC[sector][layer][component] -> Print(argv[2]);
+				cSLC[sector][layer][component] -> Print(argv[3]);
 				//cSLC[sector][layer][component]->Write();
 			}
 		}
 	}
-	TString endname = string(argv[2]) + ")";
+	TString endname = string(argv[3]) + ")";
 	c0 -> Print(endname);
 
 	out_file.close();
