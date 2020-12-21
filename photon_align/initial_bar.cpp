@@ -14,6 +14,7 @@
 #include "constants.h"
 #include "bandhit.h"
 #include "TClonesArray.h"
+#include "kinematic_cuts.h"
 
 using namespace std;
 
@@ -46,7 +47,7 @@ int main(int argc, char ** argv){
 			ToF_fits_it[sector][layer] = new TF1 *[7];
 			cSLC[sector][layer] = new TCanvas*[7];
 			for(int component = 0; component < slc[layer][sector]; component++){
-				ToF_spec[sector][layer][component] = new TH1D(Form("ToF_spec_%i_%i_%i",(sector+1),(layer+1),(component+1)),Form("ToF_spec_%i_%i_%i",(sector+1),(layer+1),(component+1)),800,-15,25);
+				ToF_spec[sector][layer][component] = new TH1D(Form("ToF_spec_%i_%i_%i",(sector+1),(layer+1),(component+1)),Form("ToF_spec_%i_%i_%i",(sector+1),(layer+1),(component+1)),400,-14.975,25.025);
 			}
 		}
 	}
@@ -54,11 +55,11 @@ int main(int argc, char ** argv){
 	// Loop over all the files that are given to me to get the best statistics per bar
 	for( int i = 3 ; i < argc ; i++ ){
 		TFile * inFile = new TFile(argv[i]);
-		if (!(inFile->GetListOfKeys()->Contains("neutrons"))){
+		if (!(inFile->GetListOfKeys()->Contains("calib"))){
 			cerr << "File has no entries\n";
 			return -2;
 		}
-		TTree * inTree = (TTree*)inFile->Get("neutrons");
+		TTree * inTree = (TTree*)inFile->Get("calib");
 
 		//	Event info:
 		int Runno		= 0;
@@ -69,7 +70,6 @@ int main(int argc, char ** argv){
 		double current		= 0;
 		bool goodneutron 	= false;
 		int nleadindex	 	= -1;
-		double weight		= 0;
 		// 	Neutron info:
 		int nMult		= 0;
 		TClonesArray * nHits = new TClonesArray("bandhit");
@@ -80,7 +80,6 @@ int main(int argc, char ** argv){
 		inTree->SetBranchAddress("livetime"		,&livetime		);
 		inTree->SetBranchAddress("starttime"		,&starttime		);
 		inTree->SetBranchAddress("current"		,&current		);
-		inTree->SetBranchAddress("weight"		,&weight		);
 		//	Neutron branches:
 		inTree->SetBranchAddress("nMult"		,&nMult			);
 		inTree->SetBranchAddress("nHits"		,&nHits			);
@@ -101,7 +100,6 @@ int main(int argc, char ** argv){
 			current		= 0;
 			goodneutron 	= false;
 			nleadindex	= -1;
-			weight		= 0;
 			// 	Neutron info:
 			nMult		= 0;
 			nHits->Clear();
@@ -113,6 +111,7 @@ int main(int argc, char ** argv){
 			if( nMult 			!= 1 ) continue;
 			if( this_photon->getStatus() 	!= 0 ) continue;
 			if( this_photon->getTofFadc() 	== 0 ) continue;
+			if( this_photon->getEdep()	< 2*DataAdcToMeVee ) 	continue;
 
 			double time 	= this_photon->getTofFadc();
 			double dL 	= this_photon->getDL().Mag();
