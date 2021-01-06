@@ -31,7 +31,7 @@ using namespace std;
 int main(int argc, char ** argv){
 	if (argc != 4){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./event_mixing [outputRootfile] [inputElectronSkim] [inputNeutronSkim]\n";
+			<< "\t./event_mixing [outputRootfile] [inputElectronSkim] [inputTaggedSkim]\n";
 		return -1;
 	}
 
