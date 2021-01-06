@@ -105,6 +105,7 @@ int main(int argc, char ** argv){
 
 	clashit * input_eHit 		= new clashit;
 	TClonesArray* input_nHit 	= new TClonesArray("bandhit");
+	TClonesArray* input_tag 	= new TClonesArray("taghit");
 	int input_nleadindex		= -1;
 	bool input_ngoodneutron		= false;
 	double input_Ebeam		= 0;
@@ -112,6 +113,7 @@ int main(int argc, char ** argv){
 	inTree_e->SetBranchAddress("eHit",		&input_eHit);
 	inTree_e->SetBranchAddress("Ebeam",		&input_Ebeam);
 	inTree_n->SetBranchAddress("nHits",		&input_nHit);
+	inTree_n->SetBranchAddress("tag",		&input_tag);
 	inTree_n->SetBranchAddress("nleadindex",	&input_nleadindex);
 	inTree_n->SetBranchAddress("goodneutron",	&input_ngoodneutron);
 
@@ -121,9 +123,11 @@ int main(int argc, char ** argv){
 	vector<clashit> electron_list;
 	vector<bandhit> neutron_list;
 	vector<double>  Ebeam_list;
+	int neutrons_saved = 0;
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
 		input_nHit->Clear();
+		input_tag->Clear();
 		input_nleadindex = -1;
 		input_ngoodneutron = false;
 
@@ -138,14 +142,19 @@ int main(int argc, char ** argv){
 		bandhit copy_n;
 		copy_n = *lead_n;
 
-		// Check that the neutron we have is in our background region
+		// Check that the neutron we have is in our background region, in the CosThetaNQ bin, and in the Q2 bin
 		if( lead_n->getTof() < NCUT_BACK_Tof_min || lead_n->getTof() > NCUT_BACK_Tof_max ) continue;
+		taghit * this_tag = (taghit*) input_tag->At(0);
+		double this_CosThetaNQ = cos(this_tag->getThetaNQ());
+		if( this_CosThetaNQ > NCUT_COSTHETANQ_max || this_CosThetaNQ < NCUT_COSTHETANQ_min ) continue;
 
 		// And then double check that it's above an Edep cut and has good status:
 		if(	lead_n->getStatus() !=	NCUT_status 		) continue;
 		if(	lead_n->getEdep() > NCUT_Edep*DataAdcToMeVee 	) continue;
 
 		// If it passes all these cuts then just push it back 
+		//  -- 	the number of events we have in this list is the number of
+		// 	background events in our background region
 		neutron_list.push_back( copy_n );
 	}
 
@@ -174,7 +183,8 @@ int main(int argc, char ** argv){
 		Ebeam_list.push_back( input_Ebeam );
 	}
 
-	
+	int neutrons_created = 0;
+	int neutrons_mixed = 0;
 	// Loop over all neutron events
 	for( int neutron = 0 ; neutron < neutron_list.size() ; neutron++ ){
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
@@ -215,6 +225,7 @@ int main(int argc, char ** argv){
 
 		// Loop over all signal bunches to push our background into
 		for( int thisBunch = 0 ; thisBunch < (signal_max-signal_min)/BEAM_BUNCH ; thisBunch++ ){	
+			neutrons_created++;
 
 			// Shift ToF by current background bunch time and desired signal bunch time
 			double bunch_shift	= (signal_min + BEAM_BUNCH*thisBunch) - (this_bBunch*BEAM_BUNCH + bkgrd_min);
@@ -297,6 +308,7 @@ int main(int argc, char ** argv){
 
 
 				outTree->Fill();
+				neutrons_mixed++;
 
 			}
 		}
