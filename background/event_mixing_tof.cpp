@@ -179,10 +179,10 @@ int main(int argc, char ** argv){
 	for( int neutron = 0 ; neutron < neutron_list.size() ; neutron++ ){
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
 		
-
+		
 		int nSignalBunches = (signal_max - signal_min)/BEAM_BUNCH;
 		// Grab a random electron 
-		int electron = myRand->Rndm() * inTree_e->GetEntries();
+		int electron = myRand->Rndm() * electron_list.size();
 		// Read in the stored variables
 		double this_Ebeam 	= Ebeam_list	[electron];
 		double p_e		= electron_list	[electron].getMomentum();
@@ -193,6 +193,7 @@ int main(int argc, char ** argv){
 		double phi_n		= neutron_list	[neutron].getDL().Phi();
 		double dL		= neutron_list	[neutron].getDL().Mag();
 		double bkg_Tof		= neutron_list	[neutron].getTof();
+
 		
 		// Figure out what bunch this background is in
 		int this_bBunch		= (bkg_Tof - bkgrd_min )/BEAM_BUNCH;
