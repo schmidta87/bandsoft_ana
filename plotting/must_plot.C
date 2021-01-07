@@ -185,66 +185,19 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	}
 	c1_must->SaveAs("ratio_tag_inc.pdf");
 
-	TCanvas * ctest = new TCanvas("ctest","",800,600);
-	ctest->Divide(3,2);
+	TCanvas * c1_must_xp03 = new TCanvas("c1_must_xp03","",800,600);
+	c1_must_xp03->Divide(3,2);
 
 	for( int bin = 0 ; bin < nXp_bins ; bin++ ){
-		ctest->cd(bin+1);
+		c1_must_xp03->cd(bin+1);
 
 		h1_as_xp_dat[bin]->Divide( h1_as_xp_sim[bin] );
 		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_dat[1],"Alpha_{S}","R=R_{tag}/R_{inc} / R_(x'=0.3)");
-	}
-	ctest->SaveAs("ratio_tag_inc_xp03.pdf");
-
-
-	/*
-
-
-	// Now do the R_tag/R_inc ratio
-	TCanvas * c1_must = new TCanvas("c1_must","",800,600);
-	c1_must->Divide(3,2);
-	for( int bin = 0 ; bin < nXp_bins ; bin++ ){
-		c1_must->cd(bin+1);
-
-		cout << "x' bin: " << bin << "\n";
-	        cout << "Y_tag data integral: " 	<< h1_as_xp_dat[bin]->Integral() << "\n";
-	        cout << "N_tag sim integral: " 		<< h1_as_xp_sim[bin]->Integral() << "\n";
-		cout << "Y_inc data integral: " 	<< DatIncCounts[bin] << "\n";
-		cout << "N_inc sim integral: " 		<< SimIncCounts[bin] << "\n";
-		cout << "Q_tag: " 			<< Q_tag << "\n";
-		cout << "Q_inc: " 			<< Q_inc << "\n";
-		cout << "L_tag: " 			<< L_tag << "\n";
-		cout << "L_inc: " 			<< L_inc << "\n";
-		cout << "\n";
-
-
-		h1_as_xp_dat[bin] -> Scale( 1./Q_tag );  // N_data,tag
-		h1_as_xp_sim[bin] -> Scale( 1./L_tag );	 // N_sim,tag
-
-		double N_inc_dat = (DatIncCounts[bin] / Q_inc);
-		double N_inc_sim = (SimIncCounts[bin] / L_inc);
-
-		h1_as_xp_dat[bin]->Scale( N_inc_sim / N_inc_dat );	// N_dat,tag / N_dat,inc
-
-		
-		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_sim[bin],"Alpha_{S}","R=R_{tag}/R_{sim}");
 
 	}
-	c1_must->SaveAs("ratio_tag_inc.pdf");
-
-	TCanvas * ctest = new TCanvas("ctest","",800,600);
-	ctest->Divide(3,2);
-
-	for( int bin = 0 ; bin < nXp_bins ; bin++ ){
-		ctest->cd(bin+1);
-
-		h1_as_xp_dat[bin]->Divide( h1_as_xp_sim[bin] );
-		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_dat[1],"Alpha_{S}","R=R_{tag}/R_{sim} / R_(x'=0.3)");
-	}
-	ctest->SaveAs("ratio_tag_inc_xp03.pdf");
+	c1_must_xp03->SaveAs("ratio_tag_inc_xp03.pdf");
 
 
-	*/
 	return;
 }
 
@@ -295,6 +248,10 @@ void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
 
 	data_copy->Divide(sim_copy);
 
+
+	for( int bin = 1 ; bin < data_copy->GetXaxis()->GetNbins()+1 ; bin++){
+		cout << data_copy->GetXaxis()->GetBinCenter(bin) << " " << data_copy->GetBinContent(bin) << "\n";
+	}
 
 	data_copy->Draw("ep");
 	TLine* line = new TLine(data_copy->GetXaxis()->GetBinCenter(1), 1., data_copy->GetXaxis()->GetBinCenter(data_copy->GetXaxis()->GetNbins()), 1.);
