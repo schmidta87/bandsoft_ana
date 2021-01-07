@@ -34,7 +34,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	double		Q_tag = 3.72e+07;
 
 	// Define the histograms for the ratio:
-	const int nAs_bins = 6;
+	const int nAs_bins = 4;
 	const double As_min = 1.2;
 	const double As_max = 1.6;
 	const int nXp_bins = 6;
@@ -81,9 +81,9 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	TCanvas * c_as = new TCanvas("c_as","",800,600);
 	c_as->cd();
 
-	inTreeDatTag->Draw("tag[nleadindex]->getAs() >> as_dat");
-	inTreeBacTag->Draw("tag[nleadindex]->getAs() >> as_bac");
-	inTreeSimTag->Draw("tag[nleadindex]->getAs() >> as_sim");
+	inTreeDatTag->Draw("tag[nleadindex]->getAs() >> as_dat","tag[nleadindex]->getMomentumN().Mag() > 0.3");
+	inTreeBacTag->Draw("tag[nleadindex]->getAs() >> as_bac","tag[nleadindex]->getMomentumN().Mag() > 0.3");
+	inTreeSimTag->Draw("tag[nleadindex]->getAs() >> as_sim","tag[nleadindex]->getMomentumN().Mag() > 0.3");
 
 	as_dat->Add(as_bac,-1);
 	double full_simnorm = (double)as_dat->Integral() / as_sim->Integral();
@@ -109,9 +109,9 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		double this_max_xp = Xp_min+0.05 + (bin+1)*(Xp_max - Xp_min)/nXp_bins;
 		TCut this_xp_cut = Form("tag[nleadindex]->getXp() > %f && tag[nleadindex]->getXp() < %f",this_min_xp,this_max_xp);
 
-		inTreeDatTag->Draw(Form("tag[nleadindex]->getAs() >> h1_as_xp_dat_%i",bin),this_xp_cut);
-		inTreeBacTag->Draw(Form("tag[nleadindex]->getAs() >> h1_as_xp_bac_%i",bin),this_xp_cut);
-		inTreeSimTag->Draw(Form("tag[nleadindex]->getAs() >> h1_as_xp_sim_%i",bin),this_xp_cut);
+		inTreeDatTag->Draw(Form("tag[nleadindex]->getAs() >> h1_as_xp_dat_%i",bin),this_xp_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3");
+		inTreeBacTag->Draw(Form("tag[nleadindex]->getAs() >> h1_as_xp_bac_%i",bin),this_xp_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3");
+		inTreeSimTag->Draw(Form("tag[nleadindex]->getAs() >> h1_as_xp_sim_%i",bin),this_xp_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3");
 
 		// Do the background subtraction:
 		h1_as_xp_dat[bin]->Add(h1_as_xp_bac[bin],-1);
@@ -171,8 +171,8 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		c1_must->cd(bin+1);
 
 
-		h1_as_xp_dat[bin] -> Scale( 1./Q_tag );  // N_data,tag
-		h1_as_xp_sim[bin] -> Scale( 1./L_tag );	 // N_sim,tag
+		//h1_as_xp_dat[bin] -> Scale( 1./Q_tag );  // N_data,tag
+		//h1_as_xp_sim[bin] -> Scale( 1./L_tag );	 // N_sim,tag
 
 		double N_inc_dat = (DatIncCounts[bin]);
 		double N_inc_sim = (SimIncCounts[bin]);
@@ -180,7 +180,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		h1_as_xp_dat[bin]->Scale( N_inc_sim / N_inc_dat );	// N_dat,tag / N_dat,inc
 
 		
-		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_sim[bin],"Alpha_{S}","R=R_{tag}/R_{sim}");
+		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_sim[bin],"Alpha_{S}","R=R_{tag}/R_{inc}");
 
 	}
 	c1_must->SaveAs("ratio_tag_inc.pdf");
@@ -192,7 +192,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		ctest->cd(bin+1);
 
 		h1_as_xp_dat[bin]->Divide( h1_as_xp_sim[bin] );
-		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_dat[1],"Alpha_{S}","R=R_{tag}/R_{sim} / R_(x'=0.3)");
+		label1D_ratio(h1_as_xp_dat[bin],h1_as_xp_dat[1],"Alpha_{S}","R=R_{tag}/R_{inc} / R_(x'=0.3)");
 	}
 	ctest->SaveAs("ratio_tag_inc_xp03.pdf");
 
@@ -303,7 +303,7 @@ void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel){
 	line->Draw("same");
 
 	double max1 = data_copy->GetMaximum()*1.1;
-	data_copy->GetYaxis()->SetRangeUser(0,2);
+	data_copy->GetYaxis()->SetRangeUser(0.7,3);
 	
 	data_copy->GetXaxis()->SetTitle(xlabel);
 	data_copy->GetYaxis()->SetTitle(ylabel);

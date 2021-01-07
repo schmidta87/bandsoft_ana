@@ -42,9 +42,9 @@ void thetan_xpas_plot(TString inDat, TString inBac, TString inSim){
 	// Draw the full thetan distribution
 	TCanvas * c_thetan = new TCanvas("c_thetan","",800,600);
 	c_thetan->cd();
-	inTreeDat->Draw("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_dat");
-	inTreeBac->Draw("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_bac");
-	inTreeSim->Draw("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_sim");
+	inTreeDat->Draw("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_dat","tag[nleadindex]->getMomentumN().Mag() > 0.3");
+	inTreeBac->Draw("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_bac","tag[nleadindex]->getMomentumN().Mag() > 0.3");
+	inTreeSim->Draw("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_sim","tag[nleadindex]->getMomentumN().Mag() > 0.3");
 
 	thetan_dat->Add(thetan_bac,-1);
 	double full_simnorm = (double)thetan_dat->Integral() / thetan_sim->Integral();
@@ -92,9 +92,9 @@ void thetan_xpas_plot(TString inDat, TString inBac, TString inSim){
 
 		// AlphaS 1.2-1.3
 		c_thetan_xp_as12->cd(bin+1);
-		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as12_bins_%i_dat",bin),this_xp_cut && as12_cut);
-		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as12_bins_%i_bac",bin),this_xp_cut && as12_cut);
-		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as12_bins_%i_sim",bin),this_xp_cut && as12_cut);
+		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as12_bins_%i_dat",bin),this_xp_cut && as12_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as12_bins_%i_bac",bin),this_xp_cut && as12_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as12_bins_%i_sim",bin),this_xp_cut && as12_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
 
 		// Background subtraction
 		thetan_xp_as12_bins_dat[bin] -> Add( thetan_xp_as12_bins_bac[bin] , -1 );
@@ -106,15 +106,15 @@ void thetan_xpas_plot(TString inDat, TString inBac, TString inSim){
 		TString current_title = Form("1.2<Alpha_{S}<1.3 , %f < xP < %f",this_min_xp,this_max_xp);
 		thetan_xp_as12_bins_dat[bin]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
 
-		label1D(thetan_xp_as12_bins_dat[bin],thetan_xp_as12_bins_sim[bin],"CosTheta_{n}' [GeV]","Counts");
+		label1D(thetan_xp_as12_bins_dat[bin],thetan_xp_as12_bins_sim[bin],"CosTheta_{n}","Counts");
 
 
 
 		// AlphaS 1.3-1.4
 		c_thetan_xp_as13->cd(bin+1);
-		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as13_bins_%i_dat",bin),this_xp_cut && as13_cut);
-		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as13_bins_%i_bac",bin),this_xp_cut && as13_cut);
-		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as13_bins_%i_sim",bin),this_xp_cut && as13_cut);
+		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as13_bins_%i_dat",bin),this_xp_cut && as13_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as13_bins_%i_bac",bin),this_xp_cut && as13_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as13_bins_%i_sim",bin),this_xp_cut && as13_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
 
 		// Background subtraction
 		thetan_xp_as13_bins_dat[bin] -> Add( thetan_xp_as13_bins_bac[bin] , -1 );
@@ -126,14 +126,14 @@ void thetan_xpas_plot(TString inDat, TString inBac, TString inSim){
 		current_title = Form("1.3<Alpha_{S}<1.4 , %f < xP < %f",this_min_xp,this_max_xp);
 		thetan_xp_as13_bins_dat[bin]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
 
-		label1D(thetan_xp_as13_bins_dat[bin],thetan_xp_as13_bins_sim[bin],"CosTheta_{n}' [GeV]","Counts");
+		label1D(thetan_xp_as13_bins_dat[bin],thetan_xp_as13_bins_sim[bin],"CosTheta_{n}","Counts");
 
 
 		// AlphaS 1.4-1.5
 		c_thetan_xp_as14->cd(bin+1);
-		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as14_bins_%i_dat",bin),this_xp_cut && as14_cut);
-		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as14_bins_%i_bac",bin),this_xp_cut && as14_cut);
-		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as14_bins_%i_sim",bin),this_xp_cut && as14_cut);
+		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as14_bins_%i_dat",bin),this_xp_cut && as14_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as14_bins_%i_bac",bin),this_xp_cut && as14_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as14_bins_%i_sim",bin),this_xp_cut && as14_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
 
 		// Background subtraction
 		thetan_xp_as14_bins_dat[bin] -> Add( thetan_xp_as14_bins_bac[bin] , -1 );
@@ -145,16 +145,16 @@ void thetan_xpas_plot(TString inDat, TString inBac, TString inSim){
 		current_title = Form("1.4<Alpha_{S}<1.5 , %f < xP < %f",this_min_xp,this_max_xp);
 		thetan_xp_as14_bins_dat[bin]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
 
-		label1D(thetan_xp_as14_bins_dat[bin],thetan_xp_as14_bins_sim[bin],"CosTheta_{n}' [GeV]","Counts");
+		label1D(thetan_xp_as14_bins_dat[bin],thetan_xp_as14_bins_sim[bin],"CosTheta_{n}","Counts");
 
 
 
 
 		// AlphaS 1.5-1.6
 		c_thetan_xp_as15->cd(bin+1);
-		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as15_bins_%i_dat",bin),this_xp_cut && as15_cut);
-		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as15_bins_%i_bac",bin),this_xp_cut && as15_cut);
-		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as15_bins_%i_sim",bin),this_xp_cut && as15_cut);
+		inTreeDat->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as15_bins_%i_dat",bin),this_xp_cut && as15_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeBac->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as15_bins_%i_bac",bin),this_xp_cut && as15_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
+		inTreeSim->Draw(Form("cos(tag[nleadindex]->getMomentumN().Theta()) >> thetan_xp_as15_bins_%i_sim",bin),this_xp_cut && as15_cut && "tag[nleadindex]->getMomentumN().Mag() > 0.3" );
 
 		// Background subtraction
 		thetan_xp_as15_bins_dat[bin] -> Add( thetan_xp_as15_bins_bac[bin] , -1 );
@@ -166,7 +166,7 @@ void thetan_xpas_plot(TString inDat, TString inBac, TString inSim){
 		current_title = Form("1.5<Alpha_{S}<1.6 , %f < xP < %f",this_min_xp,this_max_xp);
 		thetan_xp_as15_bins_dat[bin]->SetTitle(current_title + Form(", C_{new} = %f",simnorm));
 
-		label1D(thetan_xp_as15_bins_dat[bin],thetan_xp_as15_bins_sim[bin],"CosTheta_{n}' [GeV]","Counts");
+		label1D(thetan_xp_as15_bins_dat[bin],thetan_xp_as15_bins_sim[bin],"CosTheta_{n}","Counts");
 
 
 	}
