@@ -16,6 +16,7 @@
 #include "TVector3.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TChain.h"
 #include "TVectorT.h"
 #include "TRandom3.h"
 #include "constants.h"
@@ -99,9 +100,13 @@ int main(int argc, char ** argv){
 
 	// Loop over the neutron and electron skim files given
 	TFile * inFile_e = new TFile(argv[2]);
-	TFile * inFile_n = new TFile(argv[3]);
 	TTree * inTree_e = (TTree*)inFile_e->Get("electrons");
-	TTree * inTree_n = (TTree*)inFile_n->Get("tagged");
+		// combine all the neutron files
+	TChain* inTree_n = new TChain("tagged");
+	for( int i = 3 ; i < argc; i++ ){
+		cout << "Adding file " << argv[i] << endl;
+		inTree_n->Add(argv[i]);
+	}
 
 	clashit * input_eHit 		= new clashit;
 	TClonesArray* input_nHit 	= new TClonesArray("bandhit");
