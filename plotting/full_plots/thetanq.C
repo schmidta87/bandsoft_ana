@@ -60,10 +60,10 @@ void thetanq(TString inDat, TString inBac, TString inSim){
 		
 		
 		thetanq_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(thetanq_dat[i],thetanq_sim[i],"x'","Counts");
+		label1D(thetanq_dat[i],thetanq_sim[i],"Theta_{nq} [Deg.]","Counts");
 
 		c_thetanq->cd(4+i);
-		label1D_ratio(thetanq_dat[i],thetanq_sim[i],"x'","Data/Sim",0,2);
+		label1D_ratio(thetanq_dat[i],thetanq_sim[i],"Theta_{nq} [Deg.]","Data/Sim",0,2);
 	}
 
 

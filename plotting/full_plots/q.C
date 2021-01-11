@@ -60,10 +60,10 @@ void q(TString inDat, TString inBac, TString inSim){
 		
 		
 		q_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(q_dat[i],q_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(q_dat[i],q_sim[i],"|q| [GeV/c]","Counts");
 
 		c_q->cd(4+i);
-		label1D_ratio(q_dat[i],q_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(q_dat[i],q_sim[i],"|q| [GeV/c]","Data/Sim",0,2);
 	}
 
 

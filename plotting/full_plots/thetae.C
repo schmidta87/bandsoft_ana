@@ -60,10 +60,10 @@ void thetae(TString inDat, TString inBac, TString inSim){
 		
 		
 		thetae_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(thetae_dat[i],thetae_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(thetae_dat[i],thetae_sim[i],"Theta_{e} [Deg.]","Counts");
 
 		c_thetae->cd(4+i);
-		label1D_ratio(thetae_dat[i],thetae_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(thetae_dat[i],thetae_sim[i],"Theta_{e} [Deg.]","Data/Sim",0,2);
 	}
 
 

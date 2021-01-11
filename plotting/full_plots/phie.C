@@ -60,10 +60,10 @@ void phie(TString inDat, TString inBac, TString inSim){
 		
 		
 		phie_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(phie_dat[i],phie_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(phie_dat[i],phie_sim[i],"Phi_{e} [Deg.]","Counts");
 
 		c_phie->cd(4+i);
-		label1D_ratio(phie_dat[i],phie_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(phie_dat[i],phie_sim[i],"Phi_{e} [Deg.]","Data/Sim",0,2);
 	}
 
 

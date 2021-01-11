@@ -60,10 +60,10 @@ void pT(TString inDat, TString inBac, TString inSim){
 		
 		
 		pT_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(pT_dat[i],pT_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(pT_dat[i],pT_sim[i],"|p_{T}| [GeV/c]","Counts");
 
 		c_pT->cd(2+i);
-		label1D_ratio(pT_dat[i],pT_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(pT_dat[i],pT_sim[i],"|p_{T}| [GeV/c]","Data/Sim",0,2);
 	}
 
 

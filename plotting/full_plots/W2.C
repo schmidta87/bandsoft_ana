@@ -60,10 +60,10 @@ void W2(TString inDat, TString inBac, TString inSim){
 		
 		
 		W2_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(W2_dat[i],W2_sim[i],"x_{B}","Counts");
+		label1D(W2_dat[i],W2_sim[i],"W [GeV/c^{2}]","Counts");
 
 		c_W2->cd(4+i);
-		label1D_ratio(W2_dat[i],W2_sim[i],"x_{B}","Data/Sim",0,2);
+		label1D_ratio(W2_dat[i],W2_sim[i],"W [GeV/c^{2}]","Data/Sim",0,2);
 	}
 
 

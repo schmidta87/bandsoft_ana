@@ -60,10 +60,10 @@ void omega(TString inDat, TString inBac, TString inSim){
 		
 		
 		omega_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(omega_dat[i],omega_sim[i],"x_{B}","Counts");
+		label1D(omega_dat[i],omega_sim[i],"Omega [GeV]","Counts");
 
 		c_omega->cd(4+i);
-		label1D_ratio(omega_dat[i],omega_sim[i],"x_{B}","Data/Sim",0,2);
+		label1D_ratio(omega_dat[i],omega_sim[i],"Omega [GeV]","Data/Sim",0,2);
 	}
 
 

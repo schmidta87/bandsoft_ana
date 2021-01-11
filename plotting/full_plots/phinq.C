@@ -60,10 +60,10 @@ void phinq(TString inDat, TString inBac, TString inSim){
 		
 		
 		phinq_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(phinq_dat[i],phinq_sim[i],"x'","Counts");
+		label1D(phinq_dat[i],phinq_sim[i],"Phi_{nq} [Deg.]","Counts");
 
 		c_phinq->cd(4+i);
-		label1D_ratio(phinq_dat[i],phinq_sim[i],"x'","Data/Sim",0,2);
+		label1D_ratio(phinq_dat[i],phinq_sim[i],"Phi_{nq} [Deg.]","Data/Sim",0,2);
 	}
 
 

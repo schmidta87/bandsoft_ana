@@ -60,10 +60,10 @@ void wp(TString inDat, TString inBac, TString inSim){
 		
 		
 		wp_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(wp_dat[i],wp_sim[i],"x'","Counts");
+		label1D(wp_dat[i],wp_sim[i],"W' [GeV/c^{2}]","Counts");
 
 		c_wp->cd(4+i);
-		label1D_ratio(wp_dat[i],wp_sim[i],"x'","Data/Sim",0,2);
+		label1D_ratio(wp_dat[i],wp_sim[i],"W' [GeV/c^{2}]","Data/Sim",0,2);
 	}
 
 

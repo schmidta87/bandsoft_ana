@@ -60,10 +60,10 @@ void dLn(TString inDat, TString inBac, TString inSim){
 		
 		
 		dLn_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(dLn_dat[i],dLn_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(dLn_dat[i],dLn_sim[i],"|dL_{n}| [cm]","Counts");
 
 		c_dLn->cd(4+i);
-		label1D_ratio(dLn_dat[i],dLn_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(dLn_dat[i],dLn_sim[i],"|dL_{n}| [cm]","Data/Sim",0,2);
 	}
 
 

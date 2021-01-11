@@ -60,10 +60,10 @@ void pe(TString inDat, TString inBac, TString inSim){
 		
 		
 		pe_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(pe_dat[i],pe_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(pe_dat[i],pe_sim[i],"|p_{e}| [GeV/c]","Counts");
 
 		c_pe->cd(4+i);
-		label1D_ratio(pe_dat[i],pe_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(pe_dat[i],pe_sim[i],"|p_{e}| [GeV/c]","Data/Sim",0,2);
 	}
 
 

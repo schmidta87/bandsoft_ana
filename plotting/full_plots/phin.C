@@ -60,10 +60,10 @@ void phin(TString inDat, TString inBac, TString inSim){
 		
 		
 		phin_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(phin_dat[i],phin_sim[i],"x'","Counts");
+		label1D(phin_dat[i],phin_sim[i],"Phi_{n} [Deg.]","Counts");
 
 		c_phin->cd(4+i);
-		label1D_ratio(phin_dat[i],phin_sim[i],"x'","Data/Sim",0,2);
+		label1D_ratio(phin_dat[i],phin_sim[i],"Phi_{n} [Deg.]","Data/Sim",0,2);
 	}
 
 

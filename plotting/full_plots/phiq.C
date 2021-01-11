@@ -60,10 +60,10 @@ void phiq(TString inDat, TString inBac, TString inSim){
 		
 		
 		phiq_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(phiq_dat[i],phiq_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(phiq_dat[i],phiq_sim[i],"Phi_{q} [Deg.]","Counts");
 
 		c_phiq->cd(4+i);
-		label1D_ratio(phiq_dat[i],phiq_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(phiq_dat[i],phiq_sim[i],"Phi_{q} [Deg.]","Data/Sim",0,2);
 	}
 
 

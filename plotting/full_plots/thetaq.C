@@ -60,10 +60,10 @@ void thetaq(TString inDat, TString inBac, TString inSim){
 		
 		
 		thetaq_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(thetaq_dat[i],thetaq_sim[i],"|p_{n}| [GeV/c]","Counts");
+		label1D(thetaq_dat[i],thetaq_sim[i],"Theta_{q} [Deg.]","Counts");
 
 		c_thetaq->cd(4+i);
-		label1D_ratio(thetaq_dat[i],thetaq_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		label1D_ratio(thetaq_dat[i],thetaq_sim[i],"Theta_{q} [Deg.]","Data/Sim",0,2);
 	}
 
 

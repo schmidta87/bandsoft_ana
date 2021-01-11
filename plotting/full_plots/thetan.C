@@ -60,10 +60,10 @@ void thetan(TString inDat, TString inBac, TString inSim){
 		
 		
 		thetan_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(thetan_dat[i],thetan_sim[i],"x'","Counts");
+		label1D(thetan_dat[i],thetan_sim[i],"Theta_{n} [Deg.]","Counts");
 
 		c_thetan->cd(4+i);
-		label1D_ratio(thetan_dat[i],thetan_sim[i],"x'","Data/Sim",0,2);
+		label1D_ratio(thetan_dat[i],thetan_sim[i],"Theta_{n} [Deg.]","Data/Sim",0,2);
 	}
 
 

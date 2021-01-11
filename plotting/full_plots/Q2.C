@@ -60,10 +60,10 @@ void Q2(TString inDat, TString inBac, TString inSim){
 		
 		
 		Q2_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(Q2_dat[i],Q2_sim[i],"x_{B}","Counts");
+		label1D(Q2_dat[i],Q2_sim[i],"Q^{2}","Counts");
 
 		c_Q2->cd(4+i);
-		label1D_ratio(Q2_dat[i],Q2_sim[i],"x_{B}","Data/Sim",0,2);
+		label1D_ratio(Q2_dat[i],Q2_sim[i],"Q^{2}","Data/Sim",0,2);
 	}
 
 
