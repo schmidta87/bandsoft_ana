@@ -46,7 +46,11 @@ int main(int argc, char ** argv){
 		nEdep	= Form("nHits[nleadindex]->getPmtLadc() > %f",			NCUT_Edep*SimAdcToMeVee);
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep*DataAdcToMeVee);
-	TCut neutron 	= nGood && nLeadIdx && nStatus && nEdep;
+		// kill any bad bars:
+	TCut nBad_1	= Form("!(nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
+	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && nHits[nleadindex]->getX()>90 )");
+	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && nHits[nleadindex]->getX()>80 )");
+	TCut neutron 	= nGood && nLeadIdx && nStatus && nEdep && nBad_1 && nHole_1 && nHole_2;
 
 	// Final TCut:
 	TString cut = Form("%s",neutron.GetTitle());

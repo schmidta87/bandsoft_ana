@@ -59,7 +59,12 @@ int main(int argc, char ** argv){
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep*DataAdcToMeVee);
 	TCut nThetaNQ	= Form("tag[nleadindex]->getThetaNQ() > %f && tag[nleadindex]->getThetaNQ() < %f",NCUT_THETANQ_min,NCUT_THETANQ_max);
-	TCut tagged 	= inclusive && nGood && nLeadIdx && nStatus && nEdep && nThetaNQ;
+		// kill any bad bars:
+	TCut nBad_1	= Form("!(nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
+	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && nHits[nleadindex]->getX()>90 )");
+	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && nHits[nleadindex]->getX()>80 )");
+	
+	TCut tagged 	= inclusive && nGood && nLeadIdx && nStatus && nEdep && nThetaNQ && nBad_1 && nHole_1 && nHole_2;
 
 	// Conditions for a final accepted event neutron in signal region
 	TCut nToF	= Form("nHits[nleadindex]->getTofFadc() > %f",					NCUT_Tofabove0);
