@@ -60,7 +60,7 @@ int main(int argc, char ** argv){
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep*DataAdcToMeVee);
 	TCut nThetaNQ	= Form("tag[nleadindex]->getThetaNQ() > %f && tag[nleadindex]->getThetaNQ() < %f",NCUT_THETANQ_min,NCUT_THETANQ_max);
 		// kill any bad bars:
-	TCut nBad_1	= Form("!(nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
+	TCut nBad_1	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
 	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && nHits[nleadindex]->getX()>90 )");
 	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && nHits[nleadindex]->getX()>80 )");
 	
