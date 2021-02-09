@@ -116,7 +116,7 @@ int main(int argc, char ** argv){
 				if( this_photon->getTof() 	== 0 ) continue;
 			if( TDCorFADC == 1 )
 				if( this_photon->getTofFadc() 	== 0 ) continue;
-			if( this_photon->getEdep()	< 2*DataAdcToMeVee ) 	continue;
+			if( this_photon->getEdep()	< 1*DataAdcToMeVee ) 	continue;
 
 			double time 	= 0;
 			if( TDCorFADC == 0 )
@@ -161,13 +161,16 @@ int main(int argc, char ** argv){
 				}
 
 				// Get the min and max of the fit based on assuming 0.3ns resolution and the peak position
-				double sig_guess = 0.3;
+				double sig_guess = 0.2;
 
 				double max = ToF_spec[sector][layer][component]->GetMaximum();
-				if( sector == 3 || sector == 4) max = max*0.75;
-				else{ max = max*0.5; }
+				if( (sector+1) == 3 || (sector+1) == 4){
+					ToF_spec[sector][layer][component]->Rebin(2);
+					//max = 0.8*max;
+				}
+				//else{ max = 0.8*max; }
 				double max_pos = ToF_spec[sector][layer][component]->GetXaxis()->GetBinCenter( ToF_spec[sector][layer][component]->GetMaximumBin() );
-				max_pos = ToF_spec[sector][layer][component]->GetXaxis()->GetBinCenter( ToF_spec[sector][layer][component]->FindFirstBinAbove(max) );
+				//max_pos = ToF_spec[sector][layer][component]->GetXaxis()->GetBinCenter( ToF_spec[sector][layer][component]->FindFirstBinAbove(max) );
 
 				// Set parameters of the fit before fitting:
 				double background_lvl = 0.;
@@ -177,7 +180,7 @@ int main(int argc, char ** argv){
 				background_lvl /= 24;
 
 				double min_fit = max_pos - 10;
-				double max_fit = max_pos + 2.*sig_guess;
+				double max_fit = max_pos + 4.*sig_guess;
 				ToF_fits[sector][layer][component] = new TF1(Form("ToF_fits_%i_%i_%i",sector,layer,component),"pol0+gaus(1)",min_fit,max_fit);
 				// background level:
 				ToF_fits[sector][layer][component]->SetParameter(0,background_lvl);
@@ -191,10 +194,10 @@ int main(int argc, char ** argv){
 				ToF_spec[sector][layer][component]->Fit(ToF_fits[sector][layer][component],"QESR");
 
 				// Now do another iteration of fits with the current parameters only if the parameters are reasonable
-				if( ToF_fits[sector][layer][component]->GetParameter(3) < 0.8 ){
+				if( ToF_fits[sector][layer][component]->GetParameter(3) < 0.4 && ToF_fits[sector][layer][component]->GetParameter(3) >= 0.1 ){
 					sig_guess = ToF_fits[sector][layer][component]->GetParameter(3);
 					max_fit = ToF_fits[sector][layer][component]->GetParameter(2) - 5;
-					min_fit = ToF_fits[sector][layer][component]->GetParameter(2) + 1.5*sig_guess;
+					min_fit = ToF_fits[sector][layer][component]->GetParameter(2) + 2*sig_guess;
 					ToF_fits_it[sector][layer][component] = new TF1(Form("ToF_fits_%i_%i_%i_it",sector,layer,component),"pol0+gaus(1)",min_fit,max_fit);
 					ToF_fits_it[sector][layer][component]->SetLineColor(4);
 					ToF_fits_it[sector][layer][component]->SetParameter(0, ToF_fits[sector][layer][component]->GetParameter(0) );
