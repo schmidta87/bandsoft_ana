@@ -59,6 +59,8 @@ int main(int argc, char ** argv){
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep*DataAdcToMeVee);
 	TCut nThetaNQ	= Form("tag[nleadindex]->getThetaNQ() > %f && tag[nleadindex]->getThetaNQ() < %f",NCUT_THETANQ_min,NCUT_THETANQ_max);
+		// make a fiducial cut around the edge of BAND:
+	// TODO
 		// kill any bad bars:
 	TCut nBad_122	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getComponent()==2)");
 	TCut nBad_132	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==2)");
