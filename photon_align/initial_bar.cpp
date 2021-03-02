@@ -116,7 +116,7 @@ int main(int argc, char ** argv){
 				if( this_photon->getTof() 	== 0 ) continue;
 			if( TDCorFADC == 1 )
 				if( this_photon->getTofFadc() 	== 0 ) continue;
-			if( this_photon->getEdep()	< 1*DataAdcToMeVee ) 	continue;
+			if( this_photon->getEdep()	< 2*DataAdcToMeVee ) 	continue;
 
 			double time 	= 0;
 			if( TDCorFADC == 0 )
@@ -124,8 +124,9 @@ int main(int argc, char ** argv){
 			if( TDCorFADC == 1 )
 				time 	= this_photon->getTofFadc();
 			double dL 	= this_photon->getDL().Mag();
+			double dL_check = sqrt( pow(this_photon->getX(),2) + pow(this_photon->getY(),2) + pow(this_photon->getZ(),2) );
 
-			double tof = time - dL/cAir;
+			double tof = time - dL_check/cAir;
 			int sector 	= this_photon->getSector();
 			int layer 	= this_photon->getLayer();
 			int component 	= this_photon->getComponent();
@@ -190,6 +191,7 @@ int main(int argc, char ** argv){
 				ToF_fits[sector][layer][component]->SetParameter(2,max_pos);
 				// sigma of gaus:
 				ToF_fits[sector][layer][component]->SetParameter(3,sig_guess);
+				ToF_fits[sector][layer][component]->SetLineColor(2);
 
 				ToF_spec[sector][layer][component]->Fit(ToF_fits[sector][layer][component],"QESR");
 
@@ -199,7 +201,7 @@ int main(int argc, char ** argv){
 					max_fit = ToF_fits[sector][layer][component]->GetParameter(2) - 5;
 					min_fit = ToF_fits[sector][layer][component]->GetParameter(2) + 2*sig_guess;
 					ToF_fits_it[sector][layer][component] = new TF1(Form("ToF_fits_%i_%i_%i_it",sector,layer,component),"pol0+gaus(1)",min_fit,max_fit);
-					ToF_fits_it[sector][layer][component]->SetLineColor(4);
+					ToF_fits_it[sector][layer][component]->SetLineColor(8);
 					ToF_fits_it[sector][layer][component]->SetParameter(0, ToF_fits[sector][layer][component]->GetParameter(0) );
 					ToF_fits_it[sector][layer][component]->SetParameter(1, ToF_fits[sector][layer][component]->GetParameter(1) );
 					ToF_fits_it[sector][layer][component]->SetParameter(2, ToF_fits[sector][layer][component]->GetParameter(2) );
