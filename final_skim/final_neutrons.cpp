@@ -46,7 +46,15 @@ int main(int argc, char ** argv){
 		nEdep	= Form("nHits[nleadindex]->getPmtLadc() > %f",			NCUT_Edep*SimAdcToMeVee);
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep*DataAdcToMeVee);
-		// kill any bad bars:
+	// kill any bad bars:
+		// Spring 2019 bad bars that will always be killed:
+	TCut nBad_431	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_342	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==2)");
+	TCut nBad_245	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==5)");
+		// This is a hole in BAND due to a TDC shift for 10.2 GeV data set:
+	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && (nHits[nleadindex]->getX()>90 || nHits[nleadindex]->getX()<-110))");
+	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && (nHits[nleadindex]->getX()>80 || nHits[nleadindex]->getX() < 45) )");
+		// This are killed due to discrepancy between MC and simulation:
 	TCut nBad_122	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getComponent()==2)");
 	TCut nBad_132	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==2)");
 	TCut nBad_133	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==3)");
@@ -58,7 +66,6 @@ int main(int argc, char ** argv){
 	TCut nBad_251	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==1)");
 	TCut nBad_252	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==2)");
 	TCut nBad_333	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==3)");
-	TCut nBad_342	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==2)");
 	TCut nBad_346	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
 	TCut nBad_352	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==2)");
 	TCut nBad_411	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1)");
@@ -72,13 +79,13 @@ int main(int argc, char ** argv){
 	TCut nBad_531	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
 	TCut nBad_535	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==5)");
 	TCut nBad_541	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==1)");
-	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && (nHits[nleadindex]->getX()>90 || nHits[nleadindex]->getX()<-110))");
-	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && (nHits[nleadindex]->getX()>80 || nHits[nleadindex]->getX() < 45) )");
-	TCut neutron 	= nGood && nLeadIdx && nStatus && nEdep && nHole_1 && nHole_2 
+	TCut neutron 	= nGood && nLeadIdx && nStatus && nEdep 
+				&& nBad_431 && nBad_342 && nBad_245
+				&& nHole_1 && nHole_2
 				&& nBad_122 && nBad_132 && nBad_133 && nBad_135 && nBad_136 && nBad_142 && nBad_146
-				&& nBad_152 && nBad_251 && nBad_252 && nBad_333 && nBad_342 && nBad_346 && nBad_352 
-				&& nBad_411 && nBad_435 && nBad_442 && nBad_443 && nBad_444 && nBad_445 && nBad_452 
-				&& nBad_511 && nBad_531 && nBad_535 && nBad_541;
+				&& nBad_152 && nBad_251 && nBad_252 && nBad_333 && nBad_346 && nBad_352 && nBad_411 
+				&& nBad_435 && nBad_442 && nBad_443 && nBad_444 && nBad_445 && nBad_452 && nBad_511 
+				&& nBad_531 && nBad_535 && nBad_541;
 
 	// Final TCut:
 	TString cut = Form("%s",neutron.GetTitle());
