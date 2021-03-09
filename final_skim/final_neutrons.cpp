@@ -42,8 +42,10 @@ int main(int argc, char ** argv){
 	TCut nLeadIdx	= Form("nleadindex != %i",					NCUT_leadindex);
 	TCut nStatus	= Form("nHits[nleadindex]->getStatus() == %i",			NCUT_status);
 	TCut nEdep;
-	if( MC_DATA_OPT == 0 )
+		// data or background:
+	if( MC_DATA_OPT == 0 || MC_DATA_OPT == 2)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
+		// sim:
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
 	// kill any bad bars:
