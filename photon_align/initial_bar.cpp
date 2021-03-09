@@ -116,7 +116,7 @@ int main(int argc, char ** argv){
 				if( this_photon->getTof() 	== 0 ) continue;
 			if( TDCorFADC == 1 )
 				if( this_photon->getTofFadc() 	== 0 ) continue;
-			if( this_photon->getEdep()	< 2*DataAdcToMeVee ) 	continue;
+			if( this_photon->getEdep()	< 2 ) 	continue;
 
 			double time 	= 0;
 			if( TDCorFADC == 0 )

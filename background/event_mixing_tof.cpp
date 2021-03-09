@@ -155,7 +155,7 @@ int main(int argc, char ** argv){
 
 		// And then double check that it's above an Edep cut and has good status:
 		if(	lead_n->getStatus() !=	NCUT_status 		) continue;
-		if(	lead_n->getEdep() > NCUT_Edep*DataAdcToMeVee 	) continue;
+		if(	lead_n->getEdep() > NCUT_Edep 			) continue;
 
 		// If it passes all these cuts then just push it back 
 		//  -- 	the number of events we have in this list is the number of

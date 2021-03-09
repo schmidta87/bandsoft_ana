@@ -43,9 +43,9 @@ int main(int argc, char ** argv){
 	TCut nStatus	= Form("nHits[nleadindex]->getStatus() == %i",			NCUT_status);
 	TCut nEdep;
 	if( MC_DATA_OPT == 0 )
-		nEdep	= Form("nHits[nleadindex]->getPmtLadc() > %f",			NCUT_Edep*SimAdcToMeVee);
+		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
 	else if( MC_DATA_OPT == 1)
-		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep*DataAdcToMeVee);
+		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
 	// kill any bad bars:
 		// Spring 2019 bad bars that will always be killed:
 	TCut nBad_431	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
