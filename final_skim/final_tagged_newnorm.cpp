@@ -52,7 +52,6 @@ int main(int argc, char ** argv){
 	// Conditions for a final accepted event neutron - signal or background
 	TCut nGood	= Form("goodneutron == %i",					NCUT_goodneutron);
 	TCut nLeadIdx	= Form("nleadindex != %i",					NCUT_leadindex);
-	TCut nStatus	= Form("nHits[nleadindex]->getStatus() == %i",			NCUT_status);
 	TCut nEdep;
 		// data or background:
 	if( MC_DATA_OPT == 0 || MC_DATA_OPT == 2)
@@ -97,7 +96,7 @@ int main(int argc, char ** argv){
 	//TCut nBad_535	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==5)");
 	//TCut nBad_541	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==1)");
 	
-	TCut tagged 	= inclusive && nGood && nLeadIdx && nStatus && nEdep && nThetaNQ 
+	TCut tagged 	= inclusive && nGood && nLeadIdx && nEdep && nThetaNQ 
 				&& nBad_431 && nBad_342 && nBad_245
 				&& nHole_1 && nHole_2;
 				//&& nBad_122 && nBad_132 && nBad_133 && nBad_135 && nBad_136 && nBad_142 && nBad_146
@@ -106,7 +105,7 @@ int main(int argc, char ** argv){
 				//&& nBad_531 && nBad_535 && nBad_541;
 
 	// Conditions for a final accepted event neutron in signal region
-	TCut nToF	= Form("nHits[nleadindex]->getTof() > %f",					NCUT_Tofabove0);
+	TCut nToF	= Form("nHits[nleadindex]->getTof() > %f && nHits[nleadindex]->getTof() < %f"	,NCUT_Tof_min, NCUT_Tof_max);
 	TCut nPn	= Form("tag[nleadindex]->getMomentumN().Mag() > %f && tag[nleadindex]->getMomentumN().Mag() < %f", NCUT_Pn_min, NCUT_Pn_max );
 	TCut nPnNaN	= Form("tag[nleadindex]->getMomentumN().Mag() == tag[nleadindex]->getMomentumN().Mag()");
 	TCut nWp	= Form("tag[nleadindex]->getWp() > %f && tag[nleadindex]->getWp() < %f",	NCUT_Wp_min,	NCUT_Wp_max);
@@ -168,6 +167,7 @@ int main(int argc, char ** argv){
 		double N_mixed		= inTree->GetEntries();
 		
 		bacnorm.SetXYZ( N_mixed , 0 , 0 );
+
 	}
 
 
@@ -175,6 +175,7 @@ int main(int argc, char ** argv){
 	inTree->Draw(">>goodEvents",cut);
 	TEventList * goodEvents = (TEventList*) gDirectory->Get("goodEvents");
 	int nEvents = goodEvents->GetN();
+
 
 	// Loop over all the good events and write the output tree
 	for( int ev = 0 ; ev < nEvents ; ev++ ){

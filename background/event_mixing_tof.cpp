@@ -150,12 +150,21 @@ int main(int argc, char ** argv){
 		// Check that the neutron we have is in our background region, in the CosThetaNQ bin, and in the Q2 bin
 		if( lead_n->getTof() < NCUT_BACK_Tof_min || lead_n->getTof() > NCUT_BACK_Tof_max ) continue;
 		taghit * this_tag = (taghit*) input_tag->At(0);
-		double this_CosThetaNQ = cos(this_tag->getThetaNQ());
-		if( this_CosThetaNQ > NCUT_COSTHETANQ_max || this_CosThetaNQ < NCUT_COSTHETANQ_min ) continue;
+		double this_ThetaNQ = this_tag->getThetaNQ();
+		if( this_ThetaNQ < NCUT_THETANQ_min || this_ThetaNQ > NCUT_THETANQ_max ) continue;
 
 		// And then double check that it's above an Edep cut and has good status:
-		if(	lead_n->getStatus() !=	NCUT_status 		) continue;
 		if(	lead_n->getEdep() < NCUT_Edep 			) continue;
+
+		// Do not consider killed-off bars:
+		if( lead_n->getLayer() == 4 && lead_n->getSector()==3 && lead_n->getComponent()==1 ) continue;
+		if( lead_n->getLayer() == 3 && lead_n->getSector()==4 && lead_n->getComponent()==2 ) continue;
+		if( lead_n->getLayer() == 2 && lead_n->getSector()==4 && lead_n->getComponent()==5 ) continue;
+		// Kill off the TDC-hole:
+		if( lead_n->getSector()==2 && (lead_n->getComponent() > 3 && lead_n->getComponent() < 8 ) 
+				&& ( lead_n->getX()>90 || lead_n->getX() < -110 ) ) continue;
+		if( lead_n->getSector()==3 && (lead_n->getComponent() > 0 && lead_n->getComponent() < 3 ) 
+				&& ( lead_n->getX()>80 || lead_n->getX() < 45 ) ) continue;
 
 		// If it passes all these cuts then just push it back 
 		//  -- 	the number of events we have in this list is the number of
