@@ -33,22 +33,22 @@ const double	NCUT_dL_max = 320/100.;
 const double	NCUT_Tofabove0	= 0;
 const double 	NCUT_Pn_min = 0.2;
 const double 	NCUT_Pn_max = 0.7;
-const double 	NCUT_beta_min = 1./sqrt(1.+ pow(mN/NCUT_Pn_min,2));
-const double 	NCUT_beta_max = 1./sqrt(1.+ pow(mN/NCUT_Pn_max,2));
-const double 	NCUT_TofpM_max = 1./(cAir*NCUT_beta_min)*100;
-const double 	NCUT_TofpM_min = 1./(cAir*NCUT_beta_max)*100;
-const double 	NCUT_Tof_min = 12;	// around 700MeV/c
-const double 	NCUT_Tof_max = 100;	// around 125MeV/c
+//const double 	NCUT_beta_min = 1./sqrt(1.+ pow(mN/NCUT_Pn_min,2));
+//const double 	NCUT_beta_max = 1./sqrt(1.+ pow(mN/NCUT_Pn_max,2));
+//const double 	NCUT_TofpM_max = 1./(cAir*NCUT_beta_min)*100;
+//const double 	NCUT_TofpM_min = 1./(cAir*NCUT_beta_max)*100;
+const double 	NCUT_Tof_min = 12.024;	// around 700MeV/c
+const double 	NCUT_Tof_max = 100.2;	// around 125MeV/c
 const double 	NCUT_Wp_min = 1.8;
 const double 	NCUT_Wp_max = 4.5;
 const double 	NCUT_As_min = 1.2;
 const double	NCUT_As_max = 1.8;
 // Neutron backgroun region cuts
-const double	NCUT_BACK_TofpM_min = -20;
-const double	NCUT_BACK_TofpM_max = 0;
-const double	NCUT_BACK_Tof_min = -36;
-const double	NCUT_BACK_Tof_max = -4;
+//const double	NCUT_BACK_TofpM_min = -20;
+//const double	NCUT_BACK_TofpM_max = 0;
+const double	NCUT_BACK_Tof_min = -36.072;
+const double	NCUT_BACK_Tof_max = -4.008;
 // Beam structure
-const double	BEAM_BUNCH = 4; // ns
+const double	BEAM_BUNCH = 4.008; // ns -- in reality this is 4.00801ns
 
 #endif
