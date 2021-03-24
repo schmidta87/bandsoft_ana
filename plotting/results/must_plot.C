@@ -22,13 +22,14 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	TTree * inTreeSimInc = (TTree*) inFileSimInc->Get("electrons");
 
 	// Get and set the background normalization for tagged
-	TVector3 * datnorm = (TVector3*)inFileDatTag->Get("bacnorm");
-	TVector3 * bacnorm = (TVector3*)inFileBacTag->Get("bacnorm");
-	inTreeBacTag->SetWeight( datnorm->X() / bacnorm->X() );
+	//TVector3 * datnorm = (TVector3*)inFileDatTag->Get("bacnorm");
+	//TVector3 * bacnorm = (TVector3*)inFileBacTag->Get("bacnorm");
+	//inTreeBacTag->SetWeight( datnorm->X() / bacnorm->X() );
+	inTreeBacTag->SetWeight( 122788. / 2011460. );
 
 
 	// Get simulation normalization
-	double 		L_tag = 2.28e10 / (130.1);
+	double 		L_tag = 2.28e10 ;
 	double 		L_inc = 9.61e6 / (130.1);
 	double 		Q_inc = 535885;
 	double		Q_tag = 3.72e+07;
