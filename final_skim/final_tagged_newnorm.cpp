@@ -200,8 +200,10 @@ int main(int argc, char ** argv){
 	cout << "writing stuff to file:\n";
 	// Write and close
 	outFile->cd();
-	hToF_bac->Write();
-	hToF_far->Write();
+	if( MC_DATA_OPT == 1 ){ // if this is data file
+		hToF_bac->Write();
+		hToF_far->Write();
+	}
 	outTree->Write();
 	bacnorm.Write("bacnorm");	
 	outFile->Close();
