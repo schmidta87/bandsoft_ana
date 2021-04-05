@@ -130,21 +130,31 @@ int main(int argc, char ** argv){
 
 	// get background normalization level for this neutron PID
 	TH1D * hToF_bac = NULL;
+	TH1D * hToF_far = NULL;
 	TVector3 bacnorm;
 	if( MC_DATA_OPT == 1 ){ // if this is data file
 		
 		// Use the data file to get the number of counts in the background region
 		// and rescale it by the region sizes of Signal and Background.
 		hToF_bac = new TH1D("hToF_bac","hToF_bac",8000,-100,300);
+		hToF_far = new TH1D("hToF_far","hToF_far",8000,-100,300);
 		TCut background_time = Form("nHits[nleadindex]->getTof() > %f && nHits[nleadindex]->getTof() < %f",
 						NCUT_BACK_Tof_min , NCUT_BACK_Tof_max );
-		inTree->Draw("nHits[nleadindex]->getTof()  >> hToF_bac",tagged && background_time);
+		TCut far_time = Form("nHits[nleadindex]->getTof() > %f && nHits[nleadindex]->getTof() < %f",
+						NCUT_FARTIME_Tof_min , NCUT_FARTIME_Tof_max );
+		//inTree->Draw("nHits[nleadindex]->getTof()  >> hToF_bac",tagged && (background_time || far_time) );
+		inTree->Draw("nHits[nleadindex]->getTof()  >> hToF_bac",tagged && background_time );
+		inTree->Draw("nHits[nleadindex]->getTof()  >> hToF_far",tagged && far_time );
 
 		// Now we need to rescale this by the amount of bunches in the signal region:
-		int nSignalBunches 	= (NCUT_Tof_max - NCUT_Tof_min)/BEAM_BUNCH;
-		int nBkgrdBunches 	= (NCUT_BACK_Tof_max - NCUT_BACK_Tof_min)/BEAM_BUNCH;
+		double nSignalBunches 	= (NCUT_Tof_max - NCUT_Tof_min)/BEAM_BUNCH;
+		double bac_nBkgrdBunches 	= (NCUT_BACK_Tof_max - NCUT_BACK_Tof_min)/BEAM_BUNCH;
+		double far_nBkgrdBunches 	= (NCUT_FARTIME_Tof_max - NCUT_FARTIME_Tof_min)/BEAM_BUNCH;
 
-		bacnorm.SetXYZ( hToF_bac->Integral() * nSignalBunches/nBkgrdBunches , 0 , 0 );
+		bacnorm.SetXYZ( hToF_bac->Integral() * nSignalBunches/bac_nBkgrdBunches , 
+			     	hToF_far->Integral() * nSignalBunches/far_nBkgrdBunches ,
+				0 );
+		bacnorm.SetZ( (bacnorm.X() + bacnorm.Y())/2. );
 
 		//TFitResultPtr fit = (TFitResultPtr)hToF_bac->Fit("pol0","QESR","",-20,0);
 		//double norm_per_bin = fit->Parameter(0);
@@ -170,7 +180,6 @@ int main(int argc, char ** argv){
 
 	}
 
-
 	// Create the good event list from our cuts defined above
 	inTree->Draw(">>goodEvents",cut);
 	TEventList * goodEvents = (TEventList*) gDirectory->Get("goodEvents");
@@ -191,6 +200,8 @@ int main(int argc, char ** argv){
 	cout << "writing stuff to file:\n";
 	// Write and close
 	outFile->cd();
+	hToF_bac->Write();
+	hToF_far->Write();
 	outTree->Write();
 	bacnorm.Write("bacnorm");	
 	outFile->Close();
