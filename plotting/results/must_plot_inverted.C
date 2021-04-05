@@ -23,9 +23,10 @@ void must_plot_inverted(TString inFileDatTagName, TString inFileBacTagName,
 	TTree * inTreeSimInc = (TTree*) inFileSimInc->Get("electrons");
 
 	// Get and set the background normalization for tagged
-	TVector3 * datnorm = (TVector3*)inFileDatTag->Get("bacnorm");
-	TVector3 * bacnorm = (TVector3*)inFileBacTag->Get("bacnorm");
-	inTreeBacTag->SetWeight( datnorm->X() / bacnorm->X() );
+	//TVector3 * datnorm = (TVector3*)inFileDatTag->Get("bacnorm");
+	//TVector3 * bacnorm = (TVector3*)inFileBacTag->Get("bacnorm");
+	//inTreeBacTag->SetWeight( datnorm->X() / bacnorm->X() );
+	inTreeBacTag->SetWeight( 122788. / 2011460. );
 
 
 	// Get simulation normalization
@@ -35,15 +36,15 @@ void must_plot_inverted(TString inFileDatTagName, TString inFileBacTagName,
 	double		Q_tag = 3.72e+07;
 
 	// Define the histograms for the ratio:
-	const int nAs_bins = 3;
+	const int nAs_bins = 6;
 	const double As_min = 1.3;
 	const double As_max = 1.6;
-	const int nXp_bins = 4;
-	const double Xp_min = 0.25;
-	const double Xp_max = 0.65;
-	const int nXb_bins = 4;
-	const double Xb_min = 0.25;
-	const double Xb_max = 0.65;
+	const int nXp_bins = 8;
+	const double Xp_min = 0.275;
+	const double Xp_max = 0.675;
+	const int nXb_bins = 8;
+	const double Xb_min = 0.275;
+	const double Xb_max = 0.675;
 	// What we want:
 	//			[ N_tag,data (Q2,theta_nq,x';alphaS) / Q_tag] / [ N_tag,sim(Q2,theta_nq,x';alphaS) / L_tag,sim ]
 	//	R(tag/inc) = 	------------------------------------------------------------------------------------------------
@@ -79,7 +80,7 @@ void must_plot_inverted(TString inFileDatTagName, TString inFileBacTagName,
 	//	R(tag) = 	N_tag,data (Q2,theta_nq,x';alphaS) / [ N_tag,sim(Q2,theta_nq,x';alphaS) ]
 	//	as just individual histograms for numerator and denominator
 	TCanvas * c1_as_xp_tag = new TCanvas("c1_as_xp_tag","",800,600);
-	c1_as_xp_tag->Divide(3,2);
+	c1_as_xp_tag->Divide((int)nAs_bins/2,2);
 	double TAGSUM = 0;
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
 		c1_as_xp_tag->cd(bin+1);
@@ -113,7 +114,7 @@ void must_plot_inverted(TString inFileDatTagName, TString inFileBacTagName,
 	//	R(inc) = 	N_inc,data (Q2,x=x') / N_inc,sim(Q2,x=x') 
 	//	by saving each number individiually
 	TCanvas * c1_q2_xb_inc = new TCanvas("c1_q2_xb_inc","",800,600);
-	c1_q2_xb_inc->Divide(3,2);
+	c1_q2_xb_inc->Divide((int)nXp_bins/2,2);
 	double DatIncCounts[nXb_bins] = {0};
 	double SimIncCounts[nXb_bins] = {0};
 	double INCSUM = 0;
@@ -142,11 +143,11 @@ void must_plot_inverted(TString inFileDatTagName, TString inFileBacTagName,
 	}
 	c1_q2_xb_inc->SaveAs("q2_xbBins_inc.pdf");
 
-	int colors[nAs_bins] = {1,8,9};
+	int colors[nAs_bins] = {1,8,9,2,41,47};
 
 	// Now do the R_tag/R_inc ratio
 	TCanvas * c1_must = new TCanvas("c1_must","",800,600);
-	c1_must->Divide(3,2);
+	c1_must->Divide((int) nAs_bins/2,2);
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
 		c1_must->cd(bin+1);
 
@@ -166,13 +167,24 @@ void must_plot_inverted(TString inFileDatTagName, TString inFileBacTagName,
 	c1_must->SaveAs("ratio_tag_inc.pdf");
 
 	TCanvas * c1_must_xp03 = new TCanvas("c1_must_xp03","",800,600);
-	c1_must_xp03->Divide(2,2);
+	c1_must_xp03->Divide((int) nAs_bins/2,2);
 
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
 		c1_must_xp03->cd(bin+1);
 
+		// Divide by sim bin-by-bin:
+		//for( int hbin = 1 ; hbin < h1_as_xp_sim[bin]->GetNbinsX() + 1 ; hbin++){
+		//	double datval = h1_as_xp_dat[bin]->GetBinContent(hbin);
+		//	double simval = h1_as_xp_sim[bin]->GetBinContent(hbin);
+		//	cout << datval << " " << simval << " " << datval/simval << "\n";
+		//	if( datval == 0 || simval == 0 ){
+		//		h1_as_xp_dat[bin]->SetBinContent( hbin , -1 );
+		//	}
+		//	h1_as_xp_dat[bin]->SetBinContent( hbin , datval/simval );
+		//}
+		//cout << h1_as_xp_dat[bin]->GetBinContent(1) << "\n\n";
 		h1_as_xp_dat[bin]->Divide( h1_as_xp_sim[bin] );
-		label1D_ratio_normed(h1_as_xp_dat[bin],h1_as_xp_dat[bin]->GetBinContent(1),"x'","R_{normed}",colors[bin]);
+		label1D_ratio_normed(h1_as_xp_dat[bin],h1_as_xp_dat[bin]->GetBinContent(2),"x'","R_{normed}",colors[bin]);
 
 	}
 	c1_must_xp03->SaveAs("ratio_tag_inc_xp03.pdf");

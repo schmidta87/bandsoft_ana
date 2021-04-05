@@ -46,8 +46,10 @@ const double	NCUT_As_max = 1.8;
 // Neutron backgroun region cuts
 //const double	NCUT_BACK_TofpM_min = -20;
 //const double	NCUT_BACK_TofpM_max = 0;
-const double	NCUT_BACK_Tof_min = -36.072;
+const double	NCUT_BACK_Tof_min = -56.112;
 const double	NCUT_BACK_Tof_max = -4.008;
+const double	NCUT_FARTIME_Tof_min = 100.2;
+const double 	NCUT_FARTIME_Tof_max = 240.48;
 // Beam structure
 const double	BEAM_BUNCH = 4.008; // ns -- in reality this is 4.00801ns
 
