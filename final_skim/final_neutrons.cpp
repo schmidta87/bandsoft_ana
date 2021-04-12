@@ -48,6 +48,13 @@ int main(int argc, char ** argv){
 		// sim:
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
+		// make a fiducial cut around the edge of BAND:
+	TCut fiducial1	= Form("!(nHits[nleadindex]->getSector()==1 && (nHits[nleadindex]->getX() >  70 || nHits[nleadindex] >getX() < -70))");
+	TCut fiducial2	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
+	TCut fiducial3	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() <  60))");
+	TCut fiducial4	= Form("!(nHits[nleadindex]->getSector()==4 && (nHits[nleadindex]->getX() < -90 || nHits[nleadindex]->getX() > -60))");
+	TCut fiducial5	= Form("!(nHits[nleadindex]->getSector()==5 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
+	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5;
 	// kill any bad bars:
 		// Spring 2019 bad bars that will always be killed:
 	TCut nBad_431	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
@@ -81,7 +88,7 @@ int main(int argc, char ** argv){
 	//TCut nBad_531	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
 	//TCut nBad_535	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==5)");
 	//TCut nBad_541	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==1)");
-	TCut neutron 	= nGood && nLeadIdx && nStatus && nEdep 
+	TCut neutron 	= nGood && nLeadIdx && nStatus && nEdep && fiducial
 				&& nBad_431 && nBad_342 && nBad_245
 				&& nHole_1 && nHole_2;
 				//&& nBad_122 && nBad_132 && nBad_133 && nBad_135 && nBad_136 && nBad_142 && nBad_146
