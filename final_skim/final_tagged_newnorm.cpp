@@ -61,7 +61,7 @@ int main(int argc, char ** argv){
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
 	TCut nThetaNQ	= Form("tag[nleadindex]->getThetaNQ() > %f && tag[nleadindex]->getThetaNQ() < %f",NCUT_THETANQ_min,NCUT_THETANQ_max);
 		// make a fiducial cut around the edge of BAND:
-	TCut fiducial1	= Form("!(nHits[nleadindex]->getSector()==1 && (nHits[nleadindex]->getX() >  70 || nHits[nleadindex] >getX() < -70))");
+	TCut fiducial1	= Form("!(nHits[nleadindex]->getSector()==1 && (nHits[nleadindex]->getX() >  70 || nHits[nleadindex]->getX() < -70))");
 	TCut fiducial2	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
 	TCut fiducial3	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() <  60))");
 	TCut fiducial4	= Form("!(nHits[nleadindex]->getSector()==4 && (nHits[nleadindex]->getX() < -90 || nHits[nleadindex]->getX() > -60))");

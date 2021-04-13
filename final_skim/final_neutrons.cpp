@@ -49,7 +49,7 @@ int main(int argc, char ** argv){
 	else if( MC_DATA_OPT == 1)
 		nEdep	= Form("nHits[nleadindex]->getEdep() > %f",			NCUT_Edep);
 		// make a fiducial cut around the edge of BAND:
-	TCut fiducial1	= Form("!(nHits[nleadindex]->getSector()==1 && (nHits[nleadindex]->getX() >  70 || nHits[nleadindex] >getX() < -70))");
+	TCut fiducial1	= Form("!(nHits[nleadindex]->getSector()==1 && (nHits[nleadindex]->getX() >  70 || nHits[nleadindex]->getX() < -70))");
 	TCut fiducial2	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
 	TCut fiducial3	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() <  60))");
 	TCut fiducial4	= Form("!(nHits[nleadindex]->getSector()==4 && (nHits[nleadindex]->getX() < -90 || nHits[nleadindex]->getX() > -60))");
