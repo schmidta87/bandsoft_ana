@@ -67,18 +67,18 @@ int main(int argc, char ** argv){
 	TCut fiducial4	= Form("!(nHits[nleadindex]->getSector()==4 && (nHits[nleadindex]->getX() < -90 || nHits[nleadindex]->getX() > -60))");
 	TCut fiducial5	= Form("!(nHits[nleadindex]->getSector()==5 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
 		// to this fiducial, implement a ThetaN cut for beam pipe issue:
-	TCut fiducialTheta	= Form("tag[nleadindex]->getMomentumN().Theta() < 168.5*TMath::Pi()/180.")
+	TCut fiducialTheta	= Form("tag[nleadindex]->getMomentumN().Theta() < 168.5*TMath::Pi()/180.");
 	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5 && fiducialTheta;
 	// kill any bad bars:
 		// Spring 2019 bad bars that will always be killed:
-	TCut nBad_431	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
-	TCut nBad_342	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==2)");
-	TCut nBad_245	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==5)");
+	TCut nBad_341	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_432	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==2)");
+	TCut nBad_425	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==5)");
 		// This is a hole in BAND due to a TDC shift for 10.2 GeV data set:
 	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && (nHits[nleadindex]->getX()>90 || nHits[nleadindex]->getX()<-110))");
 	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && (nHits[nleadindex]->getX()>80 || nHits[nleadindex]->getX() < 45) )");
 		// This are killed due to discrepancy between MC and simulation:
-		// WITH theta cut
+		// WITH theta cut v2.0 04-21-2021
 	TCut nBad_111	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getComponent()==1)");
 	TCut nBad_121	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==1)");
 	TCut nBad_225	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==5)");
@@ -95,7 +95,7 @@ int main(int argc, char ** argv){
 	TCut nBad_353	= Form("!(nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getComponent()==3)");
 	
 	TCut tagged 	= inclusive && nGood && nLeadIdx && nEdep && nThetaNQ  && fiducial	// basic cuts 
-				&& nBad_431 	&& nBad_342 && nBad_245				// bad bars from calibration for Spring2019
+				&& nBad_341 	&& nBad_432 && nBad_425				// bad bars from calibration for Spring2019
 				&& nHole_1 	&& nHole_2					// hole for Spring2019
 				&& nBad_111	&& nBad_121	&& nBad_225	&& nBad_227	// bad bars in MC vs data 
 				&& nBad_424	&& nBad_426	&& nBad_521	&& nBad_236	
