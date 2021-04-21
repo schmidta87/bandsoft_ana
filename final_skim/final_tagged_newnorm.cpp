@@ -68,7 +68,7 @@ int main(int argc, char ** argv){
 	TCut fiducial5	= Form("!(nHits[nleadindex]->getSector()==5 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
 		// to this fiducial, implement a ThetaN cut for beam pipe issue:
 	TCut fiducialTheta	= Form("tag[nleadindex]->getMomentumN().Theta() < 168.5*TMath::Pi()/180.");
-	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5 && fiducialTheta;
+	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5 ;//&& fiducialTheta;
 	// kill any bad bars:
 		// Spring 2019 bad bars that will always be killed:
 	TCut nBad_341	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
