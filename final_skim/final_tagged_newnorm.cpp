@@ -66,7 +66,9 @@ int main(int argc, char ** argv){
 	TCut fiducial3	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() <  60))");
 	TCut fiducial4	= Form("!(nHits[nleadindex]->getSector()==4 && (nHits[nleadindex]->getX() < -90 || nHits[nleadindex]->getX() > -60))");
 	TCut fiducial5	= Form("!(nHits[nleadindex]->getSector()==5 && (nHits[nleadindex]->getX() >  90 || nHits[nleadindex]->getX() < -90))");
-	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5;
+		// to this fiducial, implement a ThetaN cut for beam pipe issue:
+	TCut fiducialTheta	= Form("tag[nleadindex]->getMomentumN().Theta() < 168.5*TMath::Pi()/180.")
+	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5 && fiducialTheta;
 	// kill any bad bars:
 		// Spring 2019 bad bars that will always be killed:
 	TCut nBad_431	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
@@ -76,38 +78,30 @@ int main(int argc, char ** argv){
 	TCut nHole_1 	= Form("!(nHits[nleadindex]->getSector()==2 && (nHits[nleadindex]->getComponent()==4 || nHits[nleadindex]->getComponent()==5 || nHits[nleadindex]->getComponent()==6 || nHits[nleadindex]->getComponent()==7) && (nHits[nleadindex]->getX()>90 || nHits[nleadindex]->getX()<-110))");
 	TCut nHole_2	= Form("!(nHits[nleadindex]->getSector()==3 && (nHits[nleadindex]->getComponent()==1 || nHits[nleadindex]->getComponent()==2 ) && (nHits[nleadindex]->getX()>80 || nHits[nleadindex]->getX() < 45) )");
 		// This are killed due to discrepancy between MC and simulation:
-	//TCut nBad_122	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_132	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_133	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==3)");
-	//TCut nBad_135	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==5)");
-	//TCut nBad_136	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==6)");
-	//TCut nBad_142	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_146	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
-	//TCut nBad_152	= Form("!(nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_251	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==1)");
-	//TCut nBad_252	= Form("!(nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_333	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==3)");
-	//TCut nBad_346	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==6)");
-	//TCut nBad_352	= Form("!(nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_411	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1)");
-	//TCut nBad_435	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==5)");
-	//TCut nBad_442	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_443	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==3)");
-	//TCut nBad_444	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==4)");
-	//TCut nBad_445	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==5)");
-	//TCut nBad_452	= Form("!(nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getComponent()==2)");
-	//TCut nBad_511	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1)");
-	//TCut nBad_531	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==1)");
-	//TCut nBad_535	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getComponent()==5)");
-	//TCut nBad_541	= Form("!(nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getComponent()==1)");
+		// WITH theta cut
+	TCut nBad_111	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_121	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_225	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==5)");
+	TCut nBad_227	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==7)");
+	TCut nBad_424	= Form("!(nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==4)");
+	TCut nBad_426	= Form("!(nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==6)");
+	TCut nBad_521	= Form("!(nHits[nleadindex]->getSector()==5 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_236	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getComponent()==6)");
+	TCut nBad_431	= Form("!(nHits[nleadindex]->getSector()==4 && nHits[nleadindex]->getLayer()==3 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_241	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getComponent()==1)");
+	TCut nBad_242	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getComponent()==2)");
+	TCut nBad_244	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getComponent()==4)");
+	TCut nBad_346	= Form("!(nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getLayer()==4 && nHits[nleadindex]->getComponent()==6)");
+	TCut nBad_353	= Form("!(nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getComponent()==3)");
 	
-	TCut tagged 	= inclusive && nGood && nLeadIdx && nEdep && nThetaNQ  && fiducial
-				&& nBad_431 && nBad_342 && nBad_245
-				&& nHole_1 && nHole_2;
-				//&& nBad_122 && nBad_132 && nBad_133 && nBad_135 && nBad_136 && nBad_142 && nBad_146
-				//&& nBad_152 && nBad_251 && nBad_252 && nBad_333 && nBad_346 && nBad_352 && nBad_411 
-				//&& nBad_435 && nBad_442 && nBad_443 && nBad_444 && nBad_445 && nBad_452 && nBad_511 
-				//&& nBad_531 && nBad_535 && nBad_541;
+	TCut tagged 	= inclusive && nGood && nLeadIdx && nEdep && nThetaNQ  && fiducial	// basic cuts 
+				&& nBad_431 	&& nBad_342 && nBad_245				// bad bars from calibration for Spring2019
+				&& nHole_1 	&& nHole_2					// hole for Spring2019
+				&& nBad_111	&& nBad_121	&& nBad_225	&& nBad_227	// bad bars in MC vs data 
+				&& nBad_424	&& nBad_426	&& nBad_521	&& nBad_236	
+				&& nBad_431	&& nBad_241	&& nBad_242	&& nBad_244	
+				&& nBad_346	&& nBad_353;
+
 
 	// Conditions for a final accepted event neutron in signal region
 	TCut nToF	= Form("nHits[nleadindex]->getTof() > %f && nHits[nleadindex]->getTof() < %f"	,NCUT_Tof_min, NCUT_Tof_max);
