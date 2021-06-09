@@ -20,6 +20,7 @@ using std::cerr;
 using std::cout;
 void calculate_AsPt( double & As, double & Pt , const double Ebeam, genpart * const electron, genpart * const neutron );
 void fillHist( double Q2, double As, double Pt, double Xb, TH1D** hists_lowQ2 , TH1D** hists_highQ2 );
+void setError( double * err , TH1D * rec , TH1D * gen );
 
 int main( int argc, char** argv){
 
@@ -110,7 +111,15 @@ int main( int argc, char** argv){
 		rec_xb_lowQ2[i]->Write();
 
 		if( gen_xb_lowQ2[i]->Integral() < 1 || rec_xb_lowQ2[i]->Integral() < 1 ) continue;
+		double * errors = new double[bins_Xb];
+		setError( errors , rec_xb_lowQ2[i] , gen_xb_lowQ2[i] );
 		rec_xb_lowQ2[i]->Divide( gen_xb_lowQ2[i] );
+
+		for( int bin = 1 ; bin < rec_xb_lowQ2[i]->GetXaxis()->GetNbins(); ++bin ){
+			rec_xb_lowQ2[i]->SetBinError( bin , errors[bin-1] );
+		}
+
+
 		c_lowQ2->cd(i+1);
 
 		rec_xb_lowQ2[i]->SetLineWidth(3);
@@ -123,15 +132,25 @@ int main( int argc, char** argv){
 		hline->SetLineColor(1);
 		hline->SetLineStyle(2);
 		hline->Draw("SAME");
+		delete[] errors;
 	}
-	c_lowQ2->Print("binmigration_lowQ2.pdf");
+	c_lowQ2->Print("binmigration_lowQ2_tagged.pdf");
 
 	for( int i = 0 ; i < highQ2_bins ; ++i){
 		gen_xb_highQ2[i]->Write();
 		rec_xb_highQ2[i]->Write();
 
 		if( gen_xb_highQ2[i]->Integral() < 1 || rec_xb_highQ2[i]->Integral() < 1 ) continue;
+		double * errors = new double[bins_Xb];
+		setError( errors , rec_xb_highQ2[i] , gen_xb_highQ2[i] );
 		rec_xb_highQ2[i]->Divide( gen_xb_highQ2[i] );
+
+
+		for( int bin = 1 ; bin < rec_xb_highQ2[i]->GetXaxis()->GetNbins(); ++bin ){
+			rec_xb_highQ2[i]->SetBinError( bin , errors[bin-1] );
+		}
+
+
 		c_highQ2->cd(i+1);
 
 		rec_xb_highQ2[i]->SetLineWidth(3);
@@ -144,8 +163,9 @@ int main( int argc, char** argv){
 		hline->SetLineColor(1);
 		hline->SetLineStyle(2);
 		hline->Draw("SAME");
+		delete[] errors;
 	}
-	c_highQ2->Print("binmigration_highQ2.pdf");
+	c_highQ2->Print("binmigration_highQ2_tagged.pdf");
 
 	outFile->Close();
 
@@ -236,4 +256,21 @@ void fillHist( double Q2, double As, double Pt, double Xb, TH1D** hists_lowQ2 , 
 
 	}
 	else return;
+}
+
+void setError( double * err , TH1D * rec , TH1D * gen ){
+	
+	for( int bin = 1 ; bin < rec->GetXaxis()->GetNbins(); ++bin ){
+
+		double r = rec->GetBinContent(bin);
+		double g = gen->GetBinContent(bin);
+
+		double e = sqrt( r/(g*g) + r*r/(g*g*g) );
+		cout << bin << " " << r << " " << g << " " << r/g << " " << e << "\n";
+		if( e!=e ) e = 0;
+		err[bin-1] = e;
+	}
+
+
+	return;
 }

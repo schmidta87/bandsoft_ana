@@ -17,6 +17,8 @@
 using std::cerr;
 using std::cout;
 
+void setError( double * err , TH1D * spb , TH1D * bac );
+
 int main( int argc, char** argv){
 
 	if( argc != 3 ){
@@ -183,26 +185,42 @@ int main( int argc, char** argv){
 		bac_xb_lowQ2[i]->Write();
 
 		if( dat_xb_lowQ2[i]->Integral() < 1 || bac_xb_lowQ2[i]->Integral() < 1 ) continue;
+		double * errors = new double[bins_Xb];
+		setError( errors , dat_xb_lowQ2[i] , bac_xb_lowQ2[i] );
 		dat_xb_lowQ2[i]->Add( bac_xb_lowQ2[i] , -1 );
-		c_lowQ2->cd(i+1);
 
+		for( int bin = 1 ; bin < dat_xb_lowQ2[i]->GetXaxis()->GetNbins(); ++bin ){
+			dat_xb_lowQ2[i]->SetBinError( bin , errors[bin-1] );
+		}
+
+
+		c_lowQ2->cd(i+1);
 		dat_xb_lowQ2[i]->SetLineWidth(3);
 		dat_xb_lowQ2[i]->Draw();
+		delete[] errors;
 	}
-	c_lowQ2->Print("rawyield_lowQ2.pdf");
+	c_lowQ2->Print("rawyield_lowQ2_tagged.pdf");
 
 	for( int i = 0 ; i < highQ2_bins ; ++i){
 		dat_xb_highQ2[i]->Write();
 		bac_xb_highQ2[i]->Write();
 
 		if( dat_xb_highQ2[i]->Integral() < 1 || bac_xb_highQ2[i]->Integral() < 1 ) continue;
+		double * errors = new double[bins_Xb];
+		setError( errors , dat_xb_highQ2[i] , bac_xb_highQ2[i] );
 		dat_xb_highQ2[i]->Add( bac_xb_highQ2[i] , -1 );
-		c_highQ2->cd(i+1);
 
+		for( int bin = 1 ; bin < dat_xb_highQ2[i]->GetXaxis()->GetNbins(); ++bin ){
+			dat_xb_highQ2[i]->SetBinError( bin , errors[bin-1] );
+		}
+
+
+		c_highQ2->cd(i+1);
 		dat_xb_highQ2[i]->SetLineWidth(3);
 		dat_xb_highQ2[i]->Draw();
+		delete[] errors;
 	}
-	c_highQ2->Print("rawyield_highQ2.pdf");
+	c_highQ2->Print("rawyield_highQ2_tagged.pdf");
 
 	outFile->Close();
 
@@ -210,4 +228,18 @@ int main( int argc, char** argv){
 	inFile_Dat.Close();
 	inFile_Bac.Close();
 	return 1;
+}
+
+void setError( double * err , TH1D * spb , TH1D * bac ){
+	
+	for( int bin = 1 ; bin < spb->GetXaxis()->GetNbins(); ++bin ){
+		double s = spb->GetBinContent(bin);
+		double b = bac->GetBinContent(bin);
+
+		double e = sqrt( s + b );
+		err[bin-1] = e;
+	}
+
+
+	return;
 }

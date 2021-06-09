@@ -21,6 +21,7 @@ using std::cout;
 void calculate_AsPt( double & As, double & Pt , const double Ebeam, genpart * const electron, genpart * const neutron );
 void fillHist( double Q2, double As, double Pt, double Xb, double rad, TH1D** hists_lowQ2 , TH1D** hists_highQ2 ,
 									TH1D** counts_lowQ2, TH1D** counts_highQ2 );
+void setError( double * err , TH1D * ravg , TH1D * cnts );
 
 int main( int argc, char** argv){
 
@@ -90,7 +91,15 @@ int main( int argc, char** argv){
 		counts_xb_lowQ2[i]->Write();
 
 		if( gen_xb_lowQ2[i]->Integral() < 1 || counts_xb_lowQ2[i]->Integral() < 1 ) continue;
+		double * errors = new double[bins_Xb];
+		setError( errors , gen_xb_lowQ2[i] , counts_xb_lowQ2[i] );
 		gen_xb_lowQ2[i]->Divide( counts_xb_lowQ2[i] );
+
+		for( int bin = 1 ; bin < gen_xb_lowQ2[i]->GetXaxis()->GetNbins(); ++bin ){
+			gen_xb_lowQ2[i]->SetBinError( bin , errors[bin-1] );
+		}
+
+
 		c_lowQ2->cd(i+1);
 
 		gen_xb_lowQ2[i]->SetLineWidth(3);
@@ -103,15 +112,24 @@ int main( int argc, char** argv){
 		hline->SetLineColor(1);
 		hline->SetLineStyle(2);
 		hline->Draw("SAME");
+		delete[] errors;
 	}
-	c_lowQ2->Print("radcorrection_lowQ2.pdf");
+	c_lowQ2->Print("radcorrection_lowQ2_tagged.pdf");
 
 	for( int i = 0 ; i < highQ2_bins ; ++i){
 		gen_xb_highQ2[i]->Write();
 		counts_xb_highQ2[i]->Write();
 
 		if( gen_xb_highQ2[i]->Integral() < 1 || counts_xb_highQ2[i]->Integral() < 1 ) continue;
+		double * errors = new double[bins_Xb];
+		setError( errors , gen_xb_highQ2[i] , counts_xb_highQ2[i] );
 		gen_xb_highQ2[i]->Divide( counts_xb_highQ2[i] );
+
+		for( int bin = 1 ; bin < gen_xb_highQ2[i]->GetXaxis()->GetNbins(); ++bin ){
+			gen_xb_highQ2[i]->SetBinError( bin , errors[bin-1] );
+		}
+
+
 		c_highQ2->cd(i+1);
 
 		gen_xb_highQ2[i]->SetLineWidth(3);
@@ -124,8 +142,9 @@ int main( int argc, char** argv){
 		hline->SetLineColor(1);
 		hline->SetLineStyle(2);
 		hline->Draw("SAME");
+		delete[] errors;
 	}
-	c_highQ2->Print("radcorrection_highQ2.pdf");
+	c_highQ2->Print("radcorrection_highQ2_tagged.pdf");
 
 	outFile->Close();
 
@@ -223,4 +242,21 @@ void fillHist( double Q2, double As, double Pt, double Xb, double rad, TH1D** hi
 
 	}
 	else return;
+}
+
+void setError( double * err , TH1D * ravg , TH1D * cnts ){
+	
+	for( int bin = 1 ; bin < ravg->GetXaxis()->GetNbins(); ++bin ){
+
+		double R = ravg->GetBinContent(bin);
+		double N = cnts->GetBinContent(bin);
+
+		double e = sqrt( R/pow(N,3./2) );
+		cout << R << " " << N << " " << e << "\n";
+		if( e!=e ) e = 0;
+		err[bin-1] = e;
+	}
+
+
+	return;
 }
