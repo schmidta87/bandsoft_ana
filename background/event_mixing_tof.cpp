@@ -149,7 +149,7 @@ int main(int argc, char ** argv){
 
 		// Check that the neutron we have is in our background region, in the CosThetaNQ bin, and in the Q2 bin
 		if( lead_n->getTof() < NCUT_BACK_Tof_min || lead_n->getTof() > NCUT_BACK_Tof_max ) continue;
-		taghit * this_tag = (taghit*) input_tag->At(0);
+		taghit * this_tag = (taghit*) input_tag->At(input_nleadindex);
 		double this_ThetaNQ = this_tag->getThetaNQ();
 		if( this_ThetaNQ < NCUT_THETANQ_min || this_ThetaNQ > NCUT_THETANQ_max ) continue;
 
