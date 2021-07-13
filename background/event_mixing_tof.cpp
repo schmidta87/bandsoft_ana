@@ -16,6 +16,7 @@
 #include "TVector3.h"
 #include "TCanvas.h"
 #include "TF1.h"
+#include "TChain.h"
 #include "TVectorT.h"
 #include "TRandom3.h"
 #include "constants.h"
@@ -31,7 +32,7 @@ using namespace std;
 int main(int argc, char ** argv){
 	if (argc != 4){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./event_mixing [outputRootfile] [inputElectronSkim] [inputNeutronSkim]\n";
+			<< "\t./event_mixing [outputRootfile] [inputElectronSkim] [inputTaggedSkim]\n";
 		return -1;
 	}
 
@@ -92,26 +93,34 @@ int main(int argc, char ** argv){
 	const double min_CosTheta_nq 	= cos(NCUT_THETANQ_max);	// and then max angle = 180 which is a "min" costhetanq of -1
 
 	// Define background and signal edges from from kinematic_cuts.h file
-	const double bkgrd_min 		= NCUT_BACK_TofpM_min;
-	const double bkgrd_max 		= NCUT_BACK_TofpM_max;
-	const double signal_min 	= NCUT_TofpM_min;
-	const double signal_max 	= NCUT_TofpM_max;
+	const double bkgrd_min 		= NCUT_BACK_Tof_min;
+	const double bkgrd_max 		= NCUT_BACK_Tof_max;
+	const double signal_min 	= NCUT_Tof_min;
+	const double signal_max 	= NCUT_Tof_max;
 
 	// Loop over the neutron and electron skim files given
 	TFile * inFile_e = new TFile(argv[2]);
-	TFile * inFile_n = new TFile(argv[3]);
 	TTree * inTree_e = (TTree*)inFile_e->Get("electrons");
-	TTree * inTree_n = (TTree*)inFile_n->Get("neutrons");
+		// combine all the neutron files
+	TChain* inTree_n = new TChain("tagged");
+	for( int i = 3 ; i < argc; i++ ){
+		cout << "Adding file " << argv[i] << endl;
+		inTree_n->Add(argv[i]);
+	}
 
 	clashit * input_eHit 		= new clashit;
 	TClonesArray* input_nHit 	= new TClonesArray("bandhit");
+	TClonesArray* input_tag 	= new TClonesArray("taghit");
 	int input_nleadindex		= -1;
+	bool input_ngoodneutron		= false;
 	double input_Ebeam		= 0;
 
 	inTree_e->SetBranchAddress("eHit",		&input_eHit);
 	inTree_e->SetBranchAddress("Ebeam",		&input_Ebeam);
 	inTree_n->SetBranchAddress("nHits",		&input_nHit);
+	inTree_n->SetBranchAddress("tag",		&input_tag);
 	inTree_n->SetBranchAddress("nleadindex",	&input_nleadindex);
+	inTree_n->SetBranchAddress("goodneutron",	&input_ngoodneutron);
 
 
 
@@ -119,18 +128,38 @@ int main(int argc, char ** argv){
 	vector<clashit> electron_list;
 	vector<bandhit> neutron_list;
 	vector<double>  Ebeam_list;
+	int neutrons_saved = 0;
 	cout << "Saving neutrons to mem...\n";
 	for( int neutron = 0 ; neutron < inTree_n->GetEntries() ; neutron++ ){
 		input_nHit->Clear();
+		input_tag->Clear();
 		input_nleadindex = -1;
+		input_ngoodneutron = false;
 
 		inTree_n->GetEntry(neutron);
-
-		// This is AFTER final neutron, so all lead neutrons are good events
-		// so just get the lead neutron and save it
+	
+		// Require a good neutron event:
+		if(	input_ngoodneutron !=	NCUT_goodneutron	) continue;
+		if(	input_nleadindex ==	NCUT_leadindex		) continue;
+		
+		// Grab our neutron:
 		bandhit * lead_n = (bandhit*) input_nHit->At(input_nleadindex);
 		bandhit copy_n;
 		copy_n = *lead_n;
+
+		// Check that the neutron we have is in our background region, in the CosThetaNQ bin, and in the Q2 bin
+		if( lead_n->getTof() < NCUT_BACK_Tof_min || lead_n->getTof() > NCUT_BACK_Tof_max ) continue;
+		taghit * this_tag = (taghit*) input_tag->At(0);
+		double this_CosThetaNQ = cos(this_tag->getThetaNQ());
+		if( this_CosThetaNQ > NCUT_COSTHETANQ_max || this_CosThetaNQ < NCUT_COSTHETANQ_min ) continue;
+
+		// And then double check that it's above an Edep cut and has good status:
+		if(	lead_n->getStatus() !=	NCUT_status 		) continue;
+		if(	lead_n->getEdep() > NCUT_Edep*DataAdcToMeVee 	) continue;
+
+		// If it passes all these cuts then just push it back 
+		//  -- 	the number of events we have in this list is the number of
+		// 	background events in our background region
 		neutron_list.push_back( copy_n );
 	}
 
@@ -141,61 +170,79 @@ int main(int argc, char ** argv){
 
 		inTree_e->GetEntry(electron);
 
-		// This is AFTER final inclusive, so all electrons are good events
-		// so just get it and save it
+		// Require a good electron event:
+		if(	input_eHit->getPID() 						!= ECUT_PID 	) 	continue;
+		if(	input_eHit->getCharge()						!= ECUT_charge 	)	continue;
+		if(	input_eHit->getEoP() < ECUT_EoP_min || input_eHit->getEoP() > ECUT_EoP_max	) 	continue;
+		if(	input_eHit->getEpcal() 						< ECUT_Epcal_min)	continue;
+		if(	input_eHit->getV() < ECUT_V_min 	|| input_eHit->getW() < ECUT_W_min	) 	continue;
+		if(	input_eHit->getVtz() < ECUT_vtx_min	|| input_eHit->getVtz() > ECUT_vtx_max	) 	continue;
+		if(	input_eHit->getMomentum() < ECUT_pE_min || input_eHit->getMomentum() > ECUT_pE_max ) 	continue;
+		if(	input_eHit->getQ2() < ECUT_Q2_min	|| input_eHit->getQ2() > ECUT_Q2_max	)	continue;
+		if(	input_eHit->getW2() < ECUT_W2_min						)	continue;
+
+		// now just get it and save it
 		clashit copy_e;
 		copy_e = *input_eHit;
 		electron_list.push_back( copy_e );
 		Ebeam_list.push_back( input_Ebeam );
 	}
 
-	
+	int neutrons_created = 0;
+	int neutrons_mixed = 0;
 	// Loop over all neutron events
 	for( int neutron = 0 ; neutron < neutron_list.size() ; neutron++ ){
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
+		
+		
+		int nSignalBunches = (signal_max - signal_min)/BEAM_BUNCH;
+		// Grab a random electron 
+		int electron = myRand->Rndm() * electron_list.size();
+		// Read in the stored variables
+		double this_Ebeam 	= Ebeam_list	[electron];
+		double p_e		= electron_list	[electron].getMomentum();
+		double theta_e		= electron_list	[electron].getTheta();
+		double phi_e		= electron_list	[electron].getPhi();
+		double vtz 		= electron_list	[electron].getVtz();
+		double theta_n		= neutron_list	[neutron].getDL().Theta();
+		double phi_n		= neutron_list	[neutron].getDL().Phi();
+		double dL		= neutron_list	[neutron].getDL().Mag();
+		double bkg_Tof		= neutron_list	[neutron].getTof();
 
-		int nPairs = 0; // counts how many pairs were made for this neutron
-		int nFails = 0; // counts how many times a pair was tried for
-		int maxPairs = 10;
-		int maxFails = 10;
-		while( nPairs < maxPairs && nFails < maxFails ){
+		
+		// Figure out what bunch this background is in
+		int this_bBunch		= (bkg_Tof - bkgrd_min )/BEAM_BUNCH;
 
-			int electron = myRand->Rndm() * inTree_e->GetEntries();
+		// Create all electron quantites only once
+		TVector3 beamVec(0,0,this_Ebeam);
+		TVector3 eVec;	eVec.SetMagThetaPhi(p_e,theta_e,phi_e);
+		TVector3 qVec;	qVec = beamVec - eVec;
+		double q 	= electron_list[electron].getQ();
+		double theta_q  = electron_list[electron].getThetaQ();
+		double phi_q 	= electron_list[electron].getPhiQ();
+		double nu 	= electron_list[electron].getOmega();
+		double Q2 	= electron_list[electron].getQ2();
+		double xB	= electron_list[electron].getXb();
+		double W2	= electron_list[electron].getW2();
+			// Calculate the nq angles
+		TVector3 norm_scatter = qVec.Cross( beamVec );
+		norm_scatter 	= norm_scatter.Unit();
 
-			// Read in the stored variables
-			double this_Ebeam 	= Ebeam_list	[electron];
-			double p_e		= electron_list	[electron].getMomentum();
-			double theta_e		= electron_list	[electron].getTheta();
-			double phi_e		= electron_list	[electron].getPhi();
-			double vtz 		= electron_list	[electron].getVtz();
-			double theta_n		= neutron_list	[neutron].getDL().Theta();
-			double phi_n		= neutron_list	[neutron].getDL().Phi();
-			double dL		= neutron_list	[neutron].getDL().Mag();
+		// Loop over all signal bunches to push our background into
+		for( int thisBunch = 0 ; thisBunch < (signal_max-signal_min)/BEAM_BUNCH ; thisBunch++ ){	
+			neutrons_created++;
 
-			// Re-drawn in ToF per meter within our signal region for neutrons:
-			double TofpM = myRand->Rndm() * (NCUT_TofpM_max - NCUT_TofpM_min) + NCUT_TofpM_min;
-			double beta = (1./TofpM) * (1./cAir) * (100./1);
-			double p_n = mN / sqrt( 1./pow(beta,2) - 1. );
-			double ToF = TofpM * (dL/100.);
+			// Shift ToF by current background bunch time and desired signal bunch time
+			double bunch_shift	= (signal_min + BEAM_BUNCH*thisBunch) - (this_bBunch*BEAM_BUNCH + bkgrd_min);
 
-			// Create vectors for calculating angles
-			TVector3 beamVec(0,0,this_Ebeam);
-			TVector3 eVec;	eVec.SetMagThetaPhi(p_e,theta_e,phi_e);
-			TVector3 qVec;	qVec = beamVec - eVec;
+			double Tof 	= bkg_Tof + bunch_shift;
+			double TofpM	= Tof / (dL/100.);
+			double beta 	= (1./TofpM) * (1./cAir) * (100./1);
+			double p_n 	= mN / sqrt( 1./pow(beta,2) - 1. );
+			
 			TVector3 nVec;	nVec.SetMagThetaPhi(p_n,theta_n,phi_n);
-
-			double q 	= electron_list[electron].getQ();
-			double theta_q  = electron_list[electron].getThetaQ();
-			double phi_q 	= electron_list[electron].getPhiQ();
-			double nu 	= electron_list[electron].getOmega();
-			double Q2 	= electron_list[electron].getQ2();
-			double xB	= electron_list[electron].getXb();
-			double W2	= electron_list[electron].getW2();
 			double E_n 	= sqrt( mN*mN + p_n*p_n );
 
-			// Calculate the nq angles
-			TVector3 norm_scatter = qVec.Cross( beamVec );
-			norm_scatter 	= norm_scatter.Unit();
 			TVector3 norm_reaction = qVec.Cross( nVec );
 			norm_reaction 	= norm_reaction.Unit();
 			double phi_nq 	= norm_scatter.Angle( norm_reaction );
@@ -221,10 +268,7 @@ int main(int argc, char ** argv){
 			// final skim is the cosThetaNQ because neutron had no electron
 			if( CosTheta_nq > min_CosTheta_nq 	&& 
 			    CosTheta_nq < max_CosTheta_nq 	){
-				// Valid pair
-				nFails = 0;
-				nPairs++;
-				
+
 				// Clear ehit branches
 				eHit.Clear();
 				Ebeam 		= 0;
@@ -246,8 +290,8 @@ int main(int argc, char ** argv){
 				eHit = electron_list[electron];
 
 				// Save neutron info with new ToF
-				neutron_list[neutron].setTof(ToF);
-				neutron_list[neutron].setTofFadc(ToF);
+				neutron_list[neutron].setTof(Tof);
+				neutron_list[neutron].setTofFadc(Tof);
 				new(saveHit[0]) bandhit;
 				saveHit[0] = &neutron_list[neutron];
 
@@ -269,14 +313,11 @@ int main(int argc, char ** argv){
 
 
 				outTree->Fill();
-
+				neutrons_mixed++;
 
 			}
-			else{ nFails++; }
-
-
-		} // end loop over finding electrons
-
+		}
+	
 	}
 	
 	// Write output file:

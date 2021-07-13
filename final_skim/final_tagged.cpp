@@ -106,17 +106,9 @@ int main(int argc, char ** argv){
 		bacnorm.SetXYZ(background_counts,0,0);
 	}
 	if( MC_DATA_OPT == 2 ){
-			// Given our momentum max and min, solve for bins in ToF/m
-		double beta_min = 1./sqrt(1.+ pow(mN/NCUT_Pn_min,2));
-		double beta_max = 1./sqrt(1.+ pow(mN/NCUT_Pn_max,2));
-			// max beta = min ToF and vice versa
-		double TofpM_max = 1./(cAir*beta_min)*100;
-		double TofpM_min = 1./(cAir*beta_max)*100;
-		int TofpM_min_bin = hToF_bac->FindBin( TofpM_min );
-		int TofpM_max_bin = hToF_bac->FindBin( TofpM_max );
-		double background_counts = hToF_bac->Integral( TofpM_min_bin , TofpM_max_bin );
-	
-		bacnorm.SetXYZ(background_counts,0,0);
+		int nEvents = hToF_bac->Integral();
+
+		bacnorm.SetXYZ(nEvents,0,0);
 	}
 
 
