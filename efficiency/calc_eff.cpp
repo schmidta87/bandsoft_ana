@@ -42,7 +42,7 @@ int main(int argc, char ** argv){
 	TCut nGood	= Form("goodneutron == %i",					NCUT_goodneutron);
 	TCut nLeadIdx	= Form("nleadindex != %i",					NCUT_leadindex);
 	TCut nStatus	= Form("nHits[nleadindex]->getStatus() == %i",			NCUT_status);
-	TCut nEdep	= Form("nHits[nleadindex]->getPmtLadc() > %f",			NCUT_Edep*SimAdcToMeVee);
+	TCut nEdep	= Form("nHits[nleadindex]->getPmtLadc() > %f",			NCUT_Edep);
 	TCut nToF	= Form("nHits[nleadindex]->getTofFadc() > %f",			NCUT_Tofabove0);
 	//TCut nPn	= Form("tag[nleadindex]->getMomentumN().Mag() > %f && tag[nleadindex]->getMomentumN().Mag() < %f", NCUT_Pn_min, NCUT_Pn_max );
 	TCut nPn	= Form("mcParts[1]->getMomentum() > %f && mcParts[1]->getMomentum() < %f",	NCUT_Pn_min,	NCUT_Pn_max);

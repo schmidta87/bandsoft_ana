@@ -66,7 +66,7 @@ int main( int argc, char** argv){
 		double closest_dL = 1e10;
 		for( int ihit = 0 ; ihit < nHits->GetEntriesFast() ; ++ihit ){
 			bandhit * thishit = (bandhit*) nHits->At(ihit);
-			if( thishit->getEdep() > DataAdcToMeVee*2 ){
+			if( thishit->getEdep() > 2 ){
 				++new_nMult;
 				
 				if( thishit->getDL().Mag() < closest_dL ){

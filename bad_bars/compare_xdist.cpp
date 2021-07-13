@@ -34,9 +34,9 @@ int main( int argc, char** argv ){
 	TCut mom_cut = "tag[nleadindex]->getMomentumN().Mag() > 0.3";
 
 	// Let's get the absolute normalization for the simulation using some pN plot:
-	TH1D * pn_dat = new TH1D("pn_dat","pn_dat",100,0,1);
-	TH1D * pn_bac = new TH1D("pn_bac","pn_bac",100,0,1);
-	TH1D * pn_sim = new TH1D("pn_sim","pn_sim",100,0,1);
+	TH1D * pn_dat = new TH1D("pn_dat","pn_dat",100,0,2);
+	TH1D * pn_bac = new TH1D("pn_bac","pn_bac",100,0,2);
+	TH1D * pn_sim = new TH1D("pn_sim","pn_sim",100,0,2);
 	datTree->Draw("tag[nleadindex]->getMomentumN().Mag() >> pn_dat" , mom_cut );
 	bacTree->Draw("tag[nleadindex]->getMomentumN().Mag() >> pn_bac" , mom_cut );
 	simTree->Draw("tag[nleadindex]->getMomentumN().Mag() >> pn_sim" , mom_cut );
@@ -73,10 +73,13 @@ int main( int argc, char** argv ){
 				TCut bar_cut = Form("nHits[nleadindex]->getLayer()==%i && nHits[nleadindex]->getSector()==%i && nHits[nleadindex]->getComponent()==%i",
 							layer,sector,component);
 
-				TCanvas * c = new TCanvas("c","",800,600);
+				TCanvas * c = new TCanvas(Form("c_%i_%i_%i",layer,sector,component),"",800,600);
 				datTree->Draw(Form("nHits[nleadindex]->getDL().X() >> xn_dat_%i_%i_%i",layer,sector,component), mom_cut && bar_cut );
 				bacTree->Draw(Form("nHits[nleadindex]->getDL().X() >> xn_bac_%i_%i_%i",layer,sector,component), mom_cut && bar_cut );
 				simTree->Draw(Form("nHits[nleadindex]->getDL().X() >> xn_sim_%i_%i_%i",layer,sector,component), mom_cut && bar_cut );
+				if( 	xn_dat[layer-1][sector-1][component-1]->Integral() == 0 ||
+					xn_bac[layer-1][sector-1][component-1]->Integral() == 0 ||
+					xn_sim[layer-1][sector-1][component-1]->Integral() == 0 ) continue;
 
 				xn_dat[layer-1][sector-1][component-1]->Add(xn_bac[layer-1][sector-1][component-1],-1);
 				xn_sim[layer-1][sector-1][component-1]->Scale( full_simscale );
