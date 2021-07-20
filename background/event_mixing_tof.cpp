@@ -263,11 +263,26 @@ int main(int argc, char ** argv){
 			else if( direction.Z() < 0 ){ // this means the phi_rq should be between -pi and 0
 				phi_nq *= (-1);
 			}
+
 			double W_primeSq = mD*mD - Q2 + mN*mN + 2.*mD*(nu-E_n) - 2.*nu*E_n + 2.*q*p_n*cos(theta_nq);
 			double Wp = sqrt(W_primeSq);
-			double Xp = Q2/(2.*( nu*(mD-E_n) + p_n*q*CosTheta_nq));
 			double As = (E_n - p_n*CosTheta_nq)/mN;
-			double Xp2 = Q2/(W_primeSq - mN*mN + Q2);
+
+			// Different definitions of x'
+			// Bonus definition is the default
+			double Xp = eHit.getQ2()/(2.*( eHit.getOmega()*(mD-E_n) + p_n*eHit.getQ()*CosTheta_nq));
+			// W' definition
+			double Xp_WP  = eHit.getQ2()/(W_primeSq - mN*mN + eHit.getQ2());
+			// Bjorken definition
+			double Xp_Bj  = eHit.getXb()/(2. - As);
+			// PRC definition
+			double Ei = mD - E_n;
+			double ps_plus = mD/2. * As;
+			double virt = (Ei*Ei - p_n*p_n - mN*mN)/(mN*mN);
+			double p_plus = mD - ps_plus;
+			double q_plus = eHit.getOmega() - eHit.getQ();
+			double tP = virt * mN * mN;
+			double Xp_PRC = (eHit.getQ2() - (q_plus/p_plus)*tP)/(W_primeSq - mN*mN + eHit.getQ2() - (q_plus/p_plus)*tP);
 
 			TVector3 Pt;
 			TVector3 pN_par_q = nVec.Dot(qVec) / (qVec.Mag2()) * qVec;
@@ -310,13 +325,16 @@ int main(int argc, char ** argv){
 				new_tag.setMomentumN	(nVec		);
 				new_tag.setMomentumQ	(qVec		);
 				new_tag.setMomentumB	(beamVec	);
+
 				new_tag.setPhiNQ	(phi_nq		);
 				new_tag.setThetaNQ	(theta_nq	);
 				new_tag.setWp		(Wp		);
-				new_tag.setXp		(Xp		);
 				new_tag.setAs		(As		);
 				new_tag.setPt		(Pt		);
-				new_tag.setXp2		(Xp2		);
+				new_tag.setXp		(Xp		);
+				new_tag.setXp_WP	(Xp_WP		);
+				new_tag.setXp_Bj	(Xp_Bj		);
+				new_tag.setXp_PRC	(Xp_PRC		);
 				new(saveTags[0]) taghit;
 				saveTags[0] = &new_tag;
 
