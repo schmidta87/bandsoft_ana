@@ -19,7 +19,7 @@
 using std::cerr;
 using std::cout;
 void calculate_AsPt( double & As, double & Pt , const double Ebeam, genpart * const electron, genpart * const neutron );
-void fillHist( double Q2, double As, double Pt, double Xb, TH1D** hists_lowQ2 , TH1D** hists_highQ2 );
+void fillHist( double Q2, double Pt, double Xb, double As, TH1D**** hist );
 void setError( double * err , TH1D * rec , TH1D * gen );
 
 int main( int argc, char** argv){
@@ -29,7 +29,7 @@ int main( int argc, char** argv){
 		cerr << "./code [Sim File]\n";
 		return -1;
 	}
-
+	
 	TFile inFile(argv[1]);
 	TTree * inTree = (TTree*) inFile.Get("tagged");
 
@@ -47,25 +47,30 @@ int main( int argc, char** argv){
 	inTree->SetBranchAddress("nHits"		, &rec_neutrons			);
 	inTree->SetBranchAddress("nleadindex"		, &nleadindex			);
 	inTree->SetBranchAddress("Ebeam"		, &Ebeam			);
-
+	
 	TFile * outFile = new TFile("test_binmigration.root","RECREATE");
-	TH1D ** gen_xb_lowQ2 	= new TH1D*[lowQ2_bins];
-	TH1D ** gen_xb_highQ2 	= new TH1D*[highQ2_bins];
-	TH1D ** rec_xb_lowQ2 	= new TH1D*[lowQ2_bins];
-	TH1D ** rec_xb_highQ2 	= new TH1D*[highQ2_bins];
-	for( int i = 0 ; i < lowQ2_bins ; ++i){
-		gen_xb_lowQ2[i] = new TH1D(Form("gen_xb_lowQ2_%i",i),Form("gen_xb_lowQ2_%i",i),bins_Xb,Xb_min,Xb_max);
-		rec_xb_lowQ2[i] = new TH1D(Form("rec_xb_lowQ2_%i",i),Form("rec_xb_lowQ2_%i",i),bins_Xb,Xb_min,Xb_max);
+	
+
+	TH1D **** h4_gen_as 	= new TH1D***[bins_Q2];
+	TH1D **** h4_rec_as	= new TH1D***[bins_Q2];
+
+	for( int i = 0 ; i < bins_Q2 ; ++i ){ // bins in Q2
+		h4_gen_as[i]	= new TH1D**[bins_Pt];
+		h4_rec_as[i]	= new TH1D**[bins_Pt];
+		for( int j = 0 ; j < bins_Pt ; ++j ){ // bins in Pt
+			h4_gen_as[i][j] 	= new TH1D*[bins_Xb];
+			h4_rec_as[i][j] 	= new TH1D*[bins_Xb];
+			for( int k = 0 ; k < bins_Xb ; ++k ){ // bins in Xb
+				h4_gen_as[i][j][k] = new TH1D(Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
+				h4_rec_as[i][j][k] = new TH1D(Form("rec_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("rec_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
+			}
+		}
 	}
-	for( int i = 0 ; i < highQ2_bins; ++i){
-		gen_xb_highQ2[i] = new TH1D(Form("gen_xb_highQ2_%i",i),Form("gen_xb_highQ2_%i",i),bins_Xb,Xb_min,Xb_max);
-		rec_xb_highQ2[i] = new TH1D(Form("rec_xb_highQ2_%i",i),Form("rec_xb_highQ2_%i",i),bins_Xb,Xb_min,Xb_max);
-	}
+	
 
 	for( int event = 0 ; event < inTree->GetEntries() ; ++event ){
 		gen_particles	->Clear();
 		rec_electron	->Clear();
-		rec_neutrons	->Clear();
 		rec_tagged	->Clear();
 		genMult 	= 0;
 		nleadindex	= 0;
@@ -75,7 +80,7 @@ int main( int argc, char** argv){
 
 		// Get the reconstructed variables
 		taghit * rec_tag	= (taghit*)  rec_tagged->At(nleadindex);
-		bandhit * rec_neutron	= (bandhit*) rec_neutrons->At(nleadindex);
+		if( rec_tag->getMomentumN().Mag() < 0.3 ) continue;
 		double rec_As		= rec_tag->getAs();
 		double rec_Pt 		= rec_tag->getPt().Mag();
 		double rec_Q2		= rec_electron->getQ2();
@@ -91,86 +96,53 @@ int main( int argc, char** argv){
 		calculate_AsPt( gen_As, gen_Pt, Ebeam, gen_electron, gen_neutron );
 
 		// sort the generated values:
-		fillHist( gen_Q2, gen_As, gen_Pt, gen_Xb, gen_xb_lowQ2 , gen_xb_highQ2 );
+		fillHist( gen_Q2, gen_Pt, gen_Xb, gen_As, h4_gen_as );
 
 		// sort the reconstructed values:
-		fillHist( rec_Q2, rec_As, rec_Pt, rec_Xb, rec_xb_lowQ2 , rec_xb_highQ2 );
-
-
+		fillHist( rec_Q2, rec_Pt, rec_Xb, rec_As, h4_rec_as );
 	}
 
-	// Print the background subtracted distributions to a pdf file:
-	TCanvas * c_lowQ2 	= new TCanvas("c_lowQ2",	"",800,600);
-	TCanvas * c_highQ2 	= new TCanvas("c_highQ2",	"",800,600);
-	c_lowQ2 ->Divide(5,5);
-	c_highQ2->Divide(5,5);
-	outFile->cd();
+	TCanvas ** c_Q2 = new TCanvas*[bins_Q2];
+	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
+		c_Q2[i] = new TCanvas(Form("c_Q2_%i",i),"",1200,1200);
+		
+		c_Q2[i]->Divide( bins_Pt, bins_Xb );
+		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
+			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bins
 
-	for( int i = 0 ; i < lowQ2_bins ; ++i){
-		gen_xb_lowQ2[i]->Write();
-		rec_xb_lowQ2[i]->Write();
+				h4_gen_as[i][j][k]->Write();
+				h4_rec_as[i][j][k]->Write();
 
-		if( gen_xb_lowQ2[i]->Integral() < 1 || rec_xb_lowQ2[i]->Integral() < 1 ) continue;
-		double * errors = new double[bins_Xb];
-		setError( errors , rec_xb_lowQ2[i] , gen_xb_lowQ2[i] );
-		rec_xb_lowQ2[i]->Divide( gen_xb_lowQ2[i] );
+				if( h4_gen_as[i][j][k]->Integral() < 1 || h4_rec_as[i][j][k]->Integral() < 1 ) continue;
+				double * errors = new double[bins_As];
+				setError( errors , h4_rec_as[i][j][k] , h4_gen_as[i][j][k] );
+				h4_rec_as[i][j][k]->Divide( h4_gen_as[i][j][k] );
 
-		for( int bin = 1 ; bin < rec_xb_lowQ2[i]->GetXaxis()->GetNbins(); ++bin ){
-			rec_xb_lowQ2[i]->SetBinError( bin , errors[bin-1] );
+				for( int bin = 1 ; bin < h4_rec_as[i][j][k]->GetXaxis()->GetNbins(); ++bin ){
+					h4_rec_as[i][j][k]->SetBinError( bin , errors[bin-1] );
+				}
+
+				c_Q2[i]->cd( (k*2)+1 + j );
+
+				h4_rec_as[i][j][k]->SetLineWidth(3);
+				h4_rec_as[i][j][k]->SetMarkerColor(4);
+				h4_rec_as[i][j][k]->SetMaximum(2);
+				h4_rec_as[i][j][k]->SetMinimum(0);
+				h4_rec_as[i][j][k]->Draw("*P");
+				TLine * hline = new TLine(As_min,1,As_max,1);
+				hline->SetLineWidth(2);
+				hline->SetLineColor(1);
+				hline->SetLineStyle(2);
+				hline->Draw("SAME");
+				delete[] errors;
+
+			}
 		}
-
-
-		c_lowQ2->cd(i+1);
-
-		rec_xb_lowQ2[i]->SetLineWidth(3);
-		rec_xb_lowQ2[i]->SetMarkerColor(4);
-		rec_xb_lowQ2[i]->SetMaximum(2);
-		rec_xb_lowQ2[i]->SetMinimum(0);
-		rec_xb_lowQ2[i]->Draw("*P");
-		TLine * hline = new TLine(Xb_min,1,Xb_max,1);
-		hline->SetLineWidth(2);
-		hline->SetLineColor(1);
-		hline->SetLineStyle(2);
-		hline->Draw("SAME");
-		delete[] errors;
+		c_Q2[i]->Print(Form("binmigration_tagged_Q2_%i.pdf",i));
 	}
-	c_lowQ2->Print("binmigration_lowQ2_tagged.pdf");
-
-	for( int i = 0 ; i < highQ2_bins ; ++i){
-		gen_xb_highQ2[i]->Write();
-		rec_xb_highQ2[i]->Write();
-
-		if( gen_xb_highQ2[i]->Integral() < 1 || rec_xb_highQ2[i]->Integral() < 1 ) continue;
-		double * errors = new double[bins_Xb];
-		setError( errors , rec_xb_highQ2[i] , gen_xb_highQ2[i] );
-		rec_xb_highQ2[i]->Divide( gen_xb_highQ2[i] );
-
-
-		for( int bin = 1 ; bin < rec_xb_highQ2[i]->GetXaxis()->GetNbins(); ++bin ){
-			rec_xb_highQ2[i]->SetBinError( bin , errors[bin-1] );
-		}
-
-
-		c_highQ2->cd(i+1);
-
-		rec_xb_highQ2[i]->SetLineWidth(3);
-		rec_xb_highQ2[i]->SetMarkerColor(4);
-		rec_xb_highQ2[i]->SetMaximum(2);
-		rec_xb_highQ2[i]->SetMinimum(0);
-		rec_xb_highQ2[i]->Draw("*P");
-		TLine * hline = new TLine(Xb_min,1,Xb_max,1);
-		hline->SetLineWidth(2);
-		hline->SetLineColor(1);
-		hline->SetLineStyle(2);
-		hline->Draw("SAME");
-		delete[] errors;
-	}
-	c_highQ2->Print("binmigration_highQ2_tagged.pdf");
-
 	outFile->Close();
 
 	inFile.Close();
-
 	return 1;
 }
 
@@ -220,42 +192,42 @@ void calculate_AsPt( double & As, double & Pt , const double Ebeam, genpart * co
 	Pt = Pt_vec.Mag();
 }
 
-void fillHist( double Q2, double As, double Pt, double Xb, TH1D** hists_lowQ2 , TH1D** hists_highQ2 ){
+void fillHist( double Q2, double Pt, double Xb, double As, TH1D**** hist ){
+	
 
-	if( Q2 >= Q2Bins[0] && Q2 < Q2Bins[1] ){
-		for( int this_bin = 0 ; this_bin < lowQ2_bins ; ++this_bin ){
-			double As_low  = lowQ2_AsPtBins[this_bin][0];
-			double As_high = lowQ2_AsPtBins[this_bin][1];
-			double Pt_low  = lowQ2_AsPtBins[this_bin][2];
-			double Pt_high = lowQ2_AsPtBins[this_bin][3];
-			
-			if( As < As_low 	) continue;
-			if( As >= As_high	) continue;
-			if( Pt < Pt_low		) continue;
-			if( Pt >= Pt_high	) continue;
+	// If it's larger than max Q2 or smaller than min Q2, return
+	if( Q2 > Q2Bins[bins_Q2] 	) return;
+	if( Q2 < Q2Bins[0] 		) return;
 
-			hists_lowQ2[this_bin]->Fill( Xb );
-			return;
-		}
+	// Need to figure out which bin of Q2, Pt, Xb (then fill as As):
+	int this_bin_q2 = -1;
+	int this_bin_pt = -1;
+	int this_bin_xb = -1;
+	
+	for( int q2_bin = bins_Q2-1 ; q2_bin >= 0; --q2_bin ){
+		if( Q2 > Q2Bins[q2_bin] ) this_bin_q2 = q2_bin;
+		if( this_bin_q2 != -1 ) break;
 	}
-	else if(Q2 >= Q2Bins[1] && Q2 < Q2Bins[2] ){
-		for( int this_bin = 0 ; this_bin < highQ2_bins ; ++this_bin ){
-			double As_low  = highQ2_AsPtBins[this_bin][0];
-			double As_high = highQ2_AsPtBins[this_bin][1];
-			double Pt_low  = highQ2_AsPtBins[this_bin][2];
-			double Pt_high = highQ2_AsPtBins[this_bin][3];
-			
-			if( As < As_low 	) continue;
-			if( As >= As_high	) continue;
-			if( Pt < Pt_low		) continue;
-			if( Pt >= Pt_high	) continue;
 
-			hists_highQ2[this_bin]->Fill( Xb );
-			return;
-		}
+	if( Pt < Pt_min			) return;
+	if( Pt > Pt_max			) return;
+	if( Xb < Xb_min[this_bin_q2]			) return;
+	if( Xb > Xb_min[this_bin_q2]+Xb_step*6		) return;
 
-	}
-	else return;
+	this_bin_pt = (int) ((Pt - Pt_min)/Pt_step);
+	this_bin_xb = (int) ((Xb - Xb_min[this_bin_q2])/Xb_step);
+
+	// Safety clauses
+	if( this_bin_q2 == -1 ){ cerr << "how\n"; return; }
+	if( this_bin_pt == -1 ){ cerr << "how\n"; return; }
+	if( this_bin_xb == -1 ){ cerr << "how\n"; return; }
+	if( this_bin_q2 > bins_Q2-1 ){ cerr << "how\n"; return; }
+	if( this_bin_pt > bins_Pt-1 ){ cerr << "how\n"; return; }
+	if( this_bin_xb > bins_Xb-1 ){ cerr << "how\n"; return; }
+
+
+	hist[this_bin_q2][this_bin_pt][this_bin_xb]->Fill( As );
+
 }
 
 void setError( double * err , TH1D * rec , TH1D * gen ){
@@ -269,6 +241,7 @@ void setError( double * err , TH1D * rec , TH1D * gen ){
 		cout << bin << " " << r << " " << g << " " << r/g << " " << e << "\n";
 		if( e!=e ) e = 0;
 		err[bin-1] = e;
+		cout << err[bin-1] << "\n\n";
 	}
 
 
