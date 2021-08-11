@@ -1,6 +1,52 @@
 #ifndef __BIN_EDGES_H__
 #define __BIN_EDGES_H__
 
+
+// Bins for tagged/inclusive analysis
+const int 	bins_Q2 		= 3;
+const double 	Q2Bins[bins_Q2 + 1] 	= {2.0, 2.5, 3.5, 6.0};	// irregular bins
+
+const int 	bins_Pt			= 2;
+const double 	Pt_step 		= 0.1;
+const double 	Pt_min 			= 0.0;
+const double	Pt_max			= Pt_min + Pt_step*bins_Pt;
+
+const int 	bins_Xb 		= 6;
+const double 	Xb_step 		= 0.025; 
+const double 	Xb_min[bins_Q2]		= {0.15, 0.2, 0.25};
+
+const int 	bins_As 		= 6;
+const double 	As_step 		= 0.05;
+const double 	As_min			= 1.3;
+const double 	As_max 			= As_min + As_step*bins_As; 
+
+
+// Bins for checks on inclusive acceptance
+
+// Pe = electron momentum
+const int 	bins_Pe       	= 12;
+const double 	Pe_step    	= 0.5;
+const double 	Pe_min     	= 2.;
+const double 	Pe_max     	= Pe_min + Pe_step*bins_Pe;
+
+//The = electron theta (in degrees)
+const int 	bins_The      	= 30;
+const double 	The_step   	= 1.;
+const double 	The_min    	= 5.;
+const double 	The_max    	= The_min + The_step*bins_The;
+
+//Phe = electron phi (in degrees)
+const int 	bins_Phe      	= 72;
+const double	Phe_min    	= -180.;
+const double 	Phe_max    	= +180.;
+
+const int 	bins_W2       	= 9;
+const double 	W2_step    	= 1.;
+const double 	W2_min     	= 4.;
+const double 	W2_max     	= W2_min + W2_step*bins_W2;
+
+
+/*
 const double Q2Bins[3] = {2,2.7,6};
 
 const int bins_Q2 	= 2;
@@ -75,5 +121,6 @@ const double highQ2_AsPtBins[20][4]	=
 	  {1.45, 1.50, 0.05, 0.17},
 
 	};
+*/
 
 #endif
