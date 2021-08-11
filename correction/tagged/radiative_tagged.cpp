@@ -19,8 +19,7 @@
 using std::cerr;
 using std::cout;
 void calculate_AsPt( double & As, double & Pt , const double Ebeam, genpart * const electron, genpart * const neutron );
-void fillHist( double Q2, double As, double Pt, double Xb, double rad, TH1D** hists_lowQ2 , TH1D** hists_highQ2 ,
-									TH1D** counts_lowQ2, TH1D** counts_highQ2 );
+void fillHist( double Q2, double Pt, double Xb, double As, double weight, TH1D**** hist , TH1D**** counts );
 void setError( double * err , TH1D * ravg , TH1D * cnts );
 
 int main( int argc, char** argv){
@@ -41,20 +40,24 @@ int main( int argc, char** argv){
 	inTree->SetBranchAddress("mcParts"		, &gen_particles		);
 	inTree->SetBranchAddress("genMult"		, &genMult			);
 	inTree->SetBranchAddress("Ebeam"		, &Ebeam			);
-	inTree->SetBranchAddress("rad_weight"		, &rad_weight			);
+	inTree->SetBranchAddress("weight"		, &rad_weight			);
 
 	TFile * outFile = new TFile("test_radcorrection.root","RECREATE");
-	TH1D ** gen_xb_lowQ2 	= new TH1D*[lowQ2_bins];
-	TH1D ** gen_xb_highQ2 	= new TH1D*[highQ2_bins];
-	TH1D ** counts_xb_lowQ2 	= new TH1D*[lowQ2_bins];
-	TH1D ** counts_xb_highQ2 	= new TH1D*[highQ2_bins];
-	for( int i = 0 ; i < lowQ2_bins ; ++i){
-		gen_xb_lowQ2[i] = new TH1D(Form("gen_xb_lowQ2_%i",i),Form("gen_xb_lowQ2_%i",i),bins_Xb,Xb_min,Xb_max);
-		counts_xb_lowQ2[i] = new TH1D(Form("counts_xb_lowQ2_%i",i),Form("counts_xb_lowQ2_%i",i),bins_Xb,Xb_min,Xb_max);
-	}
-	for( int i = 0 ; i < highQ2_bins; ++i){
-		gen_xb_highQ2[i] = new TH1D(Form("gen_xb_highQ2_%i",i),Form("gen_xb_highQ2_%i",i),bins_Xb,Xb_min,Xb_max);
-		counts_xb_highQ2[i] = new TH1D(Form("counts_xb_highQ2_%i",i),Form("counts_xb_highQ2_%i",i),bins_Xb,Xb_min,Xb_max);
+
+	TH1D **** h4_gen_as 	= new TH1D***[bins_Q2];
+	TH1D **** h4_cnt_as	= new TH1D***[bins_Q2];
+
+	for( int i = 0 ; i < bins_Q2 ; ++i ){ // bins in Q2
+		h4_gen_as[i]	= new TH1D**[bins_Pt];
+		h4_cnt_as[i]	= new TH1D**[bins_Pt];
+		for( int j = 0 ; j < bins_Pt ; ++j ){ // bins in Pt
+			h4_gen_as[i][j] 	= new TH1D*[bins_Xb];
+			h4_cnt_as[i][j] 	= new TH1D*[bins_Xb];
+			for( int k = 0 ; k < bins_Xb ; ++k ){ // bins in Xb
+				h4_gen_as[i][j][k] = new TH1D(Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
+				h4_cnt_as[i][j][k] = new TH1D(Form("cnt_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("cnt_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
+			}
+		}
 	}
 
 	for( int event = 0 ; event < inTree->GetEntries() ; ++event ){
@@ -75,81 +78,52 @@ int main( int argc, char** argv){
 		calculate_AsPt( gen_As, gen_Pt, Ebeam, gen_electron, gen_neutron );
 
 		// sort the generated values:
-		fillHist( gen_Q2, gen_As, gen_Pt, gen_Xb, rad_weight, gen_xb_lowQ2 , gen_xb_highQ2 , counts_xb_lowQ2, counts_xb_highQ2 );
+		fillHist( gen_Q2, gen_Pt, gen_Xb, gen_As, rad_weight, h4_gen_as , h4_cnt_as );
 
 	}
 
 	// Print the background subtracted distributions to a pdf file:
-	TCanvas * c_lowQ2 	= new TCanvas("c_lowQ2",	"",800,600);
-	TCanvas * c_highQ2 	= new TCanvas("c_highQ2",	"",800,600);
-	c_lowQ2 ->Divide(5,5);
-	c_highQ2->Divide(5,5);
-	outFile->cd();
+	TCanvas ** c_Q2 = new TCanvas*[bins_Q2];
+	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
+		c_Q2[i] = new TCanvas(Form("c_Q2_%i",i),"",1200,1200);
+		
+		c_Q2[i]->Divide( bins_Pt, bins_Xb );
+		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
+			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bins
 
-	for( int i = 0 ; i < lowQ2_bins ; ++i){
-		gen_xb_lowQ2[i]->Write();
-		counts_xb_lowQ2[i]->Write();
+				h4_gen_as[i][j][k]->Write();
+				h4_cnt_as[i][j][k]->Write();
 
-		if( gen_xb_lowQ2[i]->Integral() < 1 || counts_xb_lowQ2[i]->Integral() < 1 ) continue;
-		double * errors = new double[bins_Xb];
-		setError( errors , gen_xb_lowQ2[i] , counts_xb_lowQ2[i] );
-		gen_xb_lowQ2[i]->Divide( counts_xb_lowQ2[i] );
+				if( h4_gen_as[i][j][k]->Integral() < 1 || h4_cnt_as[i][j][k]->Integral() < 1 ) continue;
+				double * errors = new double[bins_As];
+				setError( errors , h4_gen_as[i][j][k] , h4_cnt_as[i][j][k] );
+				h4_gen_as[i][j][k]->Divide( h4_cnt_as[i][j][k] );
 
-		for( int bin = 1 ; bin < gen_xb_lowQ2[i]->GetXaxis()->GetNbins(); ++bin ){
-			gen_xb_lowQ2[i]->SetBinError( bin , errors[bin-1] );
+				for( int bin = 1 ; bin < h4_gen_as[i][j][k]->GetXaxis()->GetNbins(); ++bin ){
+					h4_gen_as[i][j][k]->SetBinError( bin , errors[bin-1] );
+				}
+
+				c_Q2[i]->cd( (k*2)+1 + j );
+
+				h4_gen_as[i][j][k]->SetLineWidth(3);
+				h4_gen_as[i][j][k]->SetMarkerColor(4);
+				h4_gen_as[i][j][k]->SetMaximum(2);
+				h4_gen_as[i][j][k]->SetMinimum(0);
+				h4_gen_as[i][j][k]->Draw("*P");
+				TLine * hline = new TLine(As_min,1,As_max,1);
+				hline->SetLineWidth(2);
+				hline->SetLineColor(1);
+				hline->SetLineStyle(2);
+				hline->Draw("SAME");
+				delete[] errors;
+
+			}
 		}
-
-
-		c_lowQ2->cd(i+1);
-
-		gen_xb_lowQ2[i]->SetLineWidth(3);
-		gen_xb_lowQ2[i]->SetMarkerColor(4);
-		gen_xb_lowQ2[i]->SetMaximum(2);
-		gen_xb_lowQ2[i]->SetMinimum(0);
-		gen_xb_lowQ2[i]->Draw("*P");
-		TLine * hline = new TLine(Xb_min,1,Xb_max,1);
-		hline->SetLineWidth(2);
-		hline->SetLineColor(1);
-		hline->SetLineStyle(2);
-		hline->Draw("SAME");
-		delete[] errors;
+		c_Q2[i]->Print(Form("radiative_tagged_Q2_%i.pdf",i));
 	}
-	c_lowQ2->Print("radcorrection_lowQ2_tagged.pdf");
-
-	for( int i = 0 ; i < highQ2_bins ; ++i){
-		gen_xb_highQ2[i]->Write();
-		counts_xb_highQ2[i]->Write();
-
-		if( gen_xb_highQ2[i]->Integral() < 1 || counts_xb_highQ2[i]->Integral() < 1 ) continue;
-		double * errors = new double[bins_Xb];
-		setError( errors , gen_xb_highQ2[i] , counts_xb_highQ2[i] );
-		gen_xb_highQ2[i]->Divide( counts_xb_highQ2[i] );
-
-		for( int bin = 1 ; bin < gen_xb_highQ2[i]->GetXaxis()->GetNbins(); ++bin ){
-			gen_xb_highQ2[i]->SetBinError( bin , errors[bin-1] );
-		}
-
-
-		c_highQ2->cd(i+1);
-
-		gen_xb_highQ2[i]->SetLineWidth(3);
-		gen_xb_highQ2[i]->SetMarkerColor(4);
-		gen_xb_highQ2[i]->SetMaximum(2);
-		gen_xb_highQ2[i]->SetMinimum(0);
-		gen_xb_highQ2[i]->Draw("*P");
-		TLine * hline = new TLine(Xb_min,1,Xb_max,1);
-		hline->SetLineWidth(2);
-		hline->SetLineColor(1);
-		hline->SetLineStyle(2);
-		hline->Draw("SAME");
-		delete[] errors;
-	}
-	c_highQ2->Print("radcorrection_highQ2_tagged.pdf");
-
 	outFile->Close();
 
 	inFile.Close();
-
 	return 1;
 }
 
@@ -199,49 +173,45 @@ void calculate_AsPt( double & As, double & Pt , const double Ebeam, genpart * co
 	Pt = Pt_vec.Mag();
 }
 
-void fillHist( double Q2, double As, double Pt, double Xb, double rad, TH1D** hists_lowQ2 , TH1D** hists_highQ2 ,
-									TH1D** counts_lowQ2, TH1D** counts_highQ2 ){
+void fillHist( double Q2, double Pt, double Xb, double As, double weight, TH1D**** hist , TH1D**** counts ){
+	// If it's larger than max Q2 or smaller than min Q2, return
+	if( Q2 > Q2Bins[bins_Q2] 	) return;
+	if( Q2 < Q2Bins[0] 		) return;
 
-	if( Q2 >= Q2Bins[0] && Q2 < Q2Bins[1] ){
-		for( int this_bin = 0 ; this_bin < lowQ2_bins ; ++this_bin ){
-			double As_low  = lowQ2_AsPtBins[this_bin][0];
-			double As_high = lowQ2_AsPtBins[this_bin][1];
-			double Pt_low  = lowQ2_AsPtBins[this_bin][2];
-			double Pt_high = lowQ2_AsPtBins[this_bin][3];
-			
-			if( As < As_low 	) continue;
-			if( As >= As_high	) continue;
-			if( Pt < Pt_low		) continue;
-			if( Pt >= Pt_high	) continue;
-
-			int fill_bin = hists_lowQ2[this_bin]->GetXaxis()->FindBin( Xb );
-			double curr_content = hists_lowQ2[this_bin]->GetBinContent(fill_bin);
-			hists_lowQ2[this_bin]->SetBinContent(fill_bin, curr_content+rad );
-			counts_lowQ2[this_bin]->SetBinContent(fill_bin, counts_lowQ2[this_bin]->GetBinContent(fill_bin) + 1 );
-			return;
-		}
+	// Need to figure out which bin of Q2, Pt, Xb (then fill as As):
+	int this_bin_q2 = -1;
+	int this_bin_pt = -1;
+	int this_bin_xb = -1;
+	
+	for( int q2_bin = bins_Q2-1 ; q2_bin >= 0; --q2_bin ){
+		if( Q2 > Q2Bins[q2_bin] ) this_bin_q2 = q2_bin;
+		if( this_bin_q2 != -1 ) break;
 	}
-	else if(Q2 >= Q2Bins[1] && Q2 < Q2Bins[2] ){
-		for( int this_bin = 0 ; this_bin < highQ2_bins ; ++this_bin ){
-			double As_low  = highQ2_AsPtBins[this_bin][0];
-			double As_high = highQ2_AsPtBins[this_bin][1];
-			double Pt_low  = highQ2_AsPtBins[this_bin][2];
-			double Pt_high = highQ2_AsPtBins[this_bin][3];
-			
-			if( As < As_low 	) continue;
-			if( As >= As_high	) continue;
-			if( Pt < Pt_low		) continue;
-			if( Pt >= Pt_high	) continue;
 
-			int fill_bin = hists_highQ2[this_bin]->GetXaxis()->FindBin( Xb );
-			double curr_content = hists_highQ2[this_bin]->GetBinContent(fill_bin);
-			hists_highQ2[this_bin]->SetBinContent(fill_bin, curr_content+rad );
-			counts_highQ2[this_bin]->SetBinContent(fill_bin, counts_highQ2[this_bin]->GetBinContent(fill_bin) + 1 );
-			return;
-		}
+	if( Pt < Pt_min			) return;
+	if( Pt > Pt_max			) return;
+	if( Xb < Xb_min[this_bin_q2]			) return;
+	if( Xb > Xb_min[this_bin_q2]+Xb_step*6		) return;
 
-	}
-	else return;
+	this_bin_pt = (int) ((Pt - Pt_min)/Pt_step);
+	this_bin_xb = (int) ((Xb - Xb_min[this_bin_q2])/Xb_step);
+
+	// Safety clauses
+	if( this_bin_q2 == -1 ){ cerr << "how\n"; return; }
+	if( this_bin_pt == -1 ){ cerr << "how\n"; return; }
+	if( this_bin_xb == -1 ){ cerr << "how\n"; return; }
+	if( this_bin_q2 > bins_Q2-1 ){ cerr << "how\n"; return; }
+	if( this_bin_pt > bins_Pt-1 ){ cerr << "how\n"; return; }
+	if( this_bin_xb > bins_Xb-1 ){ cerr << "how\n"; return; }
+
+	// For radiative weight, we cummulatively add the content in the same bin:
+	int fill_bin = hist[this_bin_q2][this_bin_pt][this_bin_xb]->GetXaxis()->FindBin( As );
+	double hist_curr_content = hist[this_bin_q2][this_bin_pt][this_bin_xb]->GetBinContent( fill_bin );
+	double counts_curr_content = counts[this_bin_q2][this_bin_pt][this_bin_xb]->GetBinContent( fill_bin );
+	
+	hist[this_bin_q2][this_bin_pt][this_bin_xb]->SetBinContent( fill_bin, hist_curr_content + weight );
+	counts[this_bin_q2][this_bin_pt][this_bin_xb]->SetBinContent( fill_bin , counts_curr_content + 1 );
+
 }
 
 void setError( double * err , TH1D * ravg , TH1D * cnts ){
