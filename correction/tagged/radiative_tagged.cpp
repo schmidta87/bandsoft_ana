@@ -42,7 +42,7 @@ int main( int argc, char** argv){
 	inTree->SetBranchAddress("Ebeam"		, &Ebeam			);
 	inTree->SetBranchAddress("weight"		, &rad_weight			);
 
-	TFile * outFile = new TFile("test_radcorrection.root","RECREATE");
+	TFile * outFile = new TFile("radcorrection_tagged.root","RECREATE");
 
 	TH1D **** h4_gen_as 	= new TH1D***[bins_Q2];
 	TH1D **** h4_cnt_as	= new TH1D***[bins_Q2];
@@ -54,7 +54,7 @@ int main( int argc, char** argv){
 			h4_gen_as[i][j] 	= new TH1D*[bins_Xb];
 			h4_cnt_as[i][j] 	= new TH1D*[bins_Xb];
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // bins in Xb
-				h4_gen_as[i][j][k] = new TH1D(Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
+				h4_gen_as[i][j][k] = new TH1D(Form("radcorr_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("radcorr_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
 				h4_cnt_as[i][j][k] = new TH1D(Form("cnt_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("cnt_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
 			}
 		}
@@ -91,9 +91,6 @@ int main( int argc, char** argv){
 		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bins
 
-				h4_gen_as[i][j][k]->Write();
-				h4_cnt_as[i][j][k]->Write();
-
 				if( h4_gen_as[i][j][k]->Integral() < 1 || h4_cnt_as[i][j][k]->Integral() < 1 ) continue;
 				double * errors = new double[bins_As];
 				setError( errors , h4_gen_as[i][j][k] , h4_cnt_as[i][j][k] );
@@ -115,6 +112,9 @@ int main( int argc, char** argv){
 				hline->SetLineColor(1);
 				hline->SetLineStyle(2);
 				hline->Draw("SAME");
+
+				h4_gen_as[i][j][k]->Write();
+				//h4_cnt_as[i][j][k]->Write();
 				delete[] errors;
 
 			}

@@ -1,2 +1,2 @@
 add_subdirectory(tagged)
-#add_subdirectory(inclusive)
+add_subdirectory(inclusive)
