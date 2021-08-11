@@ -42,15 +42,13 @@ int main( int argc, char** argv){
 	double	Ebeam		= 0;
 	inTree->SetBranchAddress("mcParts"		, &gen_particles		);
 	inTree->SetBranchAddress("genMult"		, &genMult			);
-	inTree->SetBranchAddress("eHit"			, &rec_electron			);
-	inTree->SetBranchAddress("tag"			, &rec_tagged			);
+	inTree->SetBranchAddress("eHit_smeared"			, &rec_electron			);
+	inTree->SetBranchAddress("tag_smeared"			, &rec_tagged			);
 	inTree->SetBranchAddress("nHits"		, &rec_neutrons			);
 	inTree->SetBranchAddress("nleadindex"		, &nleadindex			);
 	inTree->SetBranchAddress("Ebeam"		, &Ebeam			);
 	
-	TFile * outFile = new TFile("test_binmigration.root","RECREATE");
-	
-
+	TFile * outFile = new TFile("migcorrection_tagged.root","RECREATE");
 	TH1D **** h4_gen_as 	= new TH1D***[bins_Q2];
 	TH1D **** h4_rec_as	= new TH1D***[bins_Q2];
 
@@ -62,7 +60,7 @@ int main( int argc, char** argv){
 			h4_rec_as[i][j] 	= new TH1D*[bins_Xb];
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // bins in Xb
 				h4_gen_as[i][j][k] = new TH1D(Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("gen_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
-				h4_rec_as[i][j][k] = new TH1D(Form("rec_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("rec_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
+				h4_rec_as[i][j][k] = new TH1D(Form("migcorr_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),Form("migcorr_as_Q2_%i_Pt_%i_Xb_%i",i,j,k),bins_As,As_min,As_max);  // histogram in As
 			}
 		}
 	}
@@ -110,8 +108,6 @@ int main( int argc, char** argv){
 		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bins
 
-				h4_gen_as[i][j][k]->Write();
-				h4_rec_as[i][j][k]->Write();
 
 				if( h4_gen_as[i][j][k]->Integral() < 1 || h4_rec_as[i][j][k]->Integral() < 1 ) continue;
 				double * errors = new double[bins_As];
@@ -134,6 +130,10 @@ int main( int argc, char** argv){
 				hline->SetLineColor(1);
 				hline->SetLineStyle(2);
 				hline->Draw("SAME");
+
+				//h4_gen_as[i][j][k]->Write();
+				h4_rec_as[i][j][k]->Write();
+
 				delete[] errors;
 
 			}
