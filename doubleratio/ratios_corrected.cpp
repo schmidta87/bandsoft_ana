@@ -10,6 +10,8 @@
 
 
 void ratios_corrected(TString path){
+
+
 	//Create Eq12 and then Eq14 results from BAND writeup
 
 	//Uncertainty Array for corrections coeffficents. Set all to 0 at the moment
@@ -40,14 +42,14 @@ void ratios_corrected(TString path){
 	TFile * inFileCorrAccInc = new TFile(path+"/acceptance_inclusive.root");
 
 	//Print file content for checking
-//	inFileDatTag->ls();
-//	inFileDatInc->ls();
-//	inFileCorrBMTag->ls();
-//	inFileCorrBMInc->ls();
-//	inFileCorrRadTag->ls();
-//	inFileCorrRadInc->ls();
-//	inFileCorrAccTag->ls();
-//	inFileCorrAccInc->ls();
+	//	inFileDatTag->ls();
+	//	inFileDatInc->ls();
+	//	inFileCorrBMTag->ls();
+	//	inFileCorrBMInc->ls();
+	//	inFileCorrRadTag->ls();
+	//	inFileCorrRadInc->ls();
+	//	inFileCorrAccTag->ls();
+	//	inFileCorrAccInc->ls();
 
 	//Histos for Yields
 	TH1D **** h4_data_tagged_yield = new TH1D***[bins_Q2];
@@ -129,8 +131,8 @@ void ratios_corrected(TString path){
 				h4_tagged_acceptance[i][j][k]->SetError(coeff_errors_tagged);
 
 				//just for debug
-			//			cout << " for i j k " << i << " " << j << " " << k << " " <<  h4_tagged_binmigration[i][j][k]->GetBinContent(2) << " " <<  h4_tagged_acceptance[i][j][k]->GetBinContent(2) << " "
-			//			<<  h4_tagged_radiative[i][j][k]->GetBinContent(2) << " " << endl;
+				//			cout << " for i j k " << i << " " << j << " " << k << " " <<  h4_tagged_binmigration[i][j][k]->GetBinContent(2) << " " <<  h4_tagged_acceptance[i][j][k]->GetBinContent(2) << " "
+				//			<<  h4_tagged_radiative[i][j][k]->GetBinContent(2) << " " << endl;
 			}
 		}
 		//DEBUG:
@@ -170,12 +172,10 @@ void ratios_corrected(TString path){
 	//Histos for Eq 12
 	TH1D **** h4_data_singleratio = new TH1D***[bins_Q2];
 	TH1D **** h4_sim_singleratio = new TH1D***[bins_Q2];
+	TCanvas * c_data_corrected[bins_Q2][bins_Pt][bins_Xb];
 
 	//Show intermediate histograms for nominator and denominator. Create single ratio histograms
-	TCanvas ** c_Q2_data_corrected = new TCanvas*[bins_Q2];
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
-		c_Q2_data_corrected[i] = new TCanvas(Form("c_Q2_data_corrected_%i",i),"",1200,1200);
-		c_Q2_data_corrected[i]->Divide( bins_Pt, bins_Xb );
 
 		h4_data_singleratio[i]	= new TH1D**[bins_Pt];
 		h4_sim_singleratio[i]	= new TH1D**[bins_Pt];
@@ -185,6 +185,8 @@ void ratios_corrected(TString path){
 			h4_sim_singleratio[i][j]	= new TH1D*[bins_Xb];
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
 
+				c_data_corrected[i][j][k]= new TCanvas(Form("test_%i_%i_%i",i,j,k),"",1200,1200);	
+
 				h4_data_singleratio[i][j][k]= (TH1D*) h4_data_corrected_tagged[i][j][k]->Clone();
 				h4_sim_singleratio[i][j][k] = (TH1D*) h4_sim_corrected_tagged[i][j][k]->Clone();
 				h4_data_singleratio[i][j][k]->SetTitle(Form("dat_singleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
@@ -192,16 +194,18 @@ void ratios_corrected(TString path){
 				h4_data_singleratio[i][j][k]->SetName(Form("dat_singleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
 				h4_sim_singleratio[i][j][k]->SetName(Form("sim_singleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
 
-				c_Q2_data_corrected[i]->cd( (k*2)+1 + j );
+				c_data_corrected[i][j][k]->cd();
 				h4_data_corrected_tagged[i][j][k]->SetLineWidth(3);
 				h4_data_corrected_tagged[i][j][k]->SetMarkerColor(4);
-		//		h4_data_corrected_tagged[i][j][k]->SetMaximum(2);
+				//		h4_data_corrected_tagged[i][j][k]->SetMaximum(2);
 				h4_data_corrected_tagged[i][j][k]->SetMinimum(0);
 				h4_data_corrected_tagged[i][j][k]->Draw("*P");
+				h4_data_corrected_tagged[i][j][k]->GetXaxis()->SetTitle("a_{S}");
+
+				c_data_corrected[i][j][k]->Print(Form("data_tagged_corrected_Q2_%i_Pt_%i_Xb_%i.pdf",i,j,k));
 
 			}
 		}
-		c_Q2_data_corrected[i]->Print(Form("data_tagged_corrected_Q2_%i.pdf",i));
 	}
 	//Canvas for inclusive data corrected
 	TCanvas *c_Q2_data_inc_corrected = new TCanvas("c_Q2_data_inc_corrected","",1200,1200);
@@ -210,9 +214,10 @@ void ratios_corrected(TString path){
 		c_Q2_data_inc_corrected->cd(i+1);
 		h2_data_corrected_inclusive[i]->SetLineWidth(3);
 		h2_data_corrected_inclusive[i]->SetMarkerColor(4);
-//		h2_data_corrected_inclusive[i]->SetMaximum(2);
+		//		h2_data_corrected_inclusive[i]->SetMaximum(2);
 		h2_data_corrected_inclusive[i]->SetMinimum(0);
 		h2_data_corrected_inclusive[i]->Draw("*P");
+		h2_data_corrected_inclusive[i]->GetXaxis()->SetTitle("x_{B}");
 	}
 	c_Q2_data_inc_corrected->Print("data_inclusive_corrected.pdf");
 
@@ -228,7 +233,6 @@ void ratios_corrected(TString path){
 					h4_data_singleratio[i][j][k]->Scale(0);
 					h4_sim_singleratio[i][j][k]->Scale(0);
 				}
-				cout << " for i j k " << i << " " << j << " " << k << " " <<  1./h2_data_corrected_inclusive[i]->GetBinContent(k+1) << endl;
 			}
 		}
 	}
@@ -238,10 +242,8 @@ void ratios_corrected(TString path){
 	TH1D **** h4_sim_doubleratio = new TH1D***[bins_Q2];
 
 	//Create Canvas for single ratio plots and Clone data for later double ratio plot
-	TCanvas ** c_Q2_data_singleratio = new TCanvas*[bins_Q2];
+	TCanvas * c_data_singleratio[bins_Q2][bins_Pt][bins_Xb];
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
-		c_Q2_data_singleratio[i] = new TCanvas(Form("c_Q2_singleratio_%i",i),"",1200,1200);
-		c_Q2_data_singleratio[i]->Divide( bins_Pt, bins_Xb );
 
 		h4_data_doubleratio[i]	= new TH1D**[bins_Pt];
 		h4_sim_doubleratio[i]	= new TH1D**[bins_Pt];
@@ -251,38 +253,40 @@ void ratios_corrected(TString path){
 			h4_sim_doubleratio[i][j]	= new TH1D*[bins_Xb];
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
 
+				c_data_singleratio[i][j][k] = new TCanvas(Form("c_singleratio_%i_%i_%i",i,j,k),"",1200,1200);
+
 				h4_data_doubleratio[i][j][k]= (TH1D*) h4_data_singleratio[i][j][k]->Clone();
 				h4_sim_doubleratio[i][j][k] = (TH1D*) h4_sim_singleratio[i][j][k]->Clone();
-				h4_data_doubleratio[i][j][k]->SetTitle(Form("dat_doubleratio_as_Q2_%i_Pt_%i",i,j));
-				h4_sim_doubleratio[i][j][k]->SetTitle(Form("sim_doubleratio_as_Q2_%i_Pt_%i",i,j));
-				h4_data_doubleratio[i][j][k]->SetName(Form("dat_doubleratio_as_Q2_%i_Pt_%i",i,j));
-				h4_sim_doubleratio[i][j][k]->SetName(Form("sim_doubleratio_as_Q2_%i_Pt_%i",i,j));
+				h4_data_doubleratio[i][j][k]->SetTitle(Form("dat_doubleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
+				h4_sim_doubleratio[i][j][k]->SetTitle(Form("sim_doubleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
+				h4_data_doubleratio[i][j][k]->SetName(Form("dat_doubleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
+				h4_sim_doubleratio[i][j][k]->SetName(Form("sim_doubleratio_as_Q2_%i_Pt_%i_Xb_%i",i,j,k));
 				h4_data_doubleratio[i][j][k]->Sumw2();
 				h4_sim_doubleratio[i][j][k]->Sumw2();
 
-			  c_Q2_data_singleratio[i]->cd( (k*2)+1 + j );
+				c_data_singleratio[i][j][k]->cd();
 				h4_data_singleratio[i][j][k]->SetLineWidth(3);
 				h4_data_singleratio[i][j][k]->SetMarkerColor(4);
-		//	h4_data_singleratio[i][j][k]->SetMaximum(2);
+				//	h4_data_singleratio[i][j][k]->SetMaximum(2);
 				h4_data_singleratio[i][j][k]->SetMinimum(0);
 				h4_sim_singleratio[i][j][k]->SetLineWidth(3);
 				h4_sim_singleratio[i][j][k]->SetMarkerColor(2);
-			//	h4_sim_singleratio[i][j][k]->Draw("*P");
+				//	h4_sim_singleratio[i][j][k]->Draw("*P");
 				h4_data_singleratio[i][j][k]->Draw("*P");
+				h4_data_singleratio[i][j][k]->GetXaxis()->SetTitle("a_{S}");
 
-
+				c_data_singleratio[i][j][k]->Print(Form("data_tagged_singleratio_Q2_%i_Pt_%i_Xb_%i.pdf",i,j,k));
 			}
 		}
-		c_Q2_data_singleratio[i]->Print(Form("data_tagged_singleratio_Q2_%i.pdf",i));
 	}
 
 	//Now make double ratio by dividing each single ratio histogram by the first xB bin hence h4_data_singleratio[i][j][0]
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bin
 		for( int j = 0 ; j < bins_Pt ; ++j ){ // bins in Pt
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
-			h4_data_doubleratio[i][j][k]->Divide(	h4_data_singleratio[i][j][0]);
-			h4_sim_doubleratio[i][j][k]->Divide(	h4_sim_singleratio[i][j][0]);
-		//cout << " for i j " << i << " " << j << " "  << " " <<  1./h2_data_corrected_inclusive[i]->GetBinContent(k+1) << endl;
+				h4_data_doubleratio[i][j][k]->Divide(	h4_data_singleratio[i][j][0]);
+				h4_sim_doubleratio[i][j][k]->Divide(	h4_sim_singleratio[i][j][0]);
+				//cout << " for i j " << i << " " << j << " "  << " " <<  1./h2_data_corrected_inclusive[i]->GetBinContent(k+1) << endl;
 			}
 		}
 	}
@@ -290,24 +294,24 @@ void ratios_corrected(TString path){
 	//Histos for data to simulation quadro-ratio of doble ratios :)
 	TH1D **** h4_data_sim_doubleratios = new TH1D***[bins_Q2];
 	//Canvas to plot double ratios overlayed data and sim
-	TCanvas ** c_Q2_data_doubleratio = new TCanvas*[bins_Q2];
+	TCanvas * c_data_doubleratio[bins_Q2][bins_Pt][bins_Xb];
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
-		c_Q2_data_doubleratio[i] = new TCanvas(Form("c_Q2_doubleratio_%i",i),"",1200,1200);
-		c_Q2_data_doubleratio[i]->Divide( bins_Pt, bins_Xb );
 
 		h4_data_sim_doubleratios[i] = new TH1D**[bins_Pt];
 		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
 			h4_data_sim_doubleratios[i][j] = new TH1D*[bins_Xb];
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
 
+				c_data_doubleratio[i][j][k] = new TCanvas(Form("c_doubleratio_%i_%i_%i",i,j,k),"",1200,1200);
+
 				h4_data_sim_doubleratios[i][j][k] =(TH1D*) h4_data_doubleratio[i][j][k]->Clone();
 				h4_data_sim_doubleratios[i][j][k]->SetTitle(Form("data_sim_quadratio_as_Q2_%i_Pt_%i",i,j));
 				h4_data_sim_doubleratios[i][j][k]->SetName(Form("data_sim_quadratio_as_Q2_%i_Pt_%i",i,j));
 
-				c_Q2_data_doubleratio[i]->cd( (k*2)+1 + j );
+				c_data_doubleratio[i][j][k]->cd();
 				h4_data_doubleratio[i][j][k]->SetLineWidth(3);
 				h4_data_doubleratio[i][j][k]->SetMarkerColor(4);
-		  	h4_data_doubleratio[i][j][k]->SetMaximum(2);
+				h4_data_doubleratio[i][j][k]->SetMaximum(2);
 				h4_data_doubleratio[i][j][k]->SetMinimum(0);
 				h4_sim_doubleratio[i][j][k]->SetMaximum(2);
 				h4_sim_doubleratio[i][j][k]->SetMinimum(0);
@@ -315,43 +319,100 @@ void ratios_corrected(TString path){
 				h4_sim_doubleratio[i][j][k]->SetMarkerColor(2);
 				h4_sim_doubleratio[i][j][k]->Draw("E1");
 				h4_data_doubleratio[i][j][k]->Draw("SAMEP");
+				h4_sim_doubleratio[i][j][k]->GetXaxis()->SetTitle("a_{S}");
+
+
+
+				c_data_doubleratio[i][j][k]->Print(Form("data_tagged_doubleratio_Q2_%i_Pt_%i_Xb_%i.pdf",i,j,k));
 
 			}
 		}
-		c_Q2_data_doubleratio[i]->Print(Form("data_tagged_doubleratio_Q2_%i.pdf",i));
 	}
 
 	//Now make data to sim double ratio by dividing each double ratio histogram. h4_data_sim_doubleratios[i][j][k] has cloned data from data double ratio
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bin
 		for( int j = 0 ; j < bins_Pt ; ++j ){ // bins in Pt
 			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
-			h4_data_sim_doubleratios[i][j][k]->Divide(h4_sim_doubleratio[i][j][k]);
+				h4_data_sim_doubleratios[i][j][k]->Divide(h4_sim_doubleratio[i][j][k]);
 			}
 		}
 	}
 
 	//Canvas to plot quad ratios of data/sim doubleratios
-	TCanvas ** c_Q2_data_quadratio = new TCanvas*[bins_Q2];
+	TCanvas * c_data_quadratio[bins_Q2][bins_Pt][bins_Xb];
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
-		c_Q2_data_quadratio[i] = new TCanvas(Form("c_Q2_quadratio_%i",i),"",1200,1200);
-		c_Q2_data_quadratio[i]->Divide( bins_Pt, bins_Xb );
 
 		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
-				for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
+			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bina
+
+				c_data_quadratio[i][j][k] = new TCanvas(Form("c_quadratio_%i_%i_%i",i,j,k),"",1200,1200);
 
 
-
-				c_Q2_data_quadratio[i]->cd( (k*2)+1 + j );
+				c_data_quadratio[i][j][k]->cd();
 				h4_data_sim_doubleratios[i][j][k]->SetLineWidth(3);
 				h4_data_sim_doubleratios[i][j][k]->SetMarkerColor(4);
 				h4_data_sim_doubleratios[i][j][k]->SetMaximum(2);
 				h4_data_sim_doubleratios[i][j][k]->SetMinimum(0);
 				h4_data_sim_doubleratios[i][j][k]->Draw("E1");
+				h4_data_sim_doubleratios[i][j][k]->GetXaxis()->SetTitle("a_{S}");
 
+				c_data_quadratio[i][j][k]->Print(Form("data_tagged_quadratio_Q2_%i_Pt_%i_Xb_%i.pdf",i,j,k));
 			}
 		}
-		c_Q2_data_quadratio[i]->Print(Form("data_sim_doubleratio_Q2_%i.pdf",i));
 	}
+
+	TH1D **** h4_data_doubleratios_fixedAs = new TH1D***[bins_Q2];
+	TH1D **** h4_sim_doubleratios_fixedAs = new TH1D***[bins_Q2];
+	TCanvas * c_data_doubleratios_fixedAs[bins_Q2][bins_Pt][bins_As];
+	// Now I want to take the double ratios and loop over Q2, Pt, and take bins of fixed alpha and plot as a function of xB
+	for( int i = 0 ; i < bins_Q2 ; ++i ){ // loop over Q2 bins
+		h4_data_doubleratios_fixedAs[i] = new TH1D**[bins_Pt];
+		h4_sim_doubleratios_fixedAs[i] = new TH1D**[bins_Pt];
+		for( int j = 0 ; j < bins_Pt ; ++j){ // loop over Pt bins
+			h4_data_doubleratios_fixedAs[i][j] = new TH1D*[bins_As];
+			h4_sim_doubleratios_fixedAs[i][j] = new TH1D*[bins_As];
+			
+			for( int k = 0 ; k < bins_As ; ++k ){ // for bins in As
+
+				c_data_quadratio[i][j][k] = new TCanvas(Form("c_doubleratios_fixedAs_%i_%i_%i",i,j,k),"",1200,1200);
+				h4_data_doubleratios_fixedAs[i][j][k] = new TH1D(Form("data_doubleratios_fixedAs_%i_%i_%i",i,j,k),"",bins_Xp,Xp_min,Xp_min+bins_Xp*Xp_step);
+				h4_sim_doubleratios_fixedAs[i][j][k] = new TH1D(Form("sim_doubleratios_fixedAs_%i_%i_%i",i,j,k),"",bins_Xp,Xp_min,Xp_min+bins_Xp*Xp_step);
+
+				// Now we need to grab each As bin from all the Xb plots and store it here:
+				for( int m = 0 ; m < bins_Xb ; ++m ){ // loop over Xb bina
+					double this_as_bin_content = h4_data_doubleratio[i][j][m] -> GetBinContent( k+1 ); // grabs the As bin
+
+					double this_as_bin_content_sim = h4_sim_doubleratio[i][j][m] -> GetBinContent( k+1 ); // grabs the As bin
+					h4_sim_doubleratios_fixedAs[i][j][k]->SetBinContent( m+1 , this_as_bin_content_sim );
+					if( this_as_bin_content == 0 || this_as_bin_content_sim == 0 ) continue;
+
+					double this_xb = Xb_min[i] + m*Xb_step;
+					double this_as = As_min + k*As_step;
+					double this_pt = Pt_min + j*Pt_step;
+					double this_xp = this_xb / (2-this_as);
+					int fill_bin = h4_data_doubleratios_fixedAs[i][j][k]->FindBin( this_xp );
+
+					h4_data_doubleratios_fixedAs[i][j][k]->SetBinContent( fill_bin , this_as_bin_content/this_as_bin_content_sim );
+
+				}
+				c_data_quadratio[i][j][k]->cd();
+				h4_data_doubleratios_fixedAs[i][j][k]->SetLineWidth(3);
+				h4_data_doubleratios_fixedAs[i][j][k]->SetMarkerColor(4);
+				h4_data_doubleratios_fixedAs[i][j][k]->SetMaximum(2);
+				h4_data_doubleratios_fixedAs[i][j][k]->SetMinimum(0);
+				h4_data_doubleratios_fixedAs[i][j][k]->Draw("E1");
+				h4_data_doubleratios_fixedAs[i][j][k]->GetXaxis()->SetTitle("x'");
+
+				//h4_sim_doubleratios_fixedAs[i][j][k]->SetLineWidth(3);
+				//h4_sim_doubleratios_fixedAs[i][j][k]->SetLineColor(2);
+				//h4_sim_doubleratios_fixedAs[i][j][k]->Draw("SAME,E1");
+
+				c_data_quadratio[i][j][k]->Print(Form("data_tagged_doubleratios_fixedAs_Q2_%i_Pt_%i_As_%i.pdf",i,j,k));
+			}
+		}
+	}
+
+
 
 	TFile *storehistos = new TFile("ratio_histograms.root","RECREATE");
 	storehistos->cd();
@@ -361,14 +422,14 @@ void ratios_corrected(TString path){
 		h2_sim_corrected_inclusive[i]->Write();//Denominator Eq12
 
 		for( int j = 0 ; j < bins_Pt ; ++j ){ // bins in Pt
-					for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bin
-						h4_data_corrected_tagged[i][j][k]->Write(); //Nominator Eq12
-						h4_sim_corrected_tagged[i][j][k]->Write(); //Nominator Eq12
-						h4_data_singleratio[i][j][k]->Write(); //Eq 12 result
-						h4_sim_singleratio[i][j][k]->Write(); //Eq 12 result
-						h4_data_doubleratio[i][j][k]->Write(); //Eq 15 result
-						h4_sim_doubleratio[i][j][k]->Write(); //Eq 15 result
-						h4_data_sim_doubleratios[i][j][k]->Write(); //Data to sim double ratios
+			for( int k = 0 ; k < bins_Xb ; ++k ){ // loop over Xb bin
+				h4_data_corrected_tagged[i][j][k]->Write(); //Nominator Eq12
+				h4_sim_corrected_tagged[i][j][k]->Write(); //Nominator Eq12
+				h4_data_singleratio[i][j][k]->Write(); //Eq 12 result
+				h4_sim_singleratio[i][j][k]->Write(); //Eq 12 result
+				h4_data_doubleratio[i][j][k]->Write(); //Eq 15 result
+				h4_sim_doubleratio[i][j][k]->Write(); //Eq 15 result
+				h4_data_sim_doubleratios[i][j][k]->Write(); //Data to sim double ratios
 			}
 		}
 	}
