@@ -16,3 +16,8 @@ add_executable(radiative_tagged radiative_tagged.cpp )
 target_link_libraries(radiative_tagged ${ROOT_LIBRARIES} ${BAND_LIBS})
 install( TARGETS radiative_tagged
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin/cross_section ) 
+
+add_executable(bin_points bin_points.cpp )
+target_link_libraries(bin_points ${ROOT_LIBRARIES} ${BAND_LIBS})
+install( TARGETS bin_points
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin/cross_section ) 
