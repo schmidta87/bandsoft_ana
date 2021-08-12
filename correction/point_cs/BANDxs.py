@@ -124,8 +124,37 @@ def full(xB,QSq,alphaS,kt,E=10.2,phi = np.pi):
     xDxB_jacobian = mN/mD # additional factor to translate differential cross section from dx_d -> dx_B
     alphaS_jacobian = alphaS # multiply by alphaS to translate differential cross section from dAlphaS/alphaS -> dAlphaS
     return nbGeVSq * (2.*mN)/mD * (alphaEM**2*y**2)/((2.-alphaS)*QSq**3)*wW*rho(alphaS,kt) \
-            * xDxB_jacobian * alphaS_jacobian
+            * xDxB_jacobian * alphaS_jacobian #units of nb*GeV^-4
 
 
 
 # Open a list of kinematic points and give back the differential cross section for those points!
+ofile_dat = open("data_bin_avgpoints_pointcs.txt", "w")
+ofile_sim = open("sim_bin_avgpoints_pointcs.txt", "w")
+
+
+def writeoutput(infile,outfile):
+    outfile.write("# [binQ2] [binPt] [binXb] [binAs] [Q2] [Pt] [Xb] [As] [DifferntialCS (nb*GeV^-4)]\n")
+    with open(infile,"r") as f:
+        for line in f:
+            if '#' in line: continue
+            parse = line.strip().split()
+            binQ2 = int(parse[0])
+            binPt = int(parse[1])
+            binXb = int(parse[2])
+            binAs = int(parse[3])
+
+            Q2 = float(parse[4])
+            Pt = float(parse[5])
+            Xb = float(parse[6])
+            As = float(parse[7])
+            
+            if( Q2 == 0 or Pt == 0 or Xb == 0 or As == 0 ): continue
+
+            print(binQ2,binPt,binXb,binAs,Q2,Pt,Xb,As,asym(Xb,Q2,As,Pt,10.2) )
+            outfile.write( str(binQ2) + " " + str(binPt) + " " + str(binXb) + " " + str(binAs) + " " +\
+                        str(Q2) + " " + str(Pt) + " " + str(Xb) + " " + str(As) + " " + str(asym(Xb,Q2,As,Pt,10.2)) + "\n")
+        
+writeoutput("data_bin_avgpoints.txt",ofile_dat)
+writeoutput("sim_bin_avgpoints.txt",ofile_sim)
+
