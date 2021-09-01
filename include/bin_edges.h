@@ -20,6 +20,10 @@ const double 	As_step 		= 0.05;
 const double 	As_min			= 1.3;
 const double 	As_max 			= As_min + As_step*bins_As; 
 
+const int 	bins_Xp 		= 9;
+const double 	Xp_step 		= 0.05; 
+const double 	Xp_min			= 0.2;
+const double 	Xp_max			= 0.65;
 
 // Bins for checks on inclusive acceptance
 
