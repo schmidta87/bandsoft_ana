@@ -20,6 +20,7 @@ int main(int argc, char ** argv){
 	
 	double total_normalization = 0;
 	for( int fi = 2 ; fi < argc ; fi++){
+		cout << argv[fi] << "\n";
 		TFile * thisFile = new TFile(argv[fi]);
 
 		TVector3 * thisNorm = (TVector3*)thisFile->Get("bacnorm");
