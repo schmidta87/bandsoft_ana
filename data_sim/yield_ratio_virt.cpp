@@ -17,6 +17,7 @@
 #include "bin_edges.h"
 
 using std::cerr;
+using std::isfinite;
 using std::cout;
 
 void fillHist( double Q2, double Pt, double Virt, double As, TH1D**** hist , double weight );
