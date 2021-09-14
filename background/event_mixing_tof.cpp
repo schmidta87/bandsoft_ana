@@ -149,22 +149,10 @@ int main(int argc, char ** argv){
 
 		// Check that the neutron we have is in our background region, in the CosThetaNQ bin, and in the Q2 bin
 		if( lead_n->getTof() < NCUT_BACK_Tof_min || lead_n->getTof() > NCUT_BACK_Tof_max ) continue;
-		taghit * this_tag = (taghit*) input_tag->At(input_nleadindex);
-		double this_ThetaNQ = this_tag->getThetaNQ();
-		if( this_ThetaNQ < NCUT_THETANQ_min || this_ThetaNQ > NCUT_THETANQ_max ) continue;
 
 		// And then double check that it's above an Edep cut and has good status:
 		if(	lead_n->getEdep() < NCUT_Edep 			) continue;
 
-		// Do not consider killed-off bars:
-		if( lead_n->getLayer() == 4 && lead_n->getSector()==3 && lead_n->getComponent()==1 ) continue;
-		if( lead_n->getLayer() == 3 && lead_n->getSector()==4 && lead_n->getComponent()==2 ) continue;
-		if( lead_n->getLayer() == 2 && lead_n->getSector()==4 && lead_n->getComponent()==5 ) continue;
-		// Kill off the TDC-hole:
-		if( lead_n->getSector()==2 && (lead_n->getComponent() > 3 && lead_n->getComponent() < 8 ) 
-				&& ( lead_n->getX()>90 || lead_n->getX() < -110 ) ) continue;
-		if( lead_n->getSector()==3 && (lead_n->getComponent() > 0 && lead_n->getComponent() < 3 ) 
-				&& ( lead_n->getX()>80 || lead_n->getX() < 45 ) ) continue;
 
 		// If it passes all these cuts then just push it back 
 		//  -- 	the number of events we have in this list is the number of
@@ -197,101 +185,96 @@ int main(int argc, char ** argv){
 		Ebeam_list.push_back( input_Ebeam );
 	}
 
-	int neutrons_created = 0;
-	int neutrons_mixed = 0;
 	// Loop over all neutron events
 	for( int neutron = 0 ; neutron < neutron_list.size() ; neutron++ ){
+		// Loop over 100 random electrons for each neutron:
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
-		
-		
-		int nSignalBunches = (signal_max - signal_min)/BEAM_BUNCH;
-		// Grab a random electron 
-		int electron = myRand->Rndm() * electron_list.size();
-		// Read in the stored variables
-		double this_Ebeam 	= Ebeam_list	[electron];
-		double p_e		= electron_list	[electron].getMomentum();
-		double theta_e		= electron_list	[electron].getTheta();
-		double phi_e		= electron_list	[electron].getPhi();
-		double vtz 		= electron_list	[electron].getVtz();
-		double theta_n		= neutron_list	[neutron].getDL().Theta();
-		double phi_n		= neutron_list	[neutron].getDL().Phi();
-		double dL		= neutron_list	[neutron].getDL().Mag();
-		double bkg_Tof		= neutron_list	[neutron].getTof();
-
-		
-		// Figure out what bunch this background is in
-		int this_bBunch		= (bkg_Tof - bkgrd_min )/BEAM_BUNCH;
-
-		// Create all electron quantites only once
-		TVector3 beamVec(0,0,this_Ebeam);
-		TVector3 eVec;	eVec.SetMagThetaPhi(p_e,theta_e,phi_e);
-		TVector3 qVec;	qVec = beamVec - eVec;
-		double q 	= electron_list[electron].getQ();
-		double theta_q  = electron_list[electron].getThetaQ();
-		double phi_q 	= electron_list[electron].getPhiQ();
-		double nu 	= electron_list[electron].getOmega();
-		double Q2 	= electron_list[electron].getQ2();
-		double xB	= electron_list[electron].getXb();
-		double W2	= electron_list[electron].getW2();
-			// Calculate the nq angles
-		TVector3 norm_scatter = qVec.Cross( beamVec );
-		norm_scatter 	= norm_scatter.Unit();
-
-		// Loop over all signal bunches to push our background into
-		for( int thisBunch = 0 ; thisBunch < (signal_max-signal_min)/BEAM_BUNCH ; thisBunch++ ){	
-			neutrons_created++;
-
-			// Shift ToF by current background bunch time and desired signal bunch time
-			double bunch_shift	= (signal_min + BEAM_BUNCH*thisBunch) - (this_bBunch*BEAM_BUNCH + bkgrd_min);
-
-			double Tof 	= bkg_Tof + bunch_shift;
-			double TofpM	= Tof / (dL/100.);
-			double beta 	= (1./TofpM) * (1./cAir) * (100./1);
-			double p_n 	= mN / sqrt( 1./pow(beta,2) - 1. );
+		for( int i_electron = 0 ; i_electron < 10; ++i_electron ){
 			
-			TVector3 nVec;	nVec.SetMagThetaPhi(p_n,theta_n,phi_n);
-			double E_n 	= sqrt( mN*mN + p_n*p_n );
+			
+			int nSignalBunches = (signal_max - signal_min)/BEAM_BUNCH;
+			// Grab a random electron 
+			int electron = myRand->Rndm() * electron_list.size();
+			// Read in the stored variables
+			double this_Ebeam 	= Ebeam_list	[electron];
+			double p_e		= electron_list	[electron].getMomentum();
+			double theta_e		= electron_list	[electron].getTheta();
+			double phi_e		= electron_list	[electron].getPhi();
+			double vtz 		= electron_list	[electron].getVtz();
+			double theta_n		= neutron_list	[neutron].getDL().Theta();
+			double phi_n		= neutron_list	[neutron].getDL().Phi();
+			double dL		= neutron_list	[neutron].getDL().Mag();
+			double bkg_Tof		= neutron_list	[neutron].getTof();
 
-			TVector3 norm_reaction = qVec.Cross( nVec );
-			norm_reaction 	= norm_reaction.Unit();
-			double phi_nq 	= norm_scatter.Angle( norm_reaction );
-			double theta_nq = nVec.Angle( qVec );
-			double CosTheta_nq = cos(theta_nq);
-			TVector3 direction = norm_scatter.Cross(norm_reaction);
-			if( direction.Z() > 0 ){ // this means the phi_rq should be between 0 and pi
-			}
-			else if( direction.Z() < 0 ){ // this means the phi_rq should be between -pi and 0
-				phi_nq *= (-1);
-			}
+			
+			// Figure out what bunch this background is in
+			int this_bBunch		= (bkg_Tof - bkgrd_min )/BEAM_BUNCH;
 
-			double W_primeSq = mD*mD - Q2 + mN*mN + 2.*mD*(nu-E_n) - 2.*nu*E_n + 2.*q*p_n*cos(theta_nq);
-			double Wp = sqrt(W_primeSq);
-			double As = (E_n - p_n*CosTheta_nq)/mN;
+			// Create all electron quantites only once
+			TVector3 beamVec(0,0,this_Ebeam);
+			TVector3 eVec;	eVec.SetMagThetaPhi(p_e,theta_e,phi_e);
+			TVector3 qVec;	qVec = beamVec - eVec;
+			double q 	= electron_list[electron].getQ();
+			double theta_q  = electron_list[electron].getThetaQ();
+			double phi_q 	= electron_list[electron].getPhiQ();
+			double nu 	= electron_list[electron].getOmega();
+			double Q2 	= electron_list[electron].getQ2();
+			double xB	= electron_list[electron].getXb();
+			double W2	= electron_list[electron].getW2();
+				// Calculate the nq angles
+			TVector3 norm_scatter = qVec.Cross( beamVec );
+			norm_scatter 	= norm_scatter.Unit();
 
-			// Different definitions of x'
-			// Bonus definition is the default
-			double Xp = eHit.getQ2()/(2.*( eHit.getOmega()*(mD-E_n) + p_n*eHit.getQ()*CosTheta_nq));
-			// W' definition
-			double Xp_WP  = eHit.getQ2()/(W_primeSq - mN*mN + eHit.getQ2());
-			// Bjorken definition
-			double Xp_Bj  = eHit.getXb()/(2. - As);
-			// PRC definition
-			double Ei = mD - E_n;
-			double ps_plus = mD/2. * As;
-			double virt = (Ei*Ei - p_n*p_n - mN*mN)/(mN*mN);
-			double p_plus = mD - ps_plus;
-			double q_plus = eHit.getOmega() - eHit.getQ();
-			double tP = virt * mN * mN;
-			double Xp_PRC = (eHit.getQ2() - (q_plus/p_plus)*tP)/(W_primeSq - mN*mN + eHit.getQ2() - (q_plus/p_plus)*tP);
+			// Loop over all signal bunches to push our background into
+			for( int thisBunch = 0 ; thisBunch < (signal_max-signal_min)/BEAM_BUNCH ; thisBunch++ ){	
 
-			TVector3 Pt;
-			TVector3 pN_par_q = nVec.Dot(qVec) / (qVec.Mag2()) * qVec;
-			Pt = nVec - pN_par_q;
+				// Shift ToF by current background bunch time and desired signal bunch time
+				double bunch_shift	= (signal_min + BEAM_BUNCH*thisBunch) - (this_bBunch*BEAM_BUNCH + bkgrd_min);
 
-			// Only cut not implemented in the 
-			// final skim is the cosThetaNQ because neutron had no electron
-			if( CosTheta_nq > min_CosTheta_nq 	&& 
-			    CosTheta_nq < max_CosTheta_nq 	){
+				double Tof 	= bkg_Tof + bunch_shift;
+				double TofpM	= Tof / (dL/100.);
+				double beta 	= (1./TofpM) * (1./cAir) * (100./1);
+				double p_n 	= mN / sqrt( 1./pow(beta,2) - 1. );
+				
+				TVector3 nVec;	nVec.SetMagThetaPhi(p_n,theta_n,phi_n);
+				double E_n 	= sqrt( mN*mN + p_n*p_n );
+
+				TVector3 norm_reaction = qVec.Cross( nVec );
+				norm_reaction 	= norm_reaction.Unit();
+				double phi_nq 	= norm_scatter.Angle( norm_reaction );
+				double theta_nq = nVec.Angle( qVec );
+				double CosTheta_nq = cos(theta_nq);
+				TVector3 direction = norm_scatter.Cross(norm_reaction);
+				if( direction.Z() > 0 ){ // this means the phi_rq should be between 0 and pi
+				}
+				else if( direction.Z() < 0 ){ // this means the phi_rq should be between -pi and 0
+					phi_nq *= (-1);
+				}
+
+				double W_primeSq = mD*mD - Q2 + mN*mN + 2.*mD*(nu-E_n) - 2.*nu*E_n + 2.*q*p_n*cos(theta_nq);
+				double Wp = sqrt(W_primeSq);
+				double As = (E_n - p_n*CosTheta_nq)/mN;
+
+				// Different definitions of x'
+				// Bonus definition is the default
+				double Xp = eHit.getQ2()/(2.*( eHit.getOmega()*(mD-E_n) + p_n*eHit.getQ()*CosTheta_nq));
+				// W' definition
+				double Xp_WP  = eHit.getQ2()/(W_primeSq - mN*mN + eHit.getQ2());
+				// Bjorken definition
+				double Xp_Bj  = eHit.getXb()/(2. - As);
+				// PRC definition
+				double Ei = mD - E_n;
+				double ps_plus = mD/2. * As;
+				double virt = (Ei*Ei - p_n*p_n - mN*mN)/(mN*mN);
+				double p_plus = mD - ps_plus;
+				double q_plus = eHit.getOmega() - eHit.getQ();
+				double tP = virt * mN * mN;
+				double Xp_PRC = (eHit.getQ2() - (q_plus/p_plus)*tP)/(W_primeSq - mN*mN + eHit.getQ2() - (q_plus/p_plus)*tP);
+
+				TVector3 Pt;
+				TVector3 pN_par_q = nVec.Dot(qVec) / (qVec.Mag2()) * qVec;
+				Pt = nVec - pN_par_q;
+
 
 				// Clear ehit branches
 				eHit.Clear();
@@ -340,12 +323,10 @@ int main(int argc, char ** argv){
 
 
 				outTree->Fill();
-				neutrons_mixed++;
 
-			}
-		}
-	
-	}
+			} // end loop over bunches
+		} // end loop over 100 electrons
+	} // end loop over neutrons
 	
 	// Write output file:
 	outFile->cd();
