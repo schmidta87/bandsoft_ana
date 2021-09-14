@@ -3,8 +3,8 @@
 
 
 // Bins for tagged/inclusive analysis
-const int 	bins_Q2 		= 3;
-const double 	Q2Bins[bins_Q2 + 1] 	= {2.0, 2.5, 3.5, 6.0};	// irregular bins
+const int 	bins_Q2 		= 1;
+const double 	Q2Bins[bins_Q2 + 1] 	= {2.0, 6.0};	// irregular bins
 
 const int 	bins_Pt			= 2;
 const double 	Pt_step 		= 0.1;
@@ -13,17 +13,24 @@ const double	Pt_max			= Pt_min + Pt_step*bins_Pt;
 
 const int 	bins_Xb 		= 6;
 const double 	Xb_step 		= 0.025; 
-const double 	Xb_min[bins_Q2]		= {0.15, 0.2, 0.25};
+const double 	Xb_min[bins_Q2]		= {0.15};//{0.15, 0.2, 0.25};
 
-const int 	bins_As 		= 6;
-const double 	As_step 		= 0.05;
+const int 	bins_As 		= 3;
+const double 	As_step 		= 0.1;
 const double 	As_min			= 1.3;
 const double 	As_max 			= As_min + As_step*bins_As; 
 
-const int 	bins_Xp 		= 9;
-const double 	Xp_step 		= 0.05; 
+const int 	bins_Xp 		= 3;
+const double 	Xp_step 		= 0.1; 
 const double 	Xp_min			= 0.2;
-const double 	Xp_max			= 0.65;
+const double 	Xp_max			= 0.5;
+const double 	Xp_Ref[bins_Q2]		= {0.4};//{0.4,0.5,0.6};
+
+const int 	bins_Virt 		= 13;
+const double 	Virt_step 		= 0.02; 
+const double 	Virt_min			= -0.45;
+const double 	Virt_max			= -0.19;
+const double 	Virt_Ref[bins_Xp]		= {-0.25,-0.25,-0.25};//{-0.22,-0.26,-0.36};
 
 // Bins for checks on inclusive acceptance
 
