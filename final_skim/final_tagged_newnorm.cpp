@@ -186,6 +186,9 @@ int main(int argc, char ** argv){
 		hToF_far->Write();
 		hToF_full->Write();
 	}
+	if( MC_DATA_OPT == 2 ){
+		hToF_full->Write();
+	}
 	outTree->Write();
 	bacnorm.Write("bacnorm");	
 	outFile->Close();
