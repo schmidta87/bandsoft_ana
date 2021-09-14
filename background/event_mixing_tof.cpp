@@ -189,7 +189,7 @@ int main(int argc, char ** argv){
 	for( int neutron = 0 ; neutron < neutron_list.size() ; neutron++ ){
 		// Loop over 100 random electrons for each neutron:
 		if( neutron % 1000 == 0 ) cout << "working on neutron " << neutron << "\n";
-		for( int i_electron = 0 ; i_electron < 10; ++i_electron ){
+		for( int i_electron = 0 ; i_electron < 100; ++i_electron ){
 			
 			
 			int nSignalBunches = (signal_max - signal_min)/BEAM_BUNCH;
