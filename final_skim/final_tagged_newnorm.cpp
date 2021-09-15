@@ -71,13 +71,13 @@ int main(int argc, char ** argv){
 	TCut fiducial = fiducial1 && fiducial2 && fiducial3 && fiducial4 && fiducial5 && fiducialTheta;
 
 	// Bad bars for v3.1, consistent across run periods:
-	TCut nBad_111	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getComponent()==1)");
-	TCut nBad_121	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==1)");
-	TCut nBad_255	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getComponent()==5)");
-	TCut nBad_352	= Form("!(nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getComponent()==2)");
+	//TCut nBad_111	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==1 && nHits[nleadindex]->getComponent()==1)");
+	//TCut nBad_121	= Form("!(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getLayer()==2 && nHits[nleadindex]->getComponent()==1)");
+	//TCut nBad_255	= Form("!(nHits[nleadindex]->getSector()==2 && nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getComponent()==5)");
+	//TCut nBad_352	= Form("!(nHits[nleadindex]->getSector()==3 && nHits[nleadindex]->getLayer()==5 && nHits[nleadindex]->getComponent()==2)");
 
 	TCut tagged 	= inclusive && nGood && nLeadIdx && nEdep && nThetaNQ  && fiducial;	// basic cuts 
-	tagged		= tagged && nBad_111 && nBad_121 && nBad_255 && nBad_352;		// bad bar removal
+	//tagged		= tagged && nBad_111 && nBad_121 && nBad_255 && nBad_352;		// bad bar removal
 
 
 	// Conditions for a final accepted event neutron in signal region
