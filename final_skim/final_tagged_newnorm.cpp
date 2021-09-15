@@ -153,9 +153,11 @@ int main(int argc, char ** argv){
 
 	if( MC_DATA_OPT == 2 ){ // if this is mixed file for background
 		// Grab the number of mixed events we have created
-		double N_mixed		= inTree->GetEntries();
+		double N_mixed		= inTree->GetEntries(); // N_mixed is different from the correct normalization since
+								// now we have fiducial and bad bar cuts.
 		hToF_full = new TH1D("hToF_full","hToF_full",8000,-100,300);
 		inTree->Draw("nHits[nleadindex]->getTof()  >> hToF_full",tagged );
+		N_mixed = hToF_full->Integral();
 		
 		bacnorm.SetXYZ( N_mixed , 0 , 0 );
 
