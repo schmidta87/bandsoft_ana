@@ -9,31 +9,31 @@
 using namespace std;
 int main(int argc, char ** argv){
 
-	if (argc < 2){
+	if (argc < 1){
 		cerr << "Wrong number of arguments. Instead use\n"
-			<< "\t./code [opt] [inputDatafiles]\n"
-			<< "\t\t [opt==0: data, getZ()]\n"
-			<< "\t\t [opt==1: bkgd, getX()]\n";
+			<< "\t./code [inputDatafiles]\n";
 		return -1;
 	}
-	int opt = atoi(argv[1]);
 	
-	double total_normalization = 0;
-	for( int fi = 2 ; fi < argc ; fi++){
+	double total_normalization_x = 0;
+	double total_normalization_y = 0;
+	double total_normalization_z = 0;
+	for( int fi = 1 ; fi < argc ; fi++){
 		cout << argv[fi] << "\n";
 		TFile * thisFile = new TFile(argv[fi]);
 
 		TVector3 * thisNorm = (TVector3*)thisFile->Get("bacnorm");
-		if( opt == 0)
-			total_normalization	+=	thisNorm->Z();
-		else if(opt == 1)
-			total_normalization	+=	thisNorm->X();
+		total_normalization_x	+=	thisNorm->X();
+		total_normalization_y	+=	thisNorm->Y();
+		total_normalization_z	+=	thisNorm->Z();
 
 		delete thisNorm;
 		thisFile->Close();
 	}
 	cout.precision(10);
-	cout << total_normalization << "\n";
+	cout << total_normalization_x << "\n";
+	cout << total_normalization_y << "\n";
+	cout << total_normalization_z << "\n";
 	
 
 
