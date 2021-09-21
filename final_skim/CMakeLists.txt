@@ -19,7 +19,7 @@ target_link_libraries(final_neutrons ${ROOT_LIBRARIES} ${BAND_LIBS})
 install( TARGETS final_neutrons
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
 
-add_executable(get_normalization get_normalization.cpp )
-target_link_libraries(get_normalization ${ROOT_LIBRARIES} ${BAND_LIBS})
-install( TARGETS get_normalization
+add_executable(chain_files chain_files.cpp )
+target_link_libraries(chain_files ${ROOT_LIBRARIES} ${BAND_LIBS})
+install( TARGETS chain_files
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
