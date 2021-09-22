@@ -1,4 +1,4 @@
-void pn(TString inDat, TString inBac, TString inSim){
+void tof(TString inDat, TString inBac, TString inSim){
 
 	// Define some function used
 	void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
@@ -20,19 +20,19 @@ void pn(TString inDat, TString inBac, TString inSim){
 	inTreeBac->SetWeight( datnorm->Z() / bacnorm->X() );
 
 	// Define histograms we want to plot:
-	TH1D ** pn_dat = new TH1D*[3];
-	TH1D ** pn_bac = new TH1D*[3];
-	TH1D ** pn_sim = new TH1D*[3];
+	TH1D ** tof_dat = new TH1D*[3];
+	TH1D ** tof_bac = new TH1D*[3];
+	TH1D ** tof_sim = new TH1D*[3];
 	for(int i = 0 ; i < 3 ; i++){
-		pn_dat[i] = new TH1D(Form("pn_dat_%i",i),"",40,0.2,0.6);
-		pn_bac[i] = new TH1D(Form("pn_bac_%i",i),"",40,0.2,0.6);
-		pn_sim[i] = new TH1D(Form("pn_sim_%i",i),"",40,0.2,0.6);
+		tof_dat[i] = new TH1D(Form("tof_dat_%i",i),"",80,12,52);
+		tof_bac[i] = new TH1D(Form("tof_bac_%i",i),"",80,12,52);
+		tof_sim[i] = new TH1D(Form("tof_sim_%i",i),"",80,12,52);
 	}
 
-	// Draw the full pn distribution
-	TCanvas * c_pn = new TCanvas("c_pn","",800,600);
+	// Draw the full tof distribution
+	TCanvas * c_tof = new TCanvas("c_tof","",800,600);
 	double sim_scaling = 0;
-	c_pn->Divide(3,2);
+	c_tof->Divide(3,2);
 	for( int i = 0 ; i < 3 ; i++){
 		TCut pTcut = "";
 		TString pTtitle = "Full pT";
@@ -45,29 +45,29 @@ void pn(TString inDat, TString inBac, TString inSim){
 			pTtitle = "High pT";
 		}
 
-		c_pn->cd(i+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getMomentumN().Mag() >> pn_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut);
-		inTreeBac->Draw(Form("tag[nleadindex]->getMomentumN().Mag() >> pn_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut);
-		inTreeSim->Draw(Form("tag[nleadindex]->getMomentumN().Mag() >> pn_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut);
+		c_tof->cd(i+1);
+		inTreeDat->Draw(Form("nHits[nleadindex]->getTof() >> tof_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut);
+		inTreeBac->Draw(Form("nHits[nleadindex]->getTof() >> tof_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut);
+		inTreeSim->Draw(Form("nHits[nleadindex]->getTof() >> tof_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut);
 
 		// Background subraction
-		pn_dat[i]->Add(pn_bac[i],-1);
+		tof_dat[i]->Add(tof_bac[i],-1);
 
 		// Simulation scaling only from no pT cut distribution (i.e. from full distribution)
-		double full_simnorm = (double)pn_dat[0]->Integral() / pn_sim[0]->Integral();
+		double full_simnorm = (double)tof_dat[0]->Integral() / tof_sim[0]->Integral();
 		if( i == 0 ) sim_scaling = full_simnorm;
-		pn_sim[i]->Scale( sim_scaling );
+		tof_sim[i]->Scale( sim_scaling );
 		
 		
-		pn_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(pn_dat[i],pn_sim[i],"|p_{n}| [GeV/c]","Counts");
+		tof_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
+		label1D(tof_dat[i],tof_sim[i],"ToF [ns]","Counts");
 
-		c_pn->cd(4+i);
-		label1D_ratio(pn_dat[i],pn_sim[i],"|p_{n}| [GeV/c]","Data/Sim",0,2);
+		c_tof->cd(4+i);
+		label1D_ratio(tof_dat[i],tof_sim[i],"ToF [ns]","Data/Sim",0,2);
 	}
 
 
-	c_pn->SaveAs("full_pn.pdf");
+	c_tof->SaveAs("full_tof.pdf");
 
 	return;
 }
