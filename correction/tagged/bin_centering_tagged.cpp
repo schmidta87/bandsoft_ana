@@ -91,11 +91,12 @@ void bin_centering_tagged(TString path){
 				h4_simulation_tagged_yield[i][j][k]->Divide( h4_tagged_acceptance[i][j][k]	);
 
 				for( int m = 0 ; m < bins_As ; ++m ){
-					double curr_bin_content = h4_simulation_tagged_yield[i][j][k]->GetBinContent( m+1 );
+					double curr_bin_content = h4_simulation_tagged_yield[i][j][k]->GetBinContent( m+1 ) / (3.94707e+09/(1E-06));
 					double diff_cs = TaggedDiffCS[i][j][k][m];
 					if( diff_cs == 0 || diff_cs != diff_cs ) continue;
 					cout << i << " " << j << " " << k << " " << m << " " << curr_bin_content << " " << diff_cs << "\n";
 					h4_simulation_tagged_yield[i][j][k]->SetBinContent( m+1 , curr_bin_content / diff_cs );
+					h4_simulation_tagged_yield[i][j][k]->SetBinError( m+1 , 0 );
 					
 				}
 

@@ -159,7 +159,7 @@ int main( int argc, char** argv){
 				if( h4_dat_as[i][j][k]->Integral() < 1 || h4_bac_as[i][j][k]->Integral() < 1 ) continue;
 				double * errors = new double[bins_As];
 				setError( errors , h4_dat_as[i][j][k] , h4_bac_as[i][j][k] );
-				h4_dat_as[i][j][k]->Add( h4_bac_as[i][j][k] );
+				h4_dat_as[i][j][k]->Add( h4_bac_as[i][j][k] , -1 );
 
 				for( int bin = 1 ; bin < h4_dat_as[i][j][k]->GetXaxis()->GetNbins(); ++bin ){
 					h4_dat_as[i][j][k]->SetBinError( bin , errors[bin-1] );

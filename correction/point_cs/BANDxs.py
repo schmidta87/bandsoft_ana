@@ -71,6 +71,7 @@ def asym(xB,QSq,alphaS,kt,E=10.2):
     F2 = F2p(x_tilde,QSq_tilde)
     if (F1 < 0) or (F2 < 0):
         return 0
+
     
     return (nbGeVSq*2.*alphaEM**2)*(xB*QSq**2)**(-1)*(x_tilde*y**2*F1 + (1.-y-(xB*y*mN)**2*QSq**(-1))*F2)*rho(alphaS,kt)
 
@@ -121,10 +122,9 @@ def full(xB,QSq,alphaS,kt,E=10.2,phi = np.pi):
     wW = wWA + wWB + wWC + wWD
     
 
-    xDxB_jacobian = mN/mD # additional factor to translate differential cross section from dx_d -> dx_B
-    alphaS_jacobian = alphaS # multiply by alphaS to translate differential cross section from dAlphaS/alphaS -> dAlphaS
-    return nbGeVSq * (2.*mN)/mD * (alphaEM**2*y**2)/((2.-alphaS)*QSq**3)*wW*rho(alphaS,kt) \
-            * xDxB_jacobian * alphaS_jacobian #units of nb*GeV^-4
+    # Jacobian to go from dx_d d^2p_T to dx_B dp_T d
+
+    return nbGeVSq * (2.*mN)/mD * (alphaEM**2*y**2)/((2.-alphaS)*QSq**3)*wW*rho(alphaS,kt) * 2*np.pi * kt/alphaS
 
 
 
@@ -151,9 +151,9 @@ def writeoutput(infile,outfile):
             
             if( Q2 == 0 or Pt == 0 or Xb == 0 or As == 0 ): continue
 
-            print(binQ2,binPt,binXb,binAs,Q2,Pt,Xb,As,asym(Xb,Q2,As,Pt,10.2) )
+            print(binQ2,binPt,binXb,binAs,Q2,Pt,Xb,As,full(Xb,Q2,As,Pt,10.2) )
             outfile.write( str(binQ2) + " " + str(binPt) + " " + str(binXb) + " " + str(binAs) + " " +\
-                        str(Q2) + " " + str(Pt) + " " + str(Xb) + " " + str(As) + " " + str(asym(Xb,Q2,As,Pt,10.2)) + "\n")
+                        str(Q2) + " " + str(Pt) + " " + str(Xb) + " " + str(As) + " " + str(full(Xb,Q2,As,Pt,10.2)) + "\n")
         
 writeoutput("data_bin_avgpoints.txt",ofile_dat)
 writeoutput("sim_bin_avgpoints.txt",ofile_sim)

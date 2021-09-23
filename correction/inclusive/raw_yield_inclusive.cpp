@@ -15,7 +15,7 @@
 using std::cerr;
 using std::cout;
 
-void fillHist( double Q2, double Xb, TH1D** hist );
+void fillHist( double Q2, double Xb, TH1D** hist, double weight );
 
 int main( int argc, char** argv){
 
@@ -61,7 +61,7 @@ int main( int argc, char** argv){
 		double Q2	= dat_eHit->getQ2();
 		double Xb	= dat_eHit->getXb();
 
-		fillHist( Q2, Xb, h2_dat_xb );
+		fillHist( Q2, Xb, h2_dat_xb , 243984840./3303854. );
 	}
 
 	// Loop over the simulation file:
@@ -72,7 +72,7 @@ int main( int argc, char** argv){
 		double Q2	= sim_eHit->getQ2();
 		double Xb	= sim_eHit->getXb();
 
-		fillHist( Q2, Xb, h2_sim_xb );
+		fillHist( Q2, Xb, h2_sim_xb , 1. );
 	}
 
 	TCanvas ** c_Q2 = new TCanvas*[bins_Q2];
@@ -102,7 +102,7 @@ int main( int argc, char** argv){
 	return 1;
 }
 
-void fillHist( double Q2, double Xb, TH1D** hist ){
+void fillHist( double Q2, double Xb, TH1D** hist, double weight ){
 
 	// If it's larger than max Q2 or smaller than min Q2, return
 	if( Q2 > Q2Bins[bins_Q2] 	) return;
@@ -123,7 +123,7 @@ void fillHist( double Q2, double Xb, TH1D** hist ){
 	if( this_bin_q2 == -1 ){ cerr << "how\n"; return; }
 	if( this_bin_q2 > bins_Q2-1 ){ cerr << "how\n"; return; }
 
-	hist[this_bin_q2]->Fill( Xb );
+	hist[this_bin_q2]->Fill( Xb , weight );
 
 }
 
