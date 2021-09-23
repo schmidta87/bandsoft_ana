@@ -21,20 +21,19 @@ aL.tick_params(direction='in')
 plt.sca(aL)
 plt.axhline(y=1,linestyle='--',linewidth=3,color='black')
 plt.ylim([0.5,1.5])
-plt.xlim([0,0.1])
-plt.xticks([0,0.05,0.1],fontsize=14)
-plt.yticks([0.7,1,1.3],fontsize=14)
-plt.ylabel('Data/Simulation',fontsize=18,labelpad=12)
-plt.xlabel(r'$p_T$',fontsize=18)
+plt.xlim([0,0.2])
+plt.xticks([0,0.05,0.1,0.15,0.2],fontsize=16)
+plt.yticks([0.7,1,1.3],fontsize=16)
+plt.ylabel('Data/Simulation',fontsize=22,labelpad=12)
+plt.xlabel(r'$p_T$',fontsize=22)
 
 #plt.figure(2,figsize=(9,6))
 plt.sca(aU)
-plt.xlim([0,0.1])
-plt.ylim([0,1000])
-plt.xticks([0,0.05,0.1],fontsize=14)
-plt.yticks([0,500,1000],fontsize=14)
-plt.ylabel('Counts [a.u.]',fontsize=18,labelpad=12)
-plt.xlabel(r'$\alpha_S$',fontsize=18)
+plt.xlim([0,0.2])
+plt.ylim([0,1500])
+plt.xticks([0,0.05,0.1,0.15,0.2],fontsize=16)
+plt.yticks([0,500,1000],fontsize=16)
+plt.ylabel('Counts',fontsize=22,labelpad=12)
 
 files = ['pT_10pt2.txt','pT_10pt4.txt','pT_10pt6.txt']
 mark = ['o','s','*']
@@ -82,17 +81,17 @@ for i in range(len(files)):
             else: continue
 
         plt.sca(aL)
-        #DataSimX[i][1] = np.asarray(DataSimX[i][1]) + (i-1)/1000
-        #plt.errorbar(DataSimX[i][1],DataSim[i][1],yerr=DataSimErr[i][1],linestyle='none',marker=mark[i],color=col[i],label=str(check)+' GeV')
+        DataSimX[i][0] = np.asarray(DataSimX[i][0]) + (i-1)/1000
+        plt.errorbar(DataSimX[i][0],DataSim[i][0],yerr=DataSimErr[i][0],linestyle='none',marker=mark[i],color=col[i],label=str(check)+' GeV',markersize=7)
 
         plt.sca(aU)
-        #DataX[i][1] = np.asarray(DataX[i][1]) + (i-1)/1000
-        #plt.errorbar(DataX[i][1],Data[i][1],yerr=DataErr[i][1],linestyle='none',marker=mark[i],color=col[i],label=str(check)+' GeV')
+        DataX[i][0] = np.asarray(DataX[i][0]) + (i-1)/1000
+        plt.errorbar(DataX[i][0],Data[i][0],yerr=DataErr[i][0],linestyle='none',marker=mark[i],color=col[i],label=str(check)+' GeV',markersize=9)
 
-        SimX[i][1] = np.asarray(SimX[i][1])+0.01/2
-        Sim[i][1] = np.asarray(Sim[i][1])
-        SimErr[i][1] = np.asarray(SimErr[i][1])
-        #plt.step(SimX[i][1],Sim[i][1],color=col[i])
+        SimX[i][0] = np.asarray(SimX[i][0])+0.01/2
+        Sim[i][0] = np.asarray(Sim[i][0])
+        SimErr[i][0] = np.asarray(SimErr[i][0])
+        plt.step(SimX[i][0],Sim[i][0],color=col[i],linewidth=2,zorder=-1)
         #plt.step(SimX[1],Sim[1]+SimErr[1],color=col[i],alpha=0.5)
         #plt.step(SimX[1],Sim[1]-SimErr[1],color=col[i],alpha=0.5)
 
@@ -129,27 +128,32 @@ def WeightedAverage( AvgX, Avg, AvgE, X, Y, E ):
         AvgX.append(X[j][1][i])
 
 
-WeightedAverage( Avg_DataSimX, Avg_DataSim, Avg_DataSimErr, DataSimX, DataSim, DataSimErr )
+#WeightedAverage( Avg_DataSimX, Avg_DataSim, Avg_DataSimErr, DataSimX, DataSim, DataSimErr )
 
-WeightedAverage( Avg_DataX, Avg_Data, Avg_DataErr, DataX, Data,       DataErr )
+#WeightedAverage( Avg_DataX, Avg_Data, Avg_DataErr, DataX, Data,       DataErr )
 
-WeightedAverage( Avg_SimX, Avg_Sim,  Avg_SimErr, SimX, Sim,       SimErr )
+#WeightedAverage( Avg_SimX, Avg_Sim,  Avg_SimErr, SimX, Sim,       SimErr )
 
 
-
+cuts_str = '\n'.join((
+    r'$\mu=%.2f$' % (2, ),
+    r'$\mathrm{median}=%.2f$' % (2, ),
+    r'$\sigma=%.2f$' % (2, )))
 
 plt.sca(aL)
-plt.scatter( Avg_DataSimX, Avg_DataSim ,color='blue',marker='x',linewidth=4)
-plt.errorbar( Avg_DataSimX, Avg_DataSim ,yerr=Avg_DataSimErr ,color='blue',marker='x',linestyle='none',markersize=12,linewidth=3)
+#plt.scatter( Avg_DataSimX, Avg_DataSim ,color='blue',marker='x',linewidth=4)
+#plt.errorbar( Avg_DataSimX, Avg_DataSim ,yerr=Avg_DataSimErr ,color='blue',marker='x',linestyle='none',markersize=12,linewidth=3)
 
 plt.sca(aU)
-plt.scatter( Avg_DataX, Avg_Data ,color='blue',marker='x',linewidth=4)
-plt.errorbar( Avg_DataX, Avg_Data ,yerr=Avg_DataErr, color='blue',marker='x',linestyle='none',markersize=12,linewidth=3)
-plt.step( Avg_SimX , Avg_Sim , color='black')
+#plt.text(0.05, 0.95, cuts_str, transform=ax.transAxes, fontsize=14,
+#        verticalalignment='top', bbox=props)
+#plt.scatter( Avg_DataX, Avg_Data ,color='blue',marker='x',linewidth=4)
+#plt.errorbar( Avg_DataX, Avg_Data ,yerr=Avg_DataErr, color='blue',marker='x',linestyle='none',markersize=12,linewidth=3)
+#plt.step( Avg_SimX , Avg_Sim , color='black')
 
-#plt.legend(numpoints=1,loc=2,fontsize=12)
+plt.legend(numpoints=1,loc=2,fontsize=16)
 
 
-#plt.savefig('data_pT_individual.pdf',bbox_inches='tight')
-plt.savefig('data_pT_combo.pdf',bbox_inches='tight')
+plt.savefig('data_pT_individual.pdf',bbox_inches='tight')
+#plt.savefig('data_pT_combo.pdf',bbox_inches='tight')
 plt.show()
