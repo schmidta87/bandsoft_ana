@@ -21,11 +21,9 @@ void as(TString inDat, TString inBac, TString inSim){
 	// Get and set the background normalization
 	TVector3 * datnorm = (TVector3*)inFileDat->Get("bacnorm");
 	TVector3 * bacnorm = (TVector3*)inFileBac->Get("bacnorm");
-	//inTreeBac->SetWeight( datnorm->X() / bacnorm->X() );
 	// normalization uncertainty of the background:
-	TVector3 * fullnorm = (TVector3*)inFileDat->Get("full_bacnorm");
-	double Cscale = fullnorm->Z(); // this is the same as bacnorm->X() for the data file
-	double Sigma_Cscale = (fullnorm->Y() - fullnorm->X())/2.;  // this is the before-time and after-time levels
+	double Cscale = datnorm->Z(); // this is the same as bacnorm->X() for the data file
+	double Sigma_Cscale = (datnorm->Y() - datnorm->X())/2.;  // this is the before-time and after-time levels
 	double NB_sim = bacnorm->X();
 	double Sigma_NB_sim = sqrt(NB_sim);
 		// sigma_Cscale / Cscale ~ 7%
@@ -66,8 +64,9 @@ void as(TString inDat, TString inBac, TString inSim){
 		// Background subraction
 		background_subtraction( as_dat[i] , as_bac[i] , Cscale, NB_sim, Sigma_Cscale, Sigma_NB_sim );
 
-		if( i == 0 ){
+		if( i == 0 ){ // do normalization for total pT range
 		}
+		// do normalization for each pT bin
 		Ndata = as_dat[i]->Integral(); 		// total data we have
 		Nsim = as_sim[i]->Integral(); 		// total simulation we have
 		sim_scaling = Ndata/Nsim;		// scale of the simulation bin

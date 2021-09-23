@@ -21,11 +21,9 @@ void pT(TString inDat, TString inBac, TString inSim){
 	// Get and set the background normalization
 	TVector3 * datnorm = (TVector3*)inFileDat->Get("bacnorm");
 	TVector3 * bacnorm = (TVector3*)inFileBac->Get("bacnorm");
-	//inTreeBac->SetWeight( datnorm->X() / bacnorm->X() );
 	// normalization uncertainty of the background:
-	TVector3 * fullnorm = (TVector3*)inFileDat->Get("full_bacnorm");
-	double Cscale = fullnorm->Z(); // this is the same as bacnorm->X() for the data file
-	double Sigma_Cscale = (fullnorm->Y() - fullnorm->X())/2.;  // this is the before-time and after-time levels
+	double Cscale = datnorm->Z(); // this is the same as bacnorm->X() for the data file
+	double Sigma_Cscale = (datnorm->Y() - datnorm->X())/2.;  // this is the before-time and after-time levels
 	double NB_sim = bacnorm->X();
 	double Sigma_NB_sim = sqrt(NB_sim);
 		// sigma_Cscale / Cscale ~ 7%

@@ -17,7 +17,7 @@ void aspT(TString inDat, TString inBac, TString inSim){
 	// Get and set the background normalization
 	TVector3 * datnorm = (TVector3*)inFileDat->Get("bacnorm");
 	TVector3 * bacnorm = (TVector3*)inFileBac->Get("bacnorm");
-	inTreeBac->SetWeight( datnorm->X() / bacnorm->X() );
+	inTreeBac->SetWeight( datnorm->Z() / bacnorm->X() );
 
 	// Define histograms we want to plot:
 	TH2D * aspt_dat = new TH2D(Form("aspt_dat"),"",30,1.35,1.65,20,0.,0.1);
