@@ -9,7 +9,7 @@ IDs_old = []
 means_old = []
 colors = []
 #with open("../bin/ler_final_tdc_params.txt","r") as f, open("../../bandsoft_tools/include/LER_TDC_shifts.txt") as g:
-with open("../bin/test_tdc_v2.txt","r") as f, open("../../bandsoft_tools/include/LER_TDC_shifts.txt") as g:
+with open("../bin/ler_final_tdc_params.txt","r") as f, open("../bin/test-nocuts.txt") as g:
     for line in f:
         parse = line.strip().split()
         sector = int(parse[0])
