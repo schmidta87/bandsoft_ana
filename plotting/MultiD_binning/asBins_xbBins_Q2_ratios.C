@@ -1,4 +1,4 @@
-void asBins_wpxp_ratios(TString inDat, TString inBac, TString inSim){
+void asBins_xbBins_Q2_ratios(TString inDat, TString inBac, TString inSim){
 
 	// Define some function used
 	void label2D(TH2D* data, TString xlabel, TString ylabel);
@@ -22,40 +22,29 @@ void asBins_wpxp_ratios(TString inDat, TString inBac, TString inSim){
 
 
 	// Define histograms we want to plot:
-	const int nAs_bins = 6;
+	const int nAs_bins = 5;
 	const double As_min = 1.35;
-	const double As_max = 1.65;
-	const int nXp_bins = 10;
-	const int nXp_coarse_bins = 4;
-	const double Xp_min = 0.25;
-	const double Xp_max = 0.65;
-	const int nWp_bins = 10;
-	const int nWp_coarse_bins = 4;
-	const double Wp_min = 1.8;
-	const double Wp_max = 2.6;
-	const int nQ2_bins = 8;
+	const double As_max = 1.6;
+	const int nXb_bins = 10;
+	const int nXb_coarse_bins = 4;
+	const double Xb_min = 0.15;
+	const double Xb_max = 0.55;
+	const int nQ2_bins = 16;
 	const int nQ2_coarse_bins = 4;
-	const double Q2_min = 2;
-	const double Q2_max = 6;
-	TH1D ** xp_asBin_dat = new TH1D*[nAs_bins];
-	TH1D ** xp_asBin_bac = new TH1D*[nAs_bins];
-	TH1D ** xp_asBin_sim = new TH1D*[nAs_bins];
-	TH1D ** wp_asBin_dat = new TH1D*[nAs_bins];
-	TH1D ** wp_asBin_bac = new TH1D*[nAs_bins];
-	TH1D ** wp_asBin_sim = new TH1D*[nAs_bins];
-	TH1D ** Q2_asBin_dat = new TH1D*[nAs_bins];
-	TH1D ** Q2_asBin_bac = new TH1D*[nAs_bins];
-	TH1D ** Q2_asBin_sim = new TH1D*[nAs_bins];
+	const double Q2_min = 2.0;
+	const double Q2_max = 6.0;
+	TH1D *** Q2_dat = new TH1D**[nAs_bins];
+	TH1D *** Q2_bac = new TH1D**[nAs_bins];
+	TH1D *** Q2_sim = new TH1D**[nAs_bins];
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
-		xp_asBin_dat[bin] = new TH1D(Form("h1_xp_asBin_dat_%i",bin),"",nXp_bins,Xp_min,Xp_max);
-		xp_asBin_bac[bin] = new TH1D(Form("h1_xp_asBin_bac_%i",bin),"",nXp_bins,Xp_min,Xp_max);
-		xp_asBin_sim[bin] = new TH1D(Form("h1_xp_asBin_sim_%i",bin),"",nXp_bins,Xp_min,Xp_max);
-		wp_asBin_dat[bin] = new TH1D(Form("h1_wp_asBin_dat_%i",bin),"",nWp_bins,Wp_min,Wp_max);
-		wp_asBin_bac[bin] = new TH1D(Form("h1_wp_asBin_bac_%i",bin),"",nWp_bins,Wp_min,Wp_max);
-		wp_asBin_sim[bin] = new TH1D(Form("h1_wp_asBin_sim_%i",bin),"",nWp_bins,Wp_min,Wp_max);
-		Q2_asBin_dat[bin] = new TH1D(Form("h1_Q2_asBin_dat_%i",bin),"",nQ2_bins,Q2_min,Q2_max);
-		Q2_asBin_bac[bin] = new TH1D(Form("h1_Q2_asBin_bac_%i",bin),"",nQ2_bins,Q2_min,Q2_max);
-		Q2_asBin_sim[bin] = new TH1D(Form("h1_Q2_asBin_sim_%i",bin),"",nQ2_bins,Q2_min,Q2_max);
+		Q2_dat[bin] = new TH1D*[nXb_coarse_bins];
+		Q2_bac[bin] = new TH1D*[nXb_coarse_bins];
+		Q2_sim[bin] = new TH1D*[nXb_coarse_bins];
+		for( int xb_bin = 0 ; xb_bin < nXb_coarse_bins ; xb_bin++ ){
+			Q2_dat[bin][xb_bin] = new TH1D(Form("h1_Q2_dat_%i_%i",bin,xb_bin),"",nQ2_bins,Q2_min,Q2_max);
+			Q2_bac[bin][xb_bin] = new TH1D(Form("h1_Q2_bac_%i_%i",bin,xb_bin),"",nQ2_bins,Q2_min,Q2_max);
+			Q2_sim[bin][xb_bin] = new TH1D(Form("h1_Q2_sim_%i_%i",bin,xb_bin),"",nQ2_bins,Q2_min,Q2_max);
+		}
 	}
 
 	// Define any global cuts we want:
@@ -77,52 +66,56 @@ void asBins_wpxp_ratios(TString inDat, TString inBac, TString inSim){
 	double sim_int = h1_as_sim->Integral();
 	double simnorm = dat_int / sim_int;
 	
-	TCanvas * c1_as_wpxp_tag = new TCanvas("c1_as_wpxp_tag","",800,600);
-	c1_as_wpxp_tag->Divide(nAs_bins,2);
+	TCanvas * c1_as_xb_Q2_tag = new TCanvas("c1_as_xb_Q2_tag","",800,600);
+	TCanvas * c1_as_xb_Q2_ratio = new TCanvas("c1_as_xb_Q2_ratio","",800,600);
+	c1_as_xb_Q2_tag->Divide(nXb_coarse_bins,	nAs_bins);
+	c1_as_xb_Q2_ratio->Divide(nXb_coarse_bins,	nAs_bins);
 	for( int bin = 0 ; bin < nAs_bins ; bin++ ){
 		// Define this alphaS bin min/max cut
 		double this_min_as = As_min + bin*(As_max - As_min)/nAs_bins;
 		double this_max_as = As_min + (bin+1)*(As_max - As_min)/nAs_bins;
 		TCut this_as_cut = Form("tag[nleadindex]->getAs() > %f && tag[nleadindex]->getAs() < %f",this_min_as,this_max_as);
-		//	set title of histograms
-		TString current_title = Form("%.2f < As < %.2f",this_min_as,this_max_as);
-		wp_asBin_dat[bin]->SetTitle( current_title );
-		wp_asBin_sim[bin]->SetTitle( current_title );
-		xp_asBin_dat[bin]->SetTitle( current_title );
-		xp_asBin_sim[bin]->SetTitle( current_title );
+		
+		// Now loop over the X' bins we want:
+		for( int xb_bin = 0 ; xb_bin < nXb_coarse_bins ; xb_bin++ ){
+			double this_min_xb = Xb_min + xb_bin*(Xb_max - Xb_min)/nXb_coarse_bins;
+			double this_max_xb = Xb_min + (xb_bin+1)*(Xb_max - Xb_min)/nXb_coarse_bins;
+			TCut this_xb_cut = Form("eHit->getXb() > %f && eHit->getXb() < %f",this_min_xb,this_max_xb);
+		
+			//	set title of histograms
+			TString current_title = Form("%.2f < As < %.2f, %.2f < x_{B} < %.2f",this_min_as,this_max_as,this_min_xb,this_max_xb);
+			Q2_dat[bin][xb_bin]->SetTitle( current_title );
+			Q2_sim[bin][xb_bin]->SetTitle( current_title );
 
 
-		// 	fill the histograms of W' for given As bin
-		c1_as_wpxp_tag->cd(bin+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getWp() >> h1_wp_asBin_dat_%i",bin),this_as_cut && glob_cuts );
-		inTreeBac->Draw(Form("tag[nleadindex]->getWp() >> h1_wp_asBin_bac_%i",bin),this_as_cut && glob_cuts );
-		inTreeSim->Draw(Form("tag[nleadindex]->getWp() >> h1_wp_asBin_sim_%i",bin),this_as_cut && glob_cuts );
-		// 	fill the histograms of X' for given As bin
-		c1_as_wpxp_tag->cd(bin+1 + nAs_bins);
-		//inTreeDat->Draw(Form("tag[nleadindex]->getXp() >> h1_xp_asBin_dat_%i",bin),this_as_cut && glob_cuts );
-		//inTreeBac->Draw(Form("tag[nleadindex]->getXp() >> h1_xp_asBin_bac_%i",bin),this_as_cut && glob_cuts );
-		//inTreeSim->Draw(Form("tag[nleadindex]->getXp() >> h1_xp_asBin_sim_%i",bin),this_as_cut && glob_cuts );
-		inTreeDat->Draw(Form("eHit->getQ2() >> h1_Q2_asBin_dat_%i",bin),this_as_cut && glob_cuts );
-		inTreeBac->Draw(Form("eHit->getQ2() >> h1_Q2_asBin_bac_%i",bin),this_as_cut && glob_cuts );
-		inTreeSim->Draw(Form("eHit->getQ2() >> h1_Q2_asBin_sim_%i",bin),this_as_cut && glob_cuts );
+			// 	fill the histograms of X' for given As bin, W' bin
+			c1_as_xb_Q2_ratio->cd(xb_bin+1 + bin*nXb_coarse_bins);
+			c1_as_xb_Q2_tag->cd(xb_bin+1 + bin*nXb_coarse_bins);
+			inTreeDat->Draw(Form("eHit->getQ2() >> h1_Q2_dat_%i_%i",bin,xb_bin), this_as_cut && this_xb_cut && glob_cuts );
+			inTreeBac->Draw(Form("eHit->getQ2() >> h1_Q2_bac_%i_%i",bin,xb_bin), this_as_cut && this_xb_cut && glob_cuts );
+			inTreeSim->Draw(Form("eHit->getQ2() >> h1_Q2_sim_%i_%i",bin,xb_bin), this_as_cut && this_xb_cut && glob_cuts );
 
-		// 	do background subtraction for both W',X':
-		wp_asBin_dat[bin]->Add( wp_asBin_bac[bin] , -1 );
-		xp_asBin_dat[bin]->Add( xp_asBin_bac[bin] , -1 );
-		Q2_asBin_dat[bin]->Add( Q2_asBin_bac[bin] , -1 );
-		// 	do simulation scaling for both
-		wp_asBin_sim[bin]->Scale( simnorm );
-		xp_asBin_sim[bin]->Scale( simnorm );
-		Q2_asBin_sim[bin]->Scale( simnorm );
+			if( Q2_dat[bin][xb_bin]->Integral() == 0 || Q2_bac[bin][xb_bin]->Integral() == 0 || Q2_sim[bin][xb_bin]->Integral() == 0 ){ 
+				c1_as_xb_Q2_tag->cd(xb_bin+1 + bin*nXb_coarse_bins);
+				c1_as_xb_Q2_ratio->cd(xb_bin+1 + bin*nXb_coarse_bins);
+				continue;
+			}
 
-		c1_as_wpxp_tag->cd(bin+1);
-		label1D_ratio( wp_asBin_dat[bin] , wp_asBin_sim[bin], "W'","Data/Sim",0,2);
-		c1_as_wpxp_tag->cd(bin+1 + nAs_bins);
-		//label1D_ratio( xp_asBin_dat[bin] , xp_asBin_sim[bin], "x'","Data/Sim",0,2);
-		label1D_ratio( Q2_asBin_dat[bin] , Q2_asBin_sim[bin], "Q2","Data/Sim",0,2);
-	
+			// 	do background subtraction for X':
+			Q2_dat[bin][xb_bin]->Add( Q2_bac[bin][xb_bin] , -1 );
+			//	do simulation scaling
+			Q2_sim[bin][xb_bin]->Scale( simnorm );
+
+			
+			c1_as_xb_Q2_tag->cd(xb_bin+1 + bin*nXb_coarse_bins);
+			label1D( Q2_dat[bin][xb_bin] , Q2_sim[bin][xb_bin], "Q^{2}","Counts [a.u.]");
+
+			c1_as_xb_Q2_ratio->cd(xb_bin+1 + bin*nXb_coarse_bins);
+			label1D_ratio( Q2_dat[bin][xb_bin] , Q2_sim[bin][xb_bin], "Q^{2}","Data/Sim",0,2);
+		}
 	}
-	c1_as_wpxp_tag->SaveAs("asBins_wpxp_ratios.pdf");
+	c1_as_xb_Q2_tag		->SaveAs("asBins_xbBins_Q2.pdf");
+	c1_as_xb_Q2_ratio	->SaveAs("asBins_xbBins_Q2_ratio.pdf");
 
 
 	return;

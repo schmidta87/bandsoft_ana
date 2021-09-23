@@ -19,6 +19,9 @@ void Q2_inc(TString inDat, TString inSim){
 		Q2_dat[i] = new TH1D(Form("Q2_dat_%i",i),"",30,2,8);
 		Q2_sim[i] = new TH1D(Form("Q2_sim_%i",i),"",30,2,8);
 	}
+	// Get simulation normalization
+	double 		L_inc = 9.61e6 / (130.1);
+	double 		Q_inc = 535885;
 
 	// Draw the full Q2 distribution
 	TCanvas * c_Q2 = new TCanvas("c_Q2","",800,600);
@@ -34,7 +37,9 @@ void Q2_inc(TString inDat, TString inSim){
 		// Simulation scaling only from no pT cut distribution (i.e. from full distribution)
 		double full_simnorm = (double)Q2_dat[0]->Integral() / Q2_sim[0]->Integral();
 		if( i == 0 ) sim_scaling = full_simnorm;
-		Q2_sim[i]->Scale( sim_scaling );
+		//Q2_sim[i]->Scale( sim_scaling );
+		Q2_dat[i]->Scale(1./Q_inc);
+		Q2_sim[i]->Scale(1./L_inc);
 		
 		
 		Q2_sim[i]->SetTitle(Form("C_{sim} = %f",sim_scaling));

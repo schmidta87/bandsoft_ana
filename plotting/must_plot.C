@@ -103,6 +103,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	//	as just individual histograms for numerator and denominator
 	TCanvas * c1_as_xp_tag = new TCanvas("c1_as_xp_tag","",800,600);
 	c1_as_xp_tag->Divide(3,2);
+	double TAGSUM = 0;
 	for( int bin = 0 ; bin < nXp_bins ; bin++ ){
 		c1_as_xp_tag->cd(bin+1);
 		double this_min_xp = Xp_min+0.05 + bin*(Xp_max - Xp_min)/nXp_bins;
@@ -120,6 +121,8 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		h1_as_xp_dat[bin]->Scale(1./Q_tag);
 		h1_as_xp_sim[bin]->Scale(1./L_tag);
 
+		cout << "tagged counts: " << h1_as_xp_dat[bin]->Integral() << "\n";
+		TAGSUM += h1_as_xp_dat[bin]->Integral();
 		// Plot data and simulation:
 		double new_simnorm = h1_as_xp_dat[bin]->Integral() / h1_as_xp_sim[bin]->Integral();
 		TString current_title = Form("%f < x' < %f",this_min_xp,this_max_xp);
@@ -127,7 +130,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 		label1D(h1_as_xp_dat[bin],h1_as_xp_sim[bin],"Alpha_{S}","Counts");
 	}
 	c1_as_xp_tag->SaveAs("as_xpBins_tag.pdf");
-
+	cout << TAGSUM << "\n";
 
 
 
@@ -138,6 +141,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 	c1_q2_xb_inc->Divide(3,2);
 	double DatIncCounts[nXb_bins] = {0};
 	double SimIncCounts[nXb_bins] = {0};
+	double INCSUM = 0;
 	for( int bin = 0 ; bin < nXb_bins ; bin++ ){
 		c1_q2_xb_inc->cd(bin+1);
 		double this_min_xb = Xb_min+0.05 + bin*(Xb_max - Xb_min)/nXb_bins;
@@ -153,7 +157,8 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 
 		DatIncCounts[bin] = h1_q2_xb_dat[bin]->Integral();
 		SimIncCounts[bin] = h1_q2_xb_sim[bin]->Integral();
-
+		INCSUM += DatIncCounts[bin];
+		cout << "inc counts: " << DatIncCounts[bin] << "\n";
 
 		// Plot data and simulation:
 		h1_q2_xb_dat[bin]->SetTitle(Form("%f < x_{B} < %f",this_min_xb,this_max_xb));
@@ -162,6 +167,7 @@ void must_plot(TString inFileDatTagName, TString inFileBacTagName,
 
 	}
 	c1_q2_xb_inc->SaveAs("q2_xbBins_inc.pdf");
+	cout << INCSUM << "\n";
 
 
 	// Now do the R_tag/R_inc ratio
