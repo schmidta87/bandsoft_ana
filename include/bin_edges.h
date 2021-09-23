@@ -20,11 +20,12 @@ const double 	As_step 		= 0.1;
 const double 	As_min			= 1.3;
 const double 	As_max 			= As_min + As_step*bins_As; 
 
-const int 	bins_Xp 		= 3;
-const double 	Xp_step 		= 0.1; 
-const double 	Xp_min			= 0.2;
-const double 	Xp_max			= 0.5;
-const double 	Xp_Ref[bins_Q2]		= {0.4};//{0.4,0.5,0.6};
+const int 	bins_Xp 		= 11;
+const double 	Xp_step 		= 0.05; 
+const double 	Xp_min			= 0.225;
+const double 	Xp_max			= 0.775;
+//const double 	Xp_Ref[bins_Q2]		= {0.3};//{0.4,0.5,0.6};
+const double 	Xp_Ref[bins_As]		= {0.3,0.3,0.4};
 
 const int 	bins_Virt 		= 13;
 const double 	Virt_step 		= 0.02; 
