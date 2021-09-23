@@ -1,11 +1,4 @@
-void q(TString inDat, TString inBac, TString inSim){
-
-	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 0.32 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
-	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 0.32 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
-	TCut pTcut[3] = {"tag[nleadindex]->getPt().Mag() < 0.2","tag[nleadindex]->getPt().Mag()< 0.1","tag[nleadindex]->getPt().Mag()>0.1 && tag[nleadindex]->getPt().Mag()<0.2"};
-	TCut pTcut_sim[3] = {"tag_smeared[nleadindex]->getPt().Mag() < 0.2",
-	     			"tag_smeared[nleadindex]->getPt().Mag()< 0.1",
-				"tag_smeared[nleadindex]->getPt().Mag()>0.1 && tag_smeared[nleadindex]->getPt().Mag()<0.2"};
+void dLn_layer(TString inDat, TString inBac, TString inSim, int layer){
 
 	// Define some function used
 	void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
@@ -25,53 +18,62 @@ void q(TString inDat, TString inBac, TString inSim){
 	TVector3 * datnorm = (TVector3*)inFileDat->Get("bacnorm");
 	TVector3 * bacnorm = (TVector3*)inFileBac->Get("bacnorm");
 	inTreeBac->SetWeight( datnorm->X() / bacnorm->X() );
+	
 
 	// Define histograms we want to plot:
-	TH1D ** q_dat = new TH1D*[3];
-	TH1D ** q_bac = new TH1D*[3];
-	TH1D ** q_sim = new TH1D*[3];
+	TH1D ** dLn_dat = new TH1D*[3];
+	TH1D ** dLn_bac = new TH1D*[3];
+	TH1D ** dLn_sim = new TH1D*[3];
 	for(int i = 0 ; i < 3 ; i++){
-		q_dat[i] = new TH1D(Form("q_dat_%i",i),"",25,3.5,8.5);
-		q_bac[i] = new TH1D(Form("q_bac_%i",i),"",25,3.5,8.5);
-		q_sim[i] = new TH1D(Form("q_sim_%i",i),"",25,3.5,8.5);
+		dLn_dat[i] = new TH1D(Form("dLn_dat_%i",i),"",40,250,330);
+		dLn_bac[i] = new TH1D(Form("dLn_bac_%i",i),"",40,250,330);
+		dLn_sim[i] = new TH1D(Form("dLn_sim_%i",i),"",40,250,330);
 	}
 
-	// Draw the full q distribution
-	TCanvas * c_q = new TCanvas("c_q","",800,600);
+	// Draw the full dLn distribution
+	TCanvas * c_dLn = new TCanvas("c_dLn","",1200,900);
+	//Define the cut on layer number
+	TCut layer_cut = Form("nHits[nleadindex]->getLayer() == %d", layer);
+	
 	double sim_scaling = 0;
-	c_q->Divide(3,2);
+	c_dLn->Divide(3,2);
 	for( int i = 0 ; i < 3 ; i++){
+		TCut pTcut = "";
 		TString pTtitle = "Full pT";
 		if( i == 1 ){
+			pTcut = "tag[nleadindex]->getPt().Mag() < 0.1";
 			pTtitle = "Low pT";
 		}
 		if( i == 2 ){
+			pTcut = "tag[nleadindex]->getPt().Mag() >= 0.1";
 			pTtitle = "High pT";
 		}
 
-		c_q->cd(i+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getMomentumQ().Mag() >> q_dat_%i",i),pNcut && pTcut[i]);
-		inTreeBac->Draw(Form("tag[nleadindex]->getMomentumQ().Mag() >> q_bac_%i",i),pNcut && pTcut[i]);
-		inTreeSim->Draw(Form("tag_smeared[nleadindex]->getMomentumQ().Mag() >> q_sim_%i",i),pNcut_sim && pTcut_sim[i]);
+		c_dLn->cd(i+1);
+		inTreeDat->Draw(Form("sqrt( pow(nHits[nleadindex]->getX(),2) + pow(nHits[nleadindex]->getY(),2) + pow(nHits[nleadindex]->getZ(),2) )  >> dLn_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut && layer_cut);
+		inTreeBac->Draw(Form("sqrt( pow(nHits[nleadindex]->getX(),2) + pow(nHits[nleadindex]->getY(),2) + pow(nHits[nleadindex]->getZ(),2) )  >> dLn_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut && layer_cut);
+		inTreeSim->Draw(Form("nHits[nleadindex]->getDL().Mag() >> dLn_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0." && pTcut && layer_cut);
 
 		// Background subraction
-		q_dat[i]->Add(q_bac[i],-1);
+		dLn_dat[i]->Add(dLn_bac[i],-1);
 
 		// Simulation scaling only from no pT cut distribution (i.e. from full distribution)
-		double full_simnorm = (double)q_dat[i]->Integral() / q_sim[i]->Integral();
+		double full_simnorm = (double)dLn_dat[0]->Integral() / dLn_sim[0]->Integral();
+	
 		if( i == 0 ) sim_scaling = full_simnorm;
-		q_sim[i]->Scale( full_simnorm );
+		dLn_sim[i]->Scale( sim_scaling );
 		
+		double sec_simnorm = (double)dLn_dat[i]->Integral() / dLn_sim[i]->Integral();
 		
-		q_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",full_simnorm));
-		label1D(q_dat[i],q_sim[i],"|q| [GeV/c]","Counts");
+		dLn_sim[i]->SetTitle(pTtitle+Form(", C_{full} = %1.3f, layer=%d, C=%1.3f  ",sim_scaling, layer, sec_simnorm));
+		label1D(dLn_dat[i],dLn_sim[i],"|dL_{n}| [cm]","Counts");
 
-		c_q->cd(4+i);
-		label1D_ratio(q_dat[i],q_sim[i],"|q| [GeV/c]","Data/Sim",0,2);
+		c_dLn->cd(4+i);
+		label1D_ratio(dLn_dat[i],dLn_sim[i],"|dL_{n}| [cm]","Data/Sim",0,2);
 	}
 
 
-	c_q->SaveAs("full_q.pdf");
+	c_dLn->SaveAs(Form("full_dLn_layer_%d.pdf", layer));
 
 	return;
 }

@@ -1,5 +1,12 @@
 void dLn(TString inDat, TString inBac, TString inSim){
 
+	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 0.32 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 0.32 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pTcut[3] = {"tag[nleadindex]->getPt().Mag() < 0.2","tag[nleadindex]->getPt().Mag()< 0.1","tag[nleadindex]->getPt().Mag()>0.1 && tag[nleadindex]->getPt().Mag()<0.2"};
+	TCut pTcut_sim[3] = {"tag_smeared[nleadindex]->getPt().Mag() < 0.2",
+	     			"tag_smeared[nleadindex]->getPt().Mag()< 0.1",
+				"tag_smeared[nleadindex]->getPt().Mag()>0.1 && tag_smeared[nleadindex]->getPt().Mag()<0.2"};
+
 	// Define some function used
 	void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
 	void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel, double ymin , double ymax );
@@ -34,32 +41,29 @@ void dLn(TString inDat, TString inBac, TString inSim){
 	double sim_scaling = 0;
 	c_dLn->Divide(3,2);
 	for( int i = 0 ; i < 3 ; i++){
-		TCut pTcut = "";
 		TString pTtitle = "Full pT";
 		if( i == 1 ){
-			pTcut = "tag[nleadindex]->getPt().Mag() < 0.1";
 			pTtitle = "Low pT";
 		}
 		if( i == 2 ){
-			pTcut = "tag[nleadindex]->getPt().Mag() >= 0.1";
 			pTtitle = "High pT";
 		}
 
 		c_dLn->cd(i+1);
-		inTreeDat->Draw(Form("nHits[nleadindex]->getDL().Mag() >> dLn_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-		inTreeBac->Draw(Form("nHits[nleadindex]->getDL().Mag() >> dLn_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-		inTreeSim->Draw(Form("nHits[nleadindex]->getDL().Mag() >> dLn_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-
+		inTreeDat->Draw(Form("sqrt( pow(nHits[nleadindex]->getX(),2) + pow(nHits[nleadindex]->getY(),2) + pow(nHits[nleadindex]->getZ(),2) ) >> dLn_dat_%i",i),pNcut && pTcut[i]);
+		inTreeBac->Draw(Form("sqrt( pow(nHits[nleadindex]->getX(),2) + pow(nHits[nleadindex]->getY(),2) + pow(nHits[nleadindex]->getZ(),2) ) >> dLn_bac_%i",i),pNcut && pTcut[i]);
+		inTreeSim->Draw(Form("sqrt( pow(nHits[nleadindex]->getX(),2) + pow(nHits[nleadindex]->getY(),2) + pow(nHits[nleadindex]->getZ(),2) ) >> dLn_sim_%i",i),pNcut_sim && pTcut_sim[i]);
+		
 		// Background subraction
 		dLn_dat[i]->Add(dLn_bac[i],-1);
 
 		// Simulation scaling only from no pT cut distribution (i.e. from full distribution)
-		double full_simnorm = (double)dLn_dat[0]->Integral() / dLn_sim[0]->Integral();
+		double full_simnorm = (double)dLn_dat[i]->Integral() / dLn_sim[i]->Integral();
 		if( i == 0 ) sim_scaling = full_simnorm;
-		dLn_sim[i]->Scale( sim_scaling );
+		dLn_sim[i]->Scale( full_simnorm );
 		
 		
-		dLn_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
+		dLn_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",full_simnorm));
 		label1D(dLn_dat[i],dLn_sim[i],"|dL_{n}| [cm]","Counts");
 
 		c_dLn->cd(4+i);

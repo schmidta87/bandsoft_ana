@@ -1,4 +1,4 @@
-void q(TString inDat, TString inBac, TString inSim){
+void vtz(TString inDat, TString inBac, TString inSim){
 
 	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 0.32 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
 	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 0.32 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
@@ -27,19 +27,19 @@ void q(TString inDat, TString inBac, TString inSim){
 	inTreeBac->SetWeight( datnorm->X() / bacnorm->X() );
 
 	// Define histograms we want to plot:
-	TH1D ** q_dat = new TH1D*[3];
-	TH1D ** q_bac = new TH1D*[3];
-	TH1D ** q_sim = new TH1D*[3];
+	TH1D ** vtz_dat = new TH1D*[3];
+	TH1D ** vtz_bac = new TH1D*[3];
+	TH1D ** vtz_sim = new TH1D*[3];
 	for(int i = 0 ; i < 3 ; i++){
-		q_dat[i] = new TH1D(Form("q_dat_%i",i),"",25,3.5,8.5);
-		q_bac[i] = new TH1D(Form("q_bac_%i",i),"",25,3.5,8.5);
-		q_sim[i] = new TH1D(Form("q_sim_%i",i),"",25,3.5,8.5);
+		vtz_dat[i] = new TH1D(Form("vtz_dat_%i",i),"",30,-10,5);
+		vtz_bac[i] = new TH1D(Form("vtz_bac_%i",i),"",30,-10,5);
+		vtz_sim[i] = new TH1D(Form("vtz_sim_%i",i),"",30,-10,5);
 	}
 
-	// Draw the full q distribution
-	TCanvas * c_q = new TCanvas("c_q","",800,600);
+	// Draw the full vtz distribution
+	TCanvas * c_vtz = new TCanvas("c_vtz","",800,600);
 	double sim_scaling = 0;
-	c_q->Divide(3,2);
+	c_vtz->Divide(3,2);
 	for( int i = 0 ; i < 3 ; i++){
 		TString pTtitle = "Full pT";
 		if( i == 1 ){
@@ -49,29 +49,29 @@ void q(TString inDat, TString inBac, TString inSim){
 			pTtitle = "High pT";
 		}
 
-		c_q->cd(i+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getMomentumQ().Mag() >> q_dat_%i",i),pNcut && pTcut[i]);
-		inTreeBac->Draw(Form("tag[nleadindex]->getMomentumQ().Mag() >> q_bac_%i",i),pNcut && pTcut[i]);
-		inTreeSim->Draw(Form("tag_smeared[nleadindex]->getMomentumQ().Mag() >> q_sim_%i",i),pNcut_sim && pTcut_sim[i]);
+		c_vtz->cd(i+1);
+		inTreeDat->Draw(Form("eHit->getVtz() >> vtz_dat_%i",i),pNcut && pTcut[i] );
+		inTreeBac->Draw(Form("eHit->getVtz() >> vtz_bac_%i",i),pNcut && pTcut[i] );
+		inTreeSim->Draw(Form("eHit_smeared->getVtz() >> vtz_sim_%i",i),pNcut_sim && pTcut_sim[i] );
 
 		// Background subraction
-		q_dat[i]->Add(q_bac[i],-1);
+		vtz_dat[i]->Add(vtz_bac[i],-1);
 
 		// Simulation scaling only from no pT cut distribution (i.e. from full distribution)
-		double full_simnorm = (double)q_dat[i]->Integral() / q_sim[i]->Integral();
+		double full_simnorm = (double)vtz_dat[i]->Integral() / vtz_sim[i]->Integral();
 		if( i == 0 ) sim_scaling = full_simnorm;
-		q_sim[i]->Scale( full_simnorm );
+		vtz_sim[i]->Scale( full_simnorm );
 		
 		
-		q_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",full_simnorm));
-		label1D(q_dat[i],q_sim[i],"|q| [GeV/c]","Counts");
+		vtz_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",full_simnorm));
+		label1D(vtz_dat[i],vtz_sim[i],"Vertex z [cm]","Counts");
 
-		c_q->cd(4+i);
-		label1D_ratio(q_dat[i],q_sim[i],"|q| [GeV/c]","Data/Sim",0,2);
+		c_vtz->cd(4+i);
+		label1D_ratio(vtz_dat[i],vtz_sim[i],"Vertex z [cm]","Data/Sim",0,2);
 	}
 
 
-	c_q->SaveAs("full_q.pdf");
+	c_vtz->SaveAs("full_vtz.pdf");
 
 	return;
 }

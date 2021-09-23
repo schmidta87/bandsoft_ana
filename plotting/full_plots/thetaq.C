@@ -1,5 +1,12 @@
 void thetaq(TString inDat, TString inBac, TString inSim){
 
+	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 0.32 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 0.32 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pTcut[3] = {"tag[nleadindex]->getPt().Mag() < 0.2","tag[nleadindex]->getPt().Mag()< 0.1","tag[nleadindex]->getPt().Mag()>0.1 && tag[nleadindex]->getPt().Mag()<0.2"};
+	TCut pTcut_sim[3] = {"tag_smeared[nleadindex]->getPt().Mag() < 0.2",
+	     			"tag_smeared[nleadindex]->getPt().Mag()< 0.1",
+				"tag_smeared[nleadindex]->getPt().Mag()>0.1 && tag_smeared[nleadindex]->getPt().Mag()<0.2"};
+
 	// Define some function used
 	void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
 	void label1D_ratio(TH1D* data, TH1D* sim, TString xlabel, TString ylabel, double ymin , double ymax );
@@ -34,32 +41,29 @@ void thetaq(TString inDat, TString inBac, TString inSim){
 	double sim_scaling = 0;
 	c_thetaq->Divide(3,2);
 	for( int i = 0 ; i < 3 ; i++){
-		TCut pTcut = "";
 		TString pTtitle = "Full pT";
 		if( i == 1 ){
-			pTcut = "tag[nleadindex]->getPt().Mag() < 0.1";
 			pTtitle = "Low pT";
 		}
 		if( i == 2 ){
-			pTcut = "tag[nleadindex]->getPt().Mag() >= 0.1";
 			pTtitle = "High pT";
 		}
 
 		c_thetaq->cd(i+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getMomentumQ().Theta()*180./TMath::Pi() >> thetaq_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-		inTreeBac->Draw(Form("tag[nleadindex]->getMomentumQ().Theta()*180./TMath::Pi() >> thetaq_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-		inTreeSim->Draw(Form("tag[nleadindex]->getMomentumQ().Theta()*180./TMath::Pi() >> thetaq_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
+		inTreeDat->Draw(Form("tag[nleadindex]->getMomentumQ().Theta()*180./TMath::Pi() >> thetaq_dat_%i",i),pNcut && pTcut[i]);
+		inTreeBac->Draw(Form("tag[nleadindex]->getMomentumQ().Theta()*180./TMath::Pi() >> thetaq_bac_%i",i),pNcut && pTcut[i]);
+		inTreeSim->Draw(Form("tag_smeared[nleadindex]->getMomentumQ().Theta()*180./TMath::Pi() >> thetaq_sim_%i",i),pNcut_sim && pTcut_sim[i]);
 
 		// Background subraction
 		thetaq_dat[i]->Add(thetaq_bac[i],-1);
 
 		// Simulation scaling only from no pT cut distribution (i.e. from full distribution)
-		double full_simnorm = (double)thetaq_dat[0]->Integral() / thetaq_sim[0]->Integral();
+		double full_simnorm = (double)thetaq_dat[i]->Integral() / thetaq_sim[i]->Integral();
 		if( i == 0 ) sim_scaling = full_simnorm;
-		thetaq_sim[i]->Scale( sim_scaling );
+		thetaq_sim[i]->Scale( full_simnorm );
 		
 		
-		thetaq_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
+		thetaq_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",full_simnorm));
 		label1D(thetaq_dat[i],thetaq_sim[i],"Theta_{q} [Deg.]","Counts");
 
 		c_thetaq->cd(4+i);
