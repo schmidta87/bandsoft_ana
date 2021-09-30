@@ -10,7 +10,7 @@ def Read(line,X,Y,E):
     Y.append(y)
     E.append(e)
 
-fig, (aU, aL) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]},figsize=(10,8))
+fig, (aU, aL) = plt.subplots(2, 1, gridspec_kw={'height_ratios': [3, 1]},figsize=(12,12))
 fig.subplots_adjust(hspace=0,wspace=0)
 
 aU.tick_params(labelbottom=False,direction='in')
@@ -22,18 +22,18 @@ plt.sca(aL)
 plt.axhline(y=1,linestyle='--',linewidth=3,color='black')
 plt.ylim([0.5,1.5])
 plt.xlim([0,0.2])
-plt.xticks([0,0.05,0.1,0.15,0.2],fontsize=16)
-plt.yticks([0.7,1,1.3],fontsize=16)
-plt.ylabel('Data/Simulation',fontsize=22,labelpad=12)
-plt.xlabel(r'$p_T$',fontsize=22)
+plt.xticks([0,0.05,0.1,0.15,0.2],fontsize=24)
+plt.yticks([0.7,1,1.3],fontsize=24)
+plt.ylabel('Data/Simulation',fontsize=26,labelpad=12)
+plt.xlabel(r'$p_T$',fontsize=28)
 
 #plt.figure(2,figsize=(9,6))
 plt.sca(aU)
 plt.xlim([0,0.2])
-plt.ylim([0,1500])
-plt.xticks([0,0.05,0.1,0.15,0.2],fontsize=16)
-plt.yticks([0,500,1000],fontsize=16)
-plt.ylabel('Counts',fontsize=22,labelpad=12)
+plt.ylim([0,1300])
+plt.xticks([0,0.05,0.1,0.15,0.2],fontsize=24)
+plt.yticks([0,500,1000],fontsize=24)
+plt.ylabel('Counts',fontsize=26,labelpad=12)
 
 files = ['pT_10pt2.txt','pT_10pt4.txt','pT_10pt6.txt']
 mark = ['o','s','*']
@@ -151,8 +151,20 @@ plt.sca(aU)
 #plt.errorbar( Avg_DataX, Avg_Data ,yerr=Avg_DataErr, color='blue',marker='x',linestyle='none',markersize=12,linewidth=3)
 #plt.step( Avg_SimX , Avg_Sim , color='black')
 
-plt.legend(numpoints=1,loc=2,fontsize=16)
+plt.legend(numpoints=1,loc=2,fontsize=22)
 
+ax=plt.gca()
+textstr = '\n'.join((
+    r'$p_e > %1.0f$ GeV/c' % (3, ),
+    r'$Q^2 > %1.0f$ GeV$^2$/c$^4$' % (2, ),
+    r'$W > %1.0f$ GeV/c$^2$' % (2, ),
+    r'$E_\mathrm{dep} > %1.0f$ MeVee' % (10, ),
+    r'$\cos\theta_{nq} < %1.1f$' % (-0.8, ),
+    r'$p_n > %1.2f$ GeV/c' % (0.25, ), 
+    r"$W' > %1.1f$ GeV/c$^2$" % (1.8, ),
+    ))
+props = dict(boxstyle='round', facecolor='white', alpha=1,zorder=99)
+plt.text(0.7, 0.95, textstr, transform=ax.transAxes, fontsize=22,verticalalignment='top', bbox=props)
 
 plt.savefig('data_pT_individual.pdf',bbox_inches='tight')
 #plt.savefig('data_pT_combo.pdf',bbox_inches='tight')

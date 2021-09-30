@@ -1,13 +1,11 @@
-void pT(TString inDat, TString inBac, TString inSim){
+void edep(TString inDat, TString inBac, TString inSim){
 
-	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 1.0 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
-	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 1.0 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 1.0 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>5";
+	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 1.0 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>5";
 	TCut pTcut[3] = {"tag[nleadindex]->getPt().Mag() < 0.2","tag[nleadindex]->getPt().Mag()< 0.1","tag[nleadindex]->getPt().Mag()>0.1 && tag[nleadindex]->getPt().Mag()<0.2"};
 	TCut pTcut_sim[3] = {"tag_smeared[nleadindex]->getPt().Mag() < 0.2",
 	     			"tag_smeared[nleadindex]->getPt().Mag()< 0.1",
 				"tag_smeared[nleadindex]->getPt().Mag()>0.1 && tag_smeared[nleadindex]->getPt().Mag()<0.2"};
-
-	cerr << "Files used: " << inDat << " " << inBac << " " << inSim << "\n";
 
 	// Define some function used
 	void label1D(TH1D* data, TH1D* sim, TString xlabel, TString ylabel);
@@ -34,24 +32,24 @@ void pT(TString inDat, TString inBac, TString inSim){
 	double NB_sim = bacnorm->X();
 	double Sigma_NB_sim = sqrt(NB_sim);
 		// sigma_Cscale / Cscale ~ 7%
-	double Ndata = 0;
-	double Nsim = 0;
-	double sim_scaling = 0;
 
 	// Define histograms we want to plot:
-	TH1D ** pT_dat = new TH1D*[3];
-	TH1D ** pT_bac = new TH1D*[3];
-	TH1D ** pT_sim = new TH1D*[3];
+	TH1D ** edep_dat = new TH1D*[3];
+	TH1D ** edep_bac = new TH1D*[3];
+	TH1D ** edep_sim = new TH1D*[3];
 	for(int i = 0 ; i < 3 ; i++){
-		pT_dat[i] = new TH1D(Form("pT_dat_%i",i),"",25,0.,0.25);
-		pT_bac[i] = new TH1D(Form("pT_bac_%i",i),"",25,0.,0.25);
-		pT_sim[i] = new TH1D(Form("pT_sim_%i",i),"",25,0.,0.25);
+		edep_dat[i] = new TH1D(Form("edep_dat_%i",i),"",100,5,105);
+		edep_bac[i] = new TH1D(Form("edep_bac_%i",i),"",100,5,105);
+		edep_sim[i] = new TH1D(Form("edep_sim_%i",i),"",100,5,105);
 	}
 
-	// Draw the full as distribution
-	TCanvas * c_pT = new TCanvas("c_pT","",800,600);
-	c_pT->Divide(3,2);
-	for( int i = 0 ; i < 3 ; i++){
+	// Draw the full edep distribution
+	//TCanvas * c_edep = new TCanvas("c_edep","",800,600);
+	//TCanvas * c_edep_ratio = new TCanvas("c_edep_ratio","",800,600);
+	//c_edep->Divide(4,5);
+	//c_edep_ratio->Divide(4,5);
+	// ONLY DO LOW PT PLOT FOR DNP:
+	for( int i = 1 ; i < 2 ; i++){
 		TString pTtitle = "Full pT";
 		if( i == 1 ){
 			pTtitle = "Low pT";
@@ -60,32 +58,41 @@ void pT(TString inDat, TString inBac, TString inSim){
 			pTtitle = "High pT";
 		}
 
-		c_pT->cd(i+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getPt().Mag() >> pT_dat_%i",i),pNcut && pTcut[i]);
-		inTreeBac->Draw(Form("tag[nleadindex]->getPt().Mag() >> pT_bac_%i",i),pNcut && pTcut[i]);
-		inTreeSim->Draw(Form("tag_smeared[nleadindex]->getPt().Mag() >> pT_sim_%i",i),pNcut_sim && pTcut_sim[i]);
+		for( int j = 5 ; j < 25 ; j++ ){
 
-		// Background subraction
-		background_subtraction( pT_dat[i] , pT_bac[i] , Cscale, NB_sim, Sigma_Cscale, Sigma_NB_sim );
+			TCut Edepcut = Form("nHits[nleadindex]->getEdep() > %i",j);
 
-		if( i == 0 ){
+
+			//c_edep->cd(j+1-5);
+			inTreeDat->Draw(Form("nHits[nleadindex]->getEdep() >> edep_dat_%i",i),pNcut && pTcut[i] && Edepcut);
+			inTreeBac->Draw(Form("nHits[nleadindex]->getEdep() >> edep_bac_%i",i),pNcut && pTcut[i] && Edepcut);
+			inTreeSim->Draw(Form("nHits[nleadindex]->getEdep() >> edep_sim_%i",i),pNcut_sim && pTcut_sim[i] && Edepcut);
+
+			double Nspb = edep_dat[i]->Integral();
+			// Background subraction
+			background_subtraction( edep_dat[i] , edep_bac[i] , Cscale, NB_sim, Sigma_Cscale, Sigma_NB_sim );
+
+			// do normalization for each pT bin
+			double Ndata = edep_dat[i]->Integral(); 		// total data we have
+			double Nback = edep_bac[i]->Integral() * Cscale/NB_sim;
+			//Nsim = edep_sim[i]->Integral(); 		// total simulation we have
+			//sim_scaling = Ndata/Nsim;		// scale of the simulation bin
+			// Simulation weighting
+			//simulation_weighting( edep_sim[i], Ndata, Nsim );
+			
+			cout << "Ptbin: " << i << " EdepCut: " << j << " S+B: " << Nspb << " S: " << Ndata << " B: " << Nback << "\n";
+			//edep_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
+			//label1D(edep_dat[i],edep_sim[i],"Edep [MeVee]","Counts");
+
+			//c_edep_ratio->cd(j+1-5);
+			//label1D_ratio(edep_dat[i],edep_sim[i],"Edep [MeVee]","Data/Sim",0,2);
+			
 		}
-		Ndata = pT_dat[i]->Integral(); 		// total data we have
-		Nsim = pT_sim[i]->Integral(); 		// total simulation we have
-		sim_scaling = Ndata/Nsim;		// scale of the simulation bin
-		// Simulation weighting
-		simulation_weighting( pT_sim[i], Ndata, Nsim );
-		
-		cout << "Pt bin: " << i << " " << pTtitle << "\n";
-		pT_sim[i]->SetTitle(pTtitle+Form(", C_{sim} = %f, ",sim_scaling));
-		label1D(pT_dat[i],pT_sim[i],"Alpha_{S}","Counts");
-
-		c_pT->cd(4+i);
-		label1D_ratio(pT_dat[i],pT_sim[i],"p_{T} [GeV/c]","Data/Sim",0,2);
 	}
 
 
-	c_pT->SaveAs("full_pT.pdf");
+	//c_edep->SaveAs("full_edep.pdf");
+	//c_edep_ratio->SaveAs("full_edep_ratio.pdf");
 
 	return;
 }

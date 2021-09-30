@@ -1,4 +1,11 @@
 void xbxp(TString inDat, TString inBac, TString inSim){
+
+	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 1.0 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 1.0 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pTcut[3] = {"tag[nleadindex]->getPt().Mag() < 0.2","tag[nleadindex]->getPt().Mag()< 0.1","tag[nleadindex]->getPt().Mag()>0.1 && tag[nleadindex]->getPt().Mag()<0.2"};
+	TCut pTcut_sim[3] = {"tag_smeared[nleadindex]->getPt().Mag() < 0.2",
+	     			"tag_smeared[nleadindex]->getPt().Mag()< 0.1",
+				"tag_smeared[nleadindex]->getPt().Mag()>0.1 && tag_smeared[nleadindex]->getPt().Mag()<0.2"};
 	const int 	bins_As 		= 3;
 	const double 	As_step 		= 0.1;
 	const double 	As_min			= 1.3;
@@ -36,17 +43,16 @@ void xbxp(TString inDat, TString inBac, TString inSim){
 
 	// Draw the full xbxp distribution
 	double sim_scaling = 0;
-	TCut pTcut = "tag[nleadindex]->getPt().Mag() < 0.1";
 	for( int i = 0 ; i < bins_As ; i++){
-		TCanvas * c_xbxp = new TCanvas("c_xbxp","",800,600);
+		TCanvas * c_xbxp = new TCanvas(Form("c_xbxp_%i",i),"",800,600);
 		double this_min_as = As_min + i*(As_max - As_min)/bins_As;
 		double this_max_as = As_min + (i+1)*(As_max - As_min)/bins_As;
 		TCut this_as_cut = Form("tag[nleadindex]->getAs() > %f && tag[nleadindex]->getAs() < %f",this_min_as,this_max_as);
 
 		c_xbxp->cd(1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getXp() : eHit->getXb() >> xbxp_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut && this_as_cut);
-		inTreeBac->Draw(Form("tag[nleadindex]->getXp() : eHit->getXb() >> xbxp_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut && this_as_cut);
-		inTreeSim->Draw(Form("tag[nleadindex]->getXp() : eHit->getXb() >> xbxp_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut && this_as_cut);
+		inTreeDat->Draw(Form("tag[nleadindex]->getXp() : eHit->getXb() >> xbxp_dat_%i",i),pNcut && pTcut[1] && this_as_cut);
+		inTreeBac->Draw(Form("tag[nleadindex]->getXp() : eHit->getXb() >> xbxp_bac_%i",i),pNcut && pTcut[1] && this_as_cut);
+		inTreeSim->Draw(Form("tag_smeared[nleadindex]->getXp() : eHit_smeared->getXb() >> xbxp_sim_%i",i),pNcut_sim && pTcut_sim[1] && this_as_cut);
 
 		// Background subraction
 		xbxp_dat[i]->Add(xbxp_bac[i],-1);

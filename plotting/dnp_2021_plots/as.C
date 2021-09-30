@@ -1,5 +1,12 @@
 void as(TString inDat, TString inBac, TString inSim){
 
+	TCut pNcut = "tag[nleadindex]->getMomentumN().Mag() < 1.0 && tag[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pNcut_sim = "tag_smeared[nleadindex]->getMomentumN().Mag() < 1.0 && tag_smeared[nleadindex]->getMomentumN().Mag() > 0.25 && !(nHits[nleadindex]->getSector()==1 && nHits[nleadindex]->getComponent()==1) && nHits[nleadindex]->getEdep()>10";
+	TCut pTcut[3] = {"tag[nleadindex]->getPt().Mag() < 0.2","tag[nleadindex]->getPt().Mag()< 0.1","tag[nleadindex]->getPt().Mag()>0.1 && tag[nleadindex]->getPt().Mag()<0.2"};
+	TCut pTcut_sim[3] = {"tag_smeared[nleadindex]->getPt().Mag() < 0.2",
+	     			"tag_smeared[nleadindex]->getPt().Mag()< 0.1",
+				"tag_smeared[nleadindex]->getPt().Mag()>0.1 && tag_smeared[nleadindex]->getPt().Mag()<0.2"};
+
 	cerr << "Files used: " << inDat << " " << inBac << " " << inSim << "\n";
 
 	// Define some function used
@@ -45,21 +52,18 @@ void as(TString inDat, TString inBac, TString inSim){
 	TCanvas * c_as = new TCanvas("c_as","",800,600);
 	c_as->Divide(3,2);
 	for( int i = 0 ; i < 3 ; i++){
-		TCut pTcut = "";
 		TString pTtitle = "Full pT";
 		if( i == 1 ){
-			pTcut = "tag[nleadindex]->getPt().Mag() < 0.1";
 			pTtitle = "Low pT";
 		}
 		if( i == 2 ){
-			pTcut = "tag[nleadindex]->getPt().Mag() >= 0.1";
 			pTtitle = "High pT";
 		}
 
 		c_as->cd(i+1);
-		inTreeDat->Draw(Form("tag[nleadindex]->getAs() >> as_dat_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-		inTreeBac->Draw(Form("tag[nleadindex]->getAs() >> as_bac_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
-		inTreeSim->Draw(Form("tag[nleadindex]->getAs() >> as_sim_%i",i),"tag[nleadindex]->getMomentumN().Mag() > 0.3" && pTcut);
+		inTreeDat->Draw(Form("tag[nleadindex]->getAs() >> as_dat_%i",i),pNcut && pTcut[i]);
+		inTreeBac->Draw(Form("tag[nleadindex]->getAs() >> as_bac_%i",i),pNcut && pTcut[i]);
+		inTreeSim->Draw(Form("tag_smeared[nleadindex]->getAs() >> as_sim_%i",i),pNcut_sim && pTcut_sim[i]);
 
 		// Background subraction
 		background_subtraction( as_dat[i] , as_bac[i] , Cscale, NB_sim, Sigma_Cscale, Sigma_NB_sim );
