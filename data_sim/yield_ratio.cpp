@@ -134,11 +134,11 @@ int main( int argc, char** argv){
 		double Xp	= this_tag->getXp_WP();
 		double Q2	= dat_eHit->getQ2();
 		double Pn	= this_tag->getMomentumN().Mag();
-		if( lead_n->getEdep() < 7 ) continue;
+		if( lead_n->getEdep() < 10 ) continue;
 		if( Pn < 0.25 ) continue;
 
-		//if( bad_bar(lead_n) ) continue;
-		//	
+		if( bad_bar(lead_n) ) continue;
+			
 	
 		//if( lead_n->getSector()==2 && (lead_n->getComponent() > 3 && lead_n->getComponent() < 8 ) 
 		//		&& ( lead_n->getX()>90 || lead_n->getX() < -110 ) ) continue;
@@ -160,7 +160,7 @@ int main( int argc, char** argv){
 		// Get the correct tag hit
 		taghit * this_tag	= (taghit*)  bac_tagged->At(bac_nleadindex);
 		bandhit * lead_n	= (bandhit*) bac_bandhi->At(bac_nleadindex);
-		if( lead_n->getEdep() < 7 ) continue;
+		if( lead_n->getEdep() < 10 ) continue;
 
 		double As	= this_tag->getAs();
 		double Pt	= this_tag->getPt().Mag();
@@ -169,7 +169,7 @@ int main( int argc, char** argv){
 		double Pn	= this_tag->getMomentumN().Mag();
 		if( Pn < 0.25 ) continue;
 
-		//if( bad_bar(lead_n) ) continue;
+		if( bad_bar(lead_n) ) continue;
 
 		//if( lead_n->getSector()==2 && (lead_n->getComponent() > 3 && lead_n->getComponent() < 8 ) 
 		//		&& ( lead_n->getX()>90 || lead_n->getX() < -110 ) ) continue;
@@ -191,7 +191,7 @@ int main( int argc, char** argv){
 		// Get the correct tag hit
 		taghit * this_tag	= (taghit*)  sim_tagged->At(sim_nleadindex);
 		bandhit * lead_n	= (bandhit*) sim_bandhi->At(bac_nleadindex);
-		if( lead_n->getEdep() < 7 ) continue;
+		if( lead_n->getEdep() < 10 ) continue;
 		
 		double As	= this_tag->getAs();
 		double Pt	= this_tag->getPt().Mag();
@@ -200,7 +200,7 @@ int main( int argc, char** argv){
 		double Pn	= this_tag->getMomentumN().Mag();
 		if( Pn < 0.25 ) continue;
 
-		//if( bad_bar(lead_n) ) continue;
+		if( bad_bar(lead_n) ) continue;
 
 		//if( lead_n->getSector()==2 && (lead_n->getComponent() > 3 && lead_n->getComponent() < 8 ) 
 		//		&& ( lead_n->getX()>90 || lead_n->getX() < -110 ) ) continue;
@@ -221,7 +221,6 @@ int main( int argc, char** argv){
 				c_Q2[i]->cd( (k*2)+1 + j );
 
 				if( h4_dat_xp[i][j][k]->Integral() < 1 || h4_bac_xp[i][j][k]->Integral() < 1 || h4_sim_xp[i][j][k]->Integral() < 1 ) continue;
-				cout << i << " " << j << " " << k << "\n";
 				background_subtraction( h4_dat_xp[i][j][k],
 					       	h4_bac_xp[i][j][k] , Cscale, NB_sim , Sigma_Cscale, Sigma_NB_sim );
 				
@@ -233,7 +232,6 @@ int main( int argc, char** argv){
 				double ref_f = ref_d / ref_s;
 				double ref_err = sqrt( ref_d/(ref_s*ref_s) + ref_d*ref_d/pow(ref_s,3) );
 
-				//cout << "\t" << ref_bin << " " << binref << "\n";
 				if( binref < 0 || !isfinite(binref) ) continue;
 
 
@@ -242,7 +240,6 @@ int main( int argc, char** argv){
 					// 	this means the simulation normalization cancels so don't worry about it
 					double bincontent = h4_dat_xp[i][j][k]->GetBinContent(bin) / 
 						h4_sim_xp[i][j][k]->GetBinContent(bin) / binref;			
-					cout << "\t\t" << bin << " " << bincontent << "\n";
 					if( !isfinite(bincontent) || bincontent < 0 ){
 						h4_dat_sim_xp[i][j][k]->SetBinContent(bin, 0);
 						h4_dat_sim_xp[i][j][k]->SetBinError(bin , 0);
@@ -259,7 +256,6 @@ int main( int argc, char** argv){
 					double ratio_err = sqrt( 
 						pow(1./ref_f * err1,2) + pow(f * ref_err,2)/pow(ref_f,4) );
 
-					//cout << "\t\t\t" << ref_err << " " << err1 << " " << ratio_err << "\n\n";
 					h4_dat_sim_xp[i][j][k]->SetBinError( bin , ratio_err );
 
 
@@ -419,6 +415,9 @@ void simulation_weighting(TH1D* sim, double Ndata, double Nsim ){
 
 bool bad_bar( bandhit * this_n ){
 	
+	if(	this_n->getSector() == 1 && this_n->getComponent() == 1 				) return true;
+	
+	/*
 	if(	this_n->getSector() == 3 && this_n->getLayer() == 4 && this_n->getComponent() == 2 	) return true;
 	if(	this_n->getSector() == 4 && this_n->getLayer() == 3 && this_n->getComponent() == 2 	) return true;
 	if(	this_n->getSector() == 4 && this_n->getLayer() == 2 && this_n->getComponent() == 5 	) return true;
@@ -436,6 +435,6 @@ bool bad_bar( bandhit * this_n ){
 	if(	this_n->getSector() == 2 && this_n->getLayer() == 4 && this_n->getComponent() == 4 	) return true;
 	if(	this_n->getSector() == 3 && this_n->getLayer() == 4 && this_n->getComponent() == 6 	) return true;
 	if(	this_n->getSector() == 3 && this_n->getLayer() == 5 && this_n->getComponent() == 3 	) return true;
-
+	*/
 	return false;
 }
