@@ -14,9 +14,9 @@ target_link_libraries(final_tagged_newnorm ${ROOT_LIBRARIES} ${BAND_LIBS})
 install( TARGETS final_tagged_newnorm
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
 
-add_executable(final_neutrons final_neutrons.cpp )
-target_link_libraries(final_neutrons ${ROOT_LIBRARIES} ${BAND_LIBS})
-install( TARGETS final_neutrons
+add_executable(final_generated final_generated.cpp )
+target_link_libraries(final_generated ${ROOT_LIBRARIES} ${BAND_LIBS})
+install( TARGETS final_generated
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
 
 add_executable(chain_files chain_files.cpp )
