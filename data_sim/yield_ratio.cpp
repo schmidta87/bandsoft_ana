@@ -190,7 +190,7 @@ int main( int argc, char** argv){
 		
 		// Get the correct tag hit
 		taghit * this_tag	= (taghit*)  sim_tagged->At(sim_nleadindex);
-		bandhit * lead_n	= (bandhit*) sim_bandhi->At(bac_nleadindex);
+		bandhit * lead_n	= (bandhit*) sim_bandhi->At(sim_nleadindex);
 		if( lead_n->getEdep() < 10 ) continue;
 		
 		double As	= this_tag->getAs();
