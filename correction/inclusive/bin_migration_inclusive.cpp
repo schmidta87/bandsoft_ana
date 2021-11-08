@@ -6,6 +6,7 @@
 #include "TClonesArray.h"
 #include "TVector3.h"
 #include "TH1.h"
+#include "TH2.h"
 #include "TCanvas.h"
 #include "TLine.h"
 
@@ -42,11 +43,16 @@ int main( int argc, char** argv){
 	TFile * outFile = new TFile("migcorrection_inclusive.root","RECREATE");
 	TH1D ** h2_gen_xb 	= new TH1D*[bins_Q2];
 	TH1D ** h2_rec_xb	= new TH1D*[bins_Q2];
+	TH2D ** h2_twoD_cutongen	= new TH2D*[bins_Q2];
+	TH2D ** h2_twoD_cutonrec	= new TH2D*[bins_Q2];
 	for( int i = 0 ; i < bins_Q2 ; ++i ){ // bins in Q2
 		double minxb = Xb_min[i];
 		double maxxb = minxb + bins_Xb*Xb_step;
 		h2_gen_xb[i] = new TH1D(Form("gen_Xb_Q2_%i",i),Form("gen_Xb_Q2_%i",i),bins_Xb,minxb,maxxb); 
 		h2_rec_xb[i] = new TH1D(Form("migcorr_Xb_Q2_%i",i),Form("migcorr_Xb_Q2_%i",i),bins_Xb,minxb,maxxb); 
+
+		h2_twoD_cutongen[i]	= new TH2D(Form("twoD_cutongen_Xb_Q2_%i",i),Form("twoD_cutongen_Xb_Q2_%i",i),bins_Xb,minxb,maxxb,bins_Xb,minxb,maxxb);
+		h2_twoD_cutonrec[i]	= new TH2D(Form("twoD_cutonrec_Xb_Q2_%i",i),Form("twoD_cutonrec_Xb_Q2_%i",i),bins_Xb,minxb,maxxb,bins_Xb,minxb,maxxb);
 	}
 
 	for( int event = 0 ; event < inTree->GetEntries() ; ++event ){
@@ -70,6 +76,15 @@ int main( int argc, char** argv){
 
 		// sort the reconstructed values:
 		fillHist( rec_Q2, rec_Xb, h2_rec_xb );
+
+		int gen_bin_q2 = -1;
+		int rec_bin_q2 = -1;
+		for( int q2_bin = bins_Q2-1 ; q2_bin >= 0; --q2_bin ){
+			if( gen_Q2 > Q2Bins[q2_bin] ) gen_bin_q2 = q2_bin;
+			if( rec_Q2 > Q2Bins[q2_bin] ) rec_bin_q2 = q2_bin;
+		}
+		if( gen_bin_q2 < bins_Q2 && gen_bin_q2 >= 0 )	h2_twoD_cutongen[gen_bin_q2]->Fill( gen_Xb , rec_Xb );
+		if( rec_bin_q2 < bins_Q2 && rec_bin_q2 >= 0 )	h2_twoD_cutonrec[rec_bin_q2]->Fill( gen_Xb , rec_Xb );
 
 	}
 
@@ -101,6 +116,45 @@ int main( int argc, char** argv){
 
 		//h2_gen_xb[i]->Write();
 		h2_rec_xb[i]->Write();
+		
+		/*
+		// row normalized for in-flow:
+		for( int biny = 1 ; biny <= h2_twoD_cutonrec[i]->GetYaxis()->GetNbins(); ++biny ){
+			double rowsum = 0.0;
+			for( int binx = 1 ; binx <= h2_twoD_cutonrec[i]->GetXaxis()->GetNbins(); ++binx ){
+				rowsum += h2_twoD_cutonrec[i]->GetBinContent(binx,biny);
+			}
+			for( int binx = 1 ; binx <= h2_twoD_cutonrec[i]->GetXaxis()->GetNbins(); ++binx ){
+				double thiscontent = h2_twoD_cutonrec[i]->GetBinContent(binx,biny);
+				if( thiscontent <= 0 || rowsum <= 0 ) continue;
+				h2_twoD_cutonrec[i]->SetBinContent(binx,biny,thiscontent/rowsum);
+			}
+		}
+		*/
+		
+		// column normalied for out-flow:
+		for( int binx = 1 ; binx <= h2_twoD_cutonrec[i]->GetXaxis()->GetNbins(); ++binx ){
+			double colsum = 0.0;
+			for( int biny = 1 ; biny <= h2_twoD_cutonrec[i]->GetYaxis()->GetNbins(); ++biny ){
+				colsum += h2_twoD_cutonrec[i]->GetBinContent(binx,biny);
+			}
+			for( int biny = 1 ; biny <= h2_twoD_cutonrec[i]->GetYaxis()->GetNbins(); ++biny ){
+				double thiscontent = h2_twoD_cutonrec[i]->GetBinContent(binx,biny);
+				if( thiscontent <= 0 || colsum <= 0 ) continue;
+				h2_twoD_cutonrec[i]->SetBinContent(binx,biny,thiscontent/colsum);
+			}
+		}
+		
+
+		h2_twoD_cutongen[i]->GetXaxis()->SetTitle("x'_{gen}");
+		h2_twoD_cutongen[i]->GetYaxis()->SetTitle("x'_{rec}");
+		h2_twoD_cutongen[i]->SetMarkerSize(1.8);
+		h2_twoD_cutonrec[i]->GetXaxis()->SetTitle("x'_{gen}");
+		h2_twoD_cutonrec[i]->GetYaxis()->SetTitle("x'_{rec}");
+		h2_twoD_cutonrec[i]->SetMarkerSize(1.8);
+		h2_twoD_cutonrec[i]->SetStats(0);
+		h2_twoD_cutongen[i]->Write();
+		h2_twoD_cutonrec[i]->Write();
 
 		delete[] errors;
 
@@ -129,7 +183,7 @@ void fillHist( double Q2, double Xb, TH1D** hist ){
 	}
 
 	if( Xb < Xb_min[this_bin_q2]			) return;
-	if( Xb > Xb_min[this_bin_q2]+Xb_step*6		) return;
+	if( Xb > Xb_min[this_bin_q2]+Xb_step*bins_Xb	) return;
 
 	// Safety clauses
 	if( this_bin_q2 == -1 ){ cerr << "how\n"; return; }
