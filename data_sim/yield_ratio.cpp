@@ -49,7 +49,7 @@ int main( int argc, char** argv){
 	TVector3 * datnorm = (TVector3*) inFile_Dat.Get("bacnorm");
 	TVector3 * bacnorm = (TVector3*) inFile_Bac.Get("bacnorm");
 	// normalization uncertainty of the background:
-	double Cscale = datnorm->Z() * 0.9; // this is the same as bacnorm->X() for the data file
+	double Cscale = datnorm->Z(); // this is the same as bacnorm->X() for the data file
 	double Sigma_Cscale = (datnorm->Y() - datnorm->X())/2.;  // this is the before-time and after-time levels
 	double NB_sim = bacnorm->X();
 	double Sigma_NB_sim = sqrt(NB_sim);
