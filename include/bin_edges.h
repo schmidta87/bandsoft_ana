@@ -11,12 +11,12 @@ const double 	Pt_step 		= 0.1;
 const double 	Pt_min 			= 0.0;
 const double	Pt_max			= Pt_min + Pt_step*bins_Pt;
 
-const int 	bins_Xb 		= 6;
-const double 	Xb_step 		= 0.025; 
-const double 	Xb_min[bins_Q2]		= {0.15};//{0.15, 0.2, 0.25};
+const int 	bins_Xb 		= 49;
+const double 	Xb_step 		= 0.02; 
+const double 	Xb_min[bins_Q2]		= {0.01};//{0.15, 0.2, 0.25};
 
-const int 	bins_As 		= 3;
-const double 	As_step 		= 0.1;
+const int 	bins_As 		= 5;
+const double 	As_step 		= 0.05;
 const double 	As_min			= 1.3;
 const double 	As_max 			= As_min + As_step*bins_As; 
 
@@ -25,7 +25,7 @@ const double 	Xp_step 		= 0.05;
 const double 	Xp_min			= 0.225;
 const double 	Xp_max			= 0.775;
 //const double 	Xp_Ref[bins_Q2]		= {0.3};//{0.4,0.5,0.6};
-const double 	Xp_Ref[bins_As]		= {0.3,0.3,0.4};
+const double 	Xp_Ref[bins_As]		= {0.3,0.3,0.3,0.4,0.4};
 
 const int 	bins_Virt 		= 13;
 const double 	Virt_step 		= 0.02; 
