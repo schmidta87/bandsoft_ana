@@ -100,24 +100,21 @@ int main(int argc, char ** argv){
 		taghit gen_taghit;
 		getMcTag( gen, Ebeam, &gen_taghit );
 	
-		//cout << pointsToBand( gen_taghit.getMomentumN().Theta() , gen_taghit.getMomentumN().Phi() , 0 )  << "\n";
-		//cout << gen_taghit.getMomentumN().Theta() << "\n";
-		//cout << gen_taghit.getThetaNQ() << "\n";
-		//cout << gen_taghit.getMomentumN().Mag() << "\n";
-		//cout << gen_taghit.getWp()  << "\n";
-		//cout << gen_taghit.getAs()  << "\n";
-		//cout << nMult << "\n";
 		// Ask if it has the correct tag kinematics for our final cut selection:
-		if( checkTagHit( &gen_taghit ) == false ) continue;
+		//if( checkTagHit( &gen_taghit ) == false ) continue;
 		//cout << "\tgood tag generated\n";
 		++GoodGeneratedTag;
 		
 		// Now check if our neutron was reconstructed:
-		if( nMult == 0 ) 				continue; // nMult check
+		//if( nMult == 0 ) 				continue; // nMult check
 		if( goodneutron != NCUT_goodneutron ) 		continue; // goodneutron cut
 		if( nleadindex == NCUT_leadindex ) 		continue; // nleadindex cut
 		bandhit * lead_n = (bandhit*) nHits->At(nleadindex);
-		if( lead_n->getEdep() < 10 )			continue; // Edep cut
+
+
+	
+		if( lead_n->getMomentumN().Mag() < 0.45 || lead_n->getMomentumN().Mag() > 0.50) 	continue;
+		if( lead_n->getEdep() < 2 )								continue; // Edep cut
 		++GoodNeutronReco;
 
 
@@ -276,12 +273,15 @@ bool pointsToBand(double theta,double phi,double z_cm){
 bool checkTagHit(taghit * this_taghit){
 	if( pointsToBand( this_taghit->getMomentumN().Theta() , this_taghit->getMomentumN().Phi() , 0 ) == 0 )		return false; // 10cm fiducial cut AND cutting out the top bars
 	if( this_taghit->getMomentumN().Theta() 	> 168.5*M_PI/180. 	) 					return false;
-	if( this_taghit->getThetaNQ() < NCUT_THETANQ_min 	|| this_taghit->getThetaNQ() > NCUT_THETANQ_max	)	return false; // thetaNQ cut
+	//if( this_taghit->getThetaNQ() < NCUT_THETANQ_min 	|| this_taghit->getThetaNQ() > NCUT_THETANQ_max	)	return false; // thetaNQ cut
 	if( this_taghit->getMomentumN().Mag() < NCUT_Pn_min || this_taghit->getMomentumN().Mag() > NCUT_Pn_max )	return false; // pN cut
 	if( this_taghit->getMomentumN().Mag() != this_taghit->getMomentumN().Mag()	)				return false; // pN not a number cut
-	if( this_taghit->getWp() < NCUT_Wp_min || this_taghit->getWp() > NCUT_Wp_max )					return false; // Wp cut
-	if( this_taghit->getAs() < NCUT_As_min || this_taghit->getAs() > NCUT_As_max )					return false; // As cut
+	//if( this_taghit->getWp() < NCUT_Wp_min || this_taghit->getWp() > NCUT_Wp_max )					return false; // Wp cut
+	//if( this_taghit->getAs() < NCUT_As_min || this_taghit->getAs() > NCUT_As_max )					return false; // As cut
 	if( this_taghit->getMomentumN().Mag() < 0.25 )									return false; // Additional pN min cut
+
+
+	//if( this_taghit->getMomentumN().Mag() < 0.45 || this_taghit->getMomentumN().Mag() > 0.50 ) return false;
 
 	return true;
 
