@@ -38,13 +38,18 @@ int main(int argc, char** argv) {
 		double gated_charge = 0;
 		inTree->SetBranchAddress("gated_charge",	&gated_charge);
 
-
 		int nEvents = inTree->GetEntries();
-		inTree->GetEntry( nEvents-1 );
-		cout << argv[i] << " " << gated_charge << "\n";
+
+		double max_gated = 0;
+		for( int event = 0 ; event < nEvents ; ++event ){
+			gated_charge = 0.;
+			inTree->GetEntry( event );
+
+			if( max_gated < gated_charge ) max_gated = gated_charge;
+		}
+		cout << argv[i] << " " << max_gated << " " << gated_charge << "\n";
 
 		total_charge += gated_charge;
-
 
 	}// end loop over files
 	cout << total_charge << "\n";
