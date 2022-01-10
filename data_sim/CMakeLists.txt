@@ -21,3 +21,8 @@ add_executable(absolute_norm_inc absolute_norm_inc.cpp )
 target_link_libraries(absolute_norm_inc ${ROOT_LIBRARIES} ${BAND_LIBS})
 install( TARGETS absolute_norm_inc
 		DESTINATION ${CMAKE_SOURCE_DIR}/bin/data_sim ) 
+
+add_executable(fiducial_study fiducial_study.cpp )
+target_link_libraries(fiducial_study ${ROOT_LIBRARIES} ${BAND_LIBS})
+install( TARGETS fiducial_study
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin/data_sim ) 

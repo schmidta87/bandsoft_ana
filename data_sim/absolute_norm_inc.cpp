@@ -60,6 +60,8 @@ int main( int argc, char** argv){
 
 	// Luminosity weights:
 	double L_INC_MC = 6.11738e5 / 1E6;		// nb^-1 -> fb^-1 
+	//double L_INC_MC_OSG_TEST = 3.077e5 / 1E6;
+	double L_INC_MC_OSG_TEST =  6.11738e5 / 1E6 * (10000./25000.);
 
 	double Q_INC_DAT = 535885;		// nC
 	double LD2_den = 0.1644; 		// g/cm^3
@@ -69,6 +71,7 @@ int main( int argc, char** argv){
 	double cm2_to_fb = 1E-39;		// 1/cm^2 -> 1/fb
 	double num_electron = Q_INC_DAT / Coul;				// # electrons
 	double target_density = LD2_den * target_L / mDeut;		// # nucleons / cm^2
+	double livetime = -1;
 	double L_INC_DAT = num_electron * target_density * cm2_to_fb;	// fb^-1
 
 	// Load files
@@ -82,6 +85,7 @@ int main( int argc, char** argv){
 	// Set the input branches for inclusive data
 	clashit * inc_dat_eHit 		= new clashit;
 	inTree_Inc_Dat->SetBranchAddress("eHit"		,&inc_dat_eHit		);
+	inTree_Inc_Dat->SetBranchAddress("livetime"	,&livetime		);
 
 	// Set the input branches for inclusive simulation
 	clashit * inc_sim_eHit 		= new clashit;
@@ -142,8 +146,10 @@ int main( int argc, char** argv){
 	// Loop over the inclusive data file:
 	for( int event = 0 ; event < inTree_Inc_Dat->GetEntries() ; ++event ){
 		inc_dat_eHit	->Clear();
+		livetime = -1;
 
 		inTree_Inc_Dat->GetEntry(event);
+		if( livetime < 0 ) continue;
 
 		double Q2	= inc_dat_eHit->getQ2();
 		double Xb	= inc_dat_eHit->getXb();
@@ -151,7 +157,7 @@ int main( int argc, char** argv){
 		double theta	= inc_dat_eHit->getTheta() * 180./M_PI;
 		double phi	= inc_dat_eHit->getPhi() * 180./M_PI;
 	
-		fillHist( h2_dat_xb, h2_dat_Q2, h3_dat_pe, h3_dat_theta, h3_dat_phi , Xb, Q2, pe, theta, phi , 1./L_INC_DAT);
+		fillHist( h2_dat_xb, h2_dat_Q2, h3_dat_pe, h3_dat_theta, h3_dat_phi , Xb, Q2, pe, theta, phi , 1./(L_INC_DAT*livetime));
 
 	}
 
@@ -167,7 +173,7 @@ int main( int argc, char** argv){
 		double theta	= inc_sim_eHit->getTheta() * 180./M_PI;
 		double phi	= inc_sim_eHit->getPhi() * 180./M_PI;
 
-		fillHist( h2_sim_xb, h2_sim_Q2, h3_sim_pe, h3_sim_theta, h3_sim_phi , Xb, Q2, pe, theta, phi , 1./L_INC_MC);
+		fillHist( h2_sim_xb, h2_sim_Q2, h3_sim_pe, h3_sim_theta, h3_sim_phi , Xb, Q2, pe, theta, phi , 1./L_INC_MC_OSG_TEST);
 	}
 	
 	/*
@@ -359,7 +365,7 @@ void drawHistsRatio( TH1D* data, TH1D* sim, TString title, TString xtitle ){
 	line->SetLineColor(2);
 	line->Draw("same");
 
-	data_copy->GetYaxis()->SetRangeUser(0,1.1);
+	data_copy->GetYaxis()->SetRangeUser(0,1);
 	
 	data_copy->GetXaxis()->SetTitle(xtitle);
 	data_copy->GetYaxis()->SetTitle("Data/Sim");
