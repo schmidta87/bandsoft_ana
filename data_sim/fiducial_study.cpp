@@ -41,18 +41,18 @@ void drawHistsRatio( TH1D* data, TH1D* sim, TString title, TString xtitle );
 
 int main( int argc, char** argv){
 
-	if( argc != 3 ){
+	if( argc != 4 ){
 		cerr << "Incorrect number of arguments. Please use:\n";
-		cerr << "./code [Inc Dat File] [Inc Sim File]\n";
+		cerr << "./code [Inc Dat File] [Inc Sim File] [Output Directory (end in /) ]\n";
 		return -1;
 	}
 	cerr << "Files used: " << argv[1] << " " << argv[2] << "\n";
 
 
-
 	// Load files
 	TFile inFile_Inc_Dat(argv[1]);
 	TFile inFile_Inc_Sim(argv[2]);
+	TString output_dir = argv[3];
 
 	// Load TTrees from files
 	TTree * inTree_Inc_Dat = (TTree*) inFile_Inc_Dat.Get("electrons");
@@ -286,7 +286,7 @@ int main( int argc, char** argv){
 			drawHists( h3_dat_phi[i][j] , h3_sim_phi[i][j], title, "Phi_{e} [deg.]");
 			compare_phi[i][j]->cd(2);
 			drawHistsRatio( h3_dat_phi[i][j] , h3_sim_phi[i][j], title, "Phi [deg.]");
-			compare_phi[i][j]->Print(Form("compare_phi_theta_%i_pe_%i.pdf",i,j));
+			compare_phi[i][j]->Print(output_dir+Form("compare_phi_theta_%i_pe_%i.pdf",i,j));
 
 			h3_dat_phi[i][j]->Write();
 			h3_sim_phi[i][j]->Write();
@@ -307,7 +307,7 @@ int main( int argc, char** argv){
 				drawHists( h3_dat_tof[i][j][k] , h3_sim_tof[i][j][k], title, "ToF Bar ID");
 				compare_tof[i][j][k] -> cd(2);
 				drawHistsRatio( h3_dat_tof[i][j][k] , h3_sim_tof[i][j][k], title, "ToF Bar ID");
-				compare_tof[i][j][k]->Print(Form("compare_tof_sector_%i_layer_%i_pe_%i.pdf",i+1,j+1,k));
+				compare_tof[i][j][k]->Print(output_dir+Form("compare_tof_sector_%i_layer_%i_pe_%i.pdf",i+1,j+1,k));
 			}
 		}
 	}
@@ -346,7 +346,7 @@ int main( int argc, char** argv){
 			data_copy->SetMinimum(0.01);
 			data_copy->Draw("colz");
 			
-			compare_dc[i][j]->Print(Form("compare_dc_region_%i_phi_%i.pdf",(i+1),j));
+			compare_dc[i][j]->Print(output_dir+Form("compare_dc_region_%i_phi_%i.pdf",(i+1),j));
 
 
 		}
@@ -379,21 +379,21 @@ int main( int argc, char** argv){
 				drawHists( h3_dat_pcal_u[i][j][k] , h3_sim_pcal_u[i][j][k], title, "PCal_{u} [cm]");
 				compare_u[i][j][k]->cd(2);
 				drawHistsRatio( h3_dat_pcal_u[i][j][k] , h3_sim_pcal_u[i][j][k], title, "PCal_{u} [cm]");
-				compare_u[i][j][k]->Print(Form("compare_u_theta_%i_pe_%i_sector_%i.pdf",i,j,(k+1)));
+				compare_u[i][j][k]->Print(output_dir+Form("compare_u_theta_%i_pe_%i_sector_%i.pdf",i,j,(k+1)));
 
 				// Make pdf plots of phi comparisons
 				compare_v[i][j][k]->cd(1);
 				drawHists( h3_dat_pcal_v[i][j][k] , h3_sim_pcal_v[i][j][k], title, "PCal_{v} [cm]");
 				compare_v[i][j][k]->cd(2);
 				drawHistsRatio( h3_dat_pcal_v[i][j][k] , h3_sim_pcal_v[i][j][k], title, "PCal_{v} [cm]");
-				compare_v[i][j][k]->Print(Form("compare_v_theta_%i_pe_%i_sector_%i.pdf",i,j,(k+1)));
+				compare_v[i][j][k]->Print(output_dir+Form("compare_v_theta_%i_pe_%i_sector_%i.pdf",i,j,(k+1)));
 
 				// Make pdf plots of phi comparisons
 				compare_w[i][j][k]->cd(1);
 				drawHists( h3_dat_pcal_w[i][j][k] , h3_sim_pcal_w[i][j][k], title, "PCal_{w} [cm]");
 				compare_w[i][j][k]->cd(2);
 				drawHistsRatio( h3_dat_pcal_w[i][j][k] , h3_sim_pcal_w[i][j][k], title, "PCal_{w} [cm]");
-				compare_w[i][j][k]->Print(Form("compare_w_theta_%i_pe_%i_sector_%i.pdf",i,j,(k+1)));
+				compare_w[i][j][k]->Print(output_dir+Form("compare_w_theta_%i_pe_%i_sector_%i.pdf",i,j,(k+1)));
 			}
 
 		}
