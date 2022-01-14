@@ -1,8 +1,7 @@
 include_directories(${INCLUDES} )
 
 
-add_executable(calc_eff calc_eff.cpp )
-target_link_libraries(calc_eff ${ROOT_LIBRARIES} ${BAND_LIBS})
-install( TARGETS calc_eff
-		DESTINATION ${CMAKE_SOURCE_DIR}/bin ) 
-
+add_executable(resolution resolution.cpp )
+target_link_libraries(resolution ${ROOT_LIBRARIES} ${BAND_LIBS})
+install( TARGETS resolution
+		DESTINATION ${CMAKE_SOURCE_DIR}/bin/data_sim ) 
