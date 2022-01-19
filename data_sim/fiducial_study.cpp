@@ -156,7 +156,7 @@ int main( int argc, char** argv){
 
 	inTree_Inc_Dat->GetEntry(inTree_Inc_Dat->GetEntries() - 1 );
 	double Q_INC_DAT = gated_charge;		// nC
-	double LD2_den = 0.1644; 		// g/cm^3
+	double LD2_den = 0.169; 		// g/cm^3
 	double target_L = 5.;			// cm  (-5 to -1)
 	double mDeut = 3.3435837724E-24;	// g
 	double Coul = 1.60218E-10;		// nC
@@ -164,6 +164,9 @@ int main( int argc, char** argv){
 	double num_electron = Q_INC_DAT / Coul;				// # electrons
 	double target_density = LD2_den * target_L / mDeut;		// # nucleons / cm^2
 	double L_INC_DAT = num_electron * target_density * cm2_to_fb;	// fb^-1
+
+	double RESCALE = ( L_INC_DAT )  / inTree_Inc_Dat->GetEntries() ;
+	double RESCALE_SIM = ( L_INC_MC_OSG_TEST ) / inTree_Inc_Sim->GetEntries() ;
 
 	// Loop over the inclusive data file:
 	for( int event = 0 ; event < inTree_Inc_Dat->GetEntries() ; ++event ){
@@ -188,7 +191,7 @@ int main( int argc, char** argv){
 		for( int scint_hit = 0 ; scint_hit < scint_sec.size() ; ++scint_hit ){
 			if( pe > inc_max_pe		) continue;
 			if( pe < inc_min_pe		) continue;
-			h3_dat_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] ,  1./(L_INC_DAT*livetime));
+			h3_dat_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] ,  RESCALE/(L_INC_DAT));
 		}
 
 		double dc_x1 = inc_dat_eHit->getDC_x1();
@@ -204,18 +207,18 @@ int main( int argc, char** argv){
 
 		if( phi_1 > inc_min_phi && phi_1 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_1 - inc_min_phi)/inc_step_phi);
-			h3_dat_dc[0][this_bin_phi] -> Fill( theta , pe , 1./(L_INC_DAT*livetime));
+			h3_dat_dc[0][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
 		}
 		if( phi_2 > inc_min_phi && phi_2 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_2 - inc_min_phi)/inc_step_phi);
-			h3_dat_dc[1][this_bin_phi] -> Fill( theta , pe , 1./(L_INC_DAT*livetime));
+			h3_dat_dc[1][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
 		}
 		if( phi_3 > inc_min_phi && phi_3 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_3 - inc_min_phi)/inc_step_phi);
-			h3_dat_dc[2][this_bin_phi] -> Fill( theta , pe , 1./(L_INC_DAT*livetime));
+			h3_dat_dc[2][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
 		}
 	
-		fillHist( h3_dat_pcal_u, h3_dat_pcal_v, h3_dat_pcal_w , h3_dat_phi ,  pe, theta, phi, sector, u, v, w, 1./(L_INC_DAT*livetime));
+		fillHist( h3_dat_pcal_u, h3_dat_pcal_v, h3_dat_pcal_w , h3_dat_phi ,  pe, theta, phi, sector, u, v, w, RESCALE/(L_INC_DAT));
 
 	}
 
@@ -240,7 +243,7 @@ int main( int argc, char** argv){
 		for( int scint_hit = 0 ; scint_hit < scint_sec.size() ; ++scint_hit ){
 			if( pe > inc_max_pe		) continue;
 			if( pe < inc_min_pe		) continue;
-			h3_sim_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] , 1./(L_INC_MC_OSG_TEST));
+			h3_sim_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 
 		double dc_x1 = inc_sim_eHit->getDC_x1();
@@ -256,18 +259,18 @@ int main( int argc, char** argv){
 
 		if( phi_1 > inc_min_phi && phi_1 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_1 - inc_min_phi)/inc_step_phi);
-			h3_sim_dc[0][this_bin_phi] -> Fill( theta , pe , 1./(L_INC_MC_OSG_TEST));
+			h3_sim_dc[0][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 		if( phi_2 > inc_min_phi && phi_2 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_2 - inc_min_phi)/inc_step_phi);
-			h3_sim_dc[1][this_bin_phi] -> Fill( theta , pe , 1./(L_INC_MC_OSG_TEST));
+			h3_sim_dc[1][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 		if( phi_3 > inc_min_phi && phi_3 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_3 - inc_min_phi)/inc_step_phi);
-			h3_sim_dc[2][this_bin_phi] -> Fill( theta , pe , 1./(L_INC_MC_OSG_TEST));
+			h3_sim_dc[2][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 	
-		fillHist( h3_sim_pcal_u, h3_sim_pcal_v, h3_sim_pcal_w , h3_sim_phi , pe, theta, phi, sector, u, v, w, 1./(L_INC_MC_OSG_TEST));
+		fillHist( h3_sim_pcal_u, h3_sim_pcal_v, h3_sim_pcal_w , h3_sim_phi , pe, theta, phi, sector, u, v, w, RESCALE_SIM/(L_INC_MC_OSG_TEST));
 	}
 	
 	outFile->cd();	
@@ -459,6 +462,33 @@ void drawHistsRatio( TH1D* data, TH1D* sim, TString title, TString xtitle ){
 	TH1D * data_copy = (TH1D*) data->Clone();
 	TH1D * sim_copy = (TH1D*) sim->Clone();
 
+	// Calculate Chi2 of data/sim comparions:
+	double test_stat = 0;
+	double weights = 0;
+	int dof = 0;
+	for( int bin = 1 ; bin < data->GetXaxis()->GetNbins() ; ++bin ){
+		double d = data_copy->GetBinContent(bin);
+		double s =  sim_copy->GetBinContent(bin);
+		double de = sqrt(d);
+		double se = sqrt(s);
+		double dr = sqrt(  pow(1./s * de,2) + pow(d/(s*s) * se,2)  );
+		if( d == 0 && s == 0 ) continue;
+		else if( s == 0 ){
+			dof += 1;
+			continue;
+		}
+		else if( d == 0 ){
+			dof += 1;
+			continue;
+		}
+		test_stat += (d/s) / (dr);
+		weights += (1./dr);
+		dof += 1;
+	}
+	test_stat /= weights;
+	title += Form(" , Test-Stat: %.2f , dof: %i",test_stat,dof);
+	if( dof != 0 ) cout << xtitle << " " << title << "\n";
+
 	data_copy->SetTitle(title);
 	data_copy->SetStats(0);
 	data_copy->SetLineWidth(2);
@@ -473,7 +503,7 @@ void drawHistsRatio( TH1D* data, TH1D* sim, TString title, TString xtitle ){
 	line->SetLineColor(2);
 	line->Draw("same");
 
-	data_copy->GetYaxis()->SetRangeUser(0,1);
+	data_copy->GetYaxis()->SetRangeUser(0,2);
 	
 	data_copy->GetXaxis()->SetTitle(xtitle);
 	data_copy->GetYaxis()->SetTitle("Data/Sim");
