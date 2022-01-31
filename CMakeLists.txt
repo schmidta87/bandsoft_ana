@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake_modules")
 find_package(ROOT REQUIRED)
 
 
-FILE(GLOB BAND_LIBS $ENV{BANDSOFT_TOOLS_DIR}/lib/libclashit_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libbandhit_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libtaghit_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libgenpart_tree.*)
+FILE(GLOB BAND_LIBS $ENV{BANDSOFT_TOOLS_DIR}/lib/libclashit_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libbandhit_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libtaghit_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libgenpart_tree.* $ENV{BANDSOFT_TOOLS_DIR}/lib/libparticles_tree.*)
 
 
 set(INCLUDES ${ROOT_INCLUDE_DIR} ${CMAKE_SOURCE_DIR}/include $ENV{BANDSOFT_TOOLS_DIR}/include )
