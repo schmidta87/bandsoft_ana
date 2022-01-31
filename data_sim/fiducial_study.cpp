@@ -167,9 +167,13 @@ int main( int argc, char** argv){
 
 	double RESCALE = ( L_INC_DAT )  / inTree_Inc_Dat->GetEntries() ;
 	double RESCALE_SIM = ( L_INC_MC_OSG_TEST ) / inTree_Inc_Sim->GetEntries() ;
+	//RESCALE = 1;
+	//RESCALE_SIM = 1;
+
 
 	// Loop over the inclusive data file:
 	for( int event = 0 ; event < inTree_Inc_Dat->GetEntries() ; ++event ){
+		bool bad_data_event = false;
 		inc_dat_eHit	->Clear();
 		livetime = -1;
 
@@ -183,15 +187,33 @@ int main( int argc, char** argv){
 		double u	= inc_dat_eHit->getU();
 		double v	= inc_dat_eHit->getV();
 		double w	= inc_dat_eHit->getW();
+		if( sector == 2 && ( (v > 30 && v < 55) || (v>95 && v < 120) ) ){
+			bad_data_event = true;
+		}
+		if( sector == 1 && w > 70 && w < 100 ) bad_data_event = true;
 
 		std::vector<int>	scint_sec = inc_dat_eHit->getScint_sector();
 		std::vector<int>	scint_lay = inc_dat_eHit->getScint_layer();
 		std::vector<int>	scint_com = inc_dat_eHit->getScint_component();
 		int this_bin_pe = (int) ((pe - inc_min_pe)/inc_step_pe);
+		bool hit_layer2 = false;
 		for( int scint_hit = 0 ; scint_hit < scint_sec.size() ; ++scint_hit ){
 			if( pe > inc_max_pe		) continue;
 			if( pe < inc_min_pe		) continue;
-			h3_dat_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] ,  RESCALE/(L_INC_DAT));
+			if( scint_sec[scint_hit] == 2 && scint_lay[scint_hit] == 2 ) hit_layer2 = true;
+		}
+		for( int scint_hit = 0 ; scint_hit < scint_sec.size() ; ++scint_hit ){
+			if( pe > inc_max_pe		) continue;
+			if( pe < inc_min_pe		) continue;
+			if( scint_sec[scint_hit] == 2 && scint_lay[scint_hit] == 1 && (scint_com[scint_hit] == 6 || scint_com[scint_hit] == 10) && !hit_layer2 ){
+				bad_data_event = true;
+				continue;
+			}
+			if( scint_sec[scint_hit] == 5 && scint_lay[scint_hit] == 2 && (scint_com[scint_hit] == 12 || scint_com[scint_hit] == 13) ){
+				bad_data_event = true;
+				continue;
+			}
+			if( !bad_data_event) h3_dat_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] ,  RESCALE/(L_INC_DAT));
 		}
 
 		double dc_x1 = inc_dat_eHit->getDC_x1();
@@ -207,23 +229,24 @@ int main( int argc, char** argv){
 
 		if( phi_1 > inc_min_phi && phi_1 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_1 - inc_min_phi)/inc_step_phi);
-			h3_dat_dc[0][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
+			if( !bad_data_event) h3_dat_dc[0][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
 		}
 		if( phi_2 > inc_min_phi && phi_2 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_2 - inc_min_phi)/inc_step_phi);
-			h3_dat_dc[1][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
+			if( !bad_data_event) h3_dat_dc[1][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
 		}
 		if( phi_3 > inc_min_phi && phi_3 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_3 - inc_min_phi)/inc_step_phi);
-			h3_dat_dc[2][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
+			if( !bad_data_event) h3_dat_dc[2][this_bin_phi] -> Fill( theta , pe , RESCALE/(L_INC_DAT));
 		}
 	
-		fillHist( h3_dat_pcal_u, h3_dat_pcal_v, h3_dat_pcal_w , h3_dat_phi ,  pe, theta, phi, sector, u, v, w, RESCALE/(L_INC_DAT));
+		if( !bad_data_event) fillHist( h3_dat_pcal_u, h3_dat_pcal_v, h3_dat_pcal_w , h3_dat_phi ,  pe, theta, phi, sector, u, v, w, RESCALE/(L_INC_DAT));
 
 	}
 
 	// Loop over the inclusive simulation file:
 	for( int event = 0 ; event < inTree_Inc_Sim->GetEntries() ; ++event ){
+		bool bad_sim_event = false;
 		inc_sim_eHit	->Clear();
 
 		inTree_Inc_Sim->GetEntry(event);
@@ -235,15 +258,33 @@ int main( int argc, char** argv){
 		double u	= inc_sim_eHit->getU();
 		double v	= inc_sim_eHit->getV();
 		double w	= inc_sim_eHit->getW();
+		if( sector == 2 && ( (v > 30 && v < 55) || (v>95 && v < 120) ) ){
+			bad_sim_event = true;
+		}
+		if( sector == 1 && w > 70 && w < 100 ) bad_sim_event = true;
 
 		std::vector<int>	scint_sec = inc_sim_eHit->getScint_sector();
 		std::vector<int>	scint_lay = inc_sim_eHit->getScint_layer();
 		std::vector<int>	scint_com = inc_sim_eHit->getScint_component();
 		int this_bin_pe = (int) ((pe - inc_min_pe)/inc_step_pe);
+		bool hit_layer2 = false;
 		for( int scint_hit = 0 ; scint_hit < scint_sec.size() ; ++scint_hit ){
 			if( pe > inc_max_pe		) continue;
 			if( pe < inc_min_pe		) continue;
-			h3_sim_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] , RESCALE_SIM/(L_INC_MC_OSG_TEST));
+			if( scint_sec[scint_hit] == 2 && scint_lay[scint_hit] == 2 ) hit_layer2 = true;
+		}
+		for( int scint_hit = 0 ; scint_hit < scint_sec.size() ; ++scint_hit ){
+			if( pe > inc_max_pe		) continue;
+			if( pe < inc_min_pe		) continue;
+			if( scint_sec[scint_hit] == 2 && scint_lay[scint_hit] == 1 && (scint_com[scint_hit] == 6 || scint_com[scint_hit] == 10) && !hit_layer2 ){
+				bad_sim_event = true;
+				continue;
+			}
+			if( scint_sec[scint_hit] == 5 && scint_lay[scint_hit] == 2 && (scint_com[scint_hit] == 12 || scint_com[scint_hit] == 13) ){
+				bad_sim_event = true;
+				continue;
+			}
+			if( !bad_sim_event) h3_sim_tof[scint_sec[scint_hit]-1][scint_lay[scint_hit]-1][this_bin_pe]->Fill( scint_com[scint_hit] , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 
 		double dc_x1 = inc_sim_eHit->getDC_x1();
@@ -259,18 +300,18 @@ int main( int argc, char** argv){
 
 		if( phi_1 > inc_min_phi && phi_1 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_1 - inc_min_phi)/inc_step_phi);
-			h3_sim_dc[0][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
+			if( !bad_sim_event) h3_sim_dc[0][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 		if( phi_2 > inc_min_phi && phi_2 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_2 - inc_min_phi)/inc_step_phi);
-			h3_sim_dc[1][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
+			if( !bad_sim_event) h3_sim_dc[1][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 		if( phi_3 > inc_min_phi && phi_3 < inc_max_phi ){
 			this_bin_phi = (int) ((phi_3 - inc_min_phi)/inc_step_phi);
-			h3_sim_dc[2][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
+			if( !bad_sim_event) h3_sim_dc[2][this_bin_phi] -> Fill( theta , pe , RESCALE_SIM/(L_INC_MC_OSG_TEST));
 		}
 	
-		fillHist( h3_sim_pcal_u, h3_sim_pcal_v, h3_sim_pcal_w , h3_sim_phi , pe, theta, phi, sector, u, v, w, RESCALE_SIM/(L_INC_MC_OSG_TEST));
+		if( !bad_sim_event) fillHist( h3_sim_pcal_u, h3_sim_pcal_v, h3_sim_pcal_w , h3_sim_phi , pe, theta, phi, sector, u, v, w, RESCALE_SIM/(L_INC_MC_OSG_TEST));
 	}
 	
 	outFile->cd();	
